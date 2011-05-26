@@ -62,7 +62,7 @@ function addRowToGrid(url, gridId, lookupListId, readAuth, formatter) {
     // Finally, a blank row is added for the next record
     makeSpareRow(true, formatter);
     // Allow forms to hook into the event of a new row being added
-    if (typeof hook_species_checklist_new_row !== "undefined") {
+    if (hook_species_checklist_new_row !== undefined) {
       hook_species_checklist_new_row(data);
     }
   };
@@ -141,8 +141,7 @@ $('.remove-row').live('click', function(e) {
     // Hide the checkbox so this can't be undone
     row.find('.scPresence').css('display','none');
     // disable or remove all other active controls from the row.
-    // Do NOT disable the presence checkbox or the container td, otherwise it is not submitted.
-    row.find('*:not(.scPresence,.scPresenceCell)').attr('disabled','disabled');
+    row.find('*:not(.scPresence)').attr('disabled','disabled');
     row.find('a').remove();
   }
 });
@@ -228,7 +227,7 @@ function ConvertControlsToPopup(controls, label, icon) {
           '<img src="' + icon + '" width="22" height="22" alt="Show ' + label + '" /></a>');
       $('#anchor-' + identifier).append('<label>'+label+':</label><br/>');
       $('#anchor-' + identifier).append(input);
-      $('#anchor-' + identifier).append('<br/><input type="button" value="Close" onclick="$.fancybox.close();" class="ui-state-default ui-corner-all" />');
+      $('#anchor-' + identifier).append('<br/><input type="button" value="Close" onclick="$.fancybox.close();" ?>');
       // make sure the input shows, though at this stage it is in a hidden div. @todo This is a bit of a nasty hack, 
       // would rather obay CSS precedence rules but !important is getting in the way.
       $(input).css('cssText', 'display: inline !important');

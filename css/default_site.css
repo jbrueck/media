@@ -392,31 +392,3 @@ tr.odd {
   zoom:1;
   *display:inline;
 }
-
-.linear-form * {
-  vertical-align: middle;
-  width: auto;
-  margin-left: 0;
-}
-
-.jqplot-table-legend {
-  width: auto;
-}
-
-.pager-button {
-  border: solid grey 1px;
-  padding: 2px;
-  background-color: #ccc;
-}
-
-tfoot {
-  background-color: #eee;
-}
-
-tfoot td div{
-  padding: 2px 4px;
-}
-
-.olControlClearLayerItemInactive {
-  background-image: url("../images/nuvola/no-22px.png") !important;
-}
