@@ -21,7 +21,7 @@
   the newly added rows.
  */
 
-var selectVal = null, cacheLookup=false;
+var selectVal = null;
 
 /**
  * A keyboard event handler for the grid.
@@ -97,8 +97,8 @@ function keyHandler(evt) {
   }
 }
     
-function addRowToGrid(url, gridId, lookupListId, readAuth, formatter, useLookupCache) {
-  cacheLookup = typeof useLookupCache !== 'undefined' ? useLookupCache : false;
+function addRowToGrid(url, gridId, lookupListId, readAuth, formatter, cacheLookup) {
+	cacheLookup = typeof cacheLookup !== 'undefined' ? cacheLookup : false;
   // inner function to handle a selection of a taxon from the autocomplete
   var handleSelectedTaxon = function(event, data, value) {
     // on picking a result in the autocomplete, ensure we have a spare row
@@ -106,7 +106,7 @@ function addRowToGrid(url, gridId, lookupListId, readAuth, formatter, useLookupC
     $(event.target).unbind('result', handleSelectedTaxon);
     $(event.target).unbind('return', returnPressedInAutocomplete);
     var taxonCell=event.target.parentNode;
-    $(taxonCell).before('<td style="width: 1%"><a class="action-button remove-row">X</a></td>');
+    $(taxonCell).before('<td class="ui-state-default remove-row" style="width: 1%">X</td>');
     // Note case must be colSpan to work in IE!
     $(taxonCell).attr('colSpan',1);
     var row=taxonCell.parentNode;
@@ -139,13 +139,13 @@ function addRowToGrid(url, gridId, lookupListId, readAuth, formatter, useLookupC
             rowId = getRowId(data.id, 'name');
           }
           $(child).attr('name', $(child).attr('name').replace(/-ttlId-/g, rowId));
-          }          
+        }
         oldId = $(child).attr('id');
         if (typeof oldId !== "undefined" && oldId.indexOf('-ttlId-') !== -1) {
           // Update the id attribute if it contains the replacement tag
           if (rowId === -1) {
             rowId = getRowId(data.id, 'id');
-          }          
+            }
           $(child).attr('id', $(child).attr('id').replace(/-ttlId-/g, rowId)); 
         }
       });
@@ -234,7 +234,7 @@ function addRowToGrid(url, gridId, lookupListId, readAuth, formatter, useLookupC
     // add the row to the bottom of the grid
     newRow.appendTo('table#' + gridId +' > tbody').removeAttr('id');
     extraParams = {
-      orderby : cacheLookup ? 'original' : 'taxon',
+      orderby : 'taxon',
       mode : 'json',
       qfield : cacheLookup ? 'searchterm' : 'taxon',
       auth_token: readAuth.auth_token,
@@ -243,6 +243,9 @@ function addRowToGrid(url, gridId, lookupListId, readAuth, formatter, useLookupC
     };
     if (typeof indiciaData['taxonExtraParams-'+gridId]!=="undefined") {
       $.extend(extraParams, indiciaData['taxonExtraParams-'+gridId]);
+    }
+    if (cacheLookup) {
+      $.extend(extraParams, {"query":encodeURI('{"in":{"simplified":[true,null]}}')})
     }
     $(newRow).find('input,select').keydown(keyHandler);
     // Attach auto-complete code to the input
@@ -290,7 +293,7 @@ $('.remove-row').live('click', function(e) {
   if (typeof hook_species_checklist_pre_delete_row !== "undefined") {
     if(!hook_species_checklist_pre_delete_row(e)) return;
   }
-  var row = $($(e.target).parents('tr:first'));
+  var row = $(e.target.parentNode);
   if (row.next().find('.file-box').length>0) {
     // remove the uploader row
     row.next().remove();
@@ -334,7 +337,7 @@ $('.add-image-link').live('click', function(evt) {
     caption : 'Files',
     autoupload : '1',
     flickr : '',
-    uploadSelectBtnCaption : 'Add more file(s)',
+    uploadSelectBtnCaption : 'Select file(s)',
     startUploadBtnCaption : 'Start upload',
     msgUploadError : 'An error occurred uploading the file.',
     msgFileTooBig : 'The image file cannot be uploaded because it is larger than the maximum file size allowed.',
@@ -346,8 +349,7 @@ $('.add-image-link').live('click', function(evt) {
     jsPath : uploadSettings.jsPath,    
     table : table,
     maxUploadSize : '4000000', // 4mb
-    container: ctrlId,
-    autopick: true
+    container: ctrlId
   };
   if (typeof uploadSettings.resizeWidth!="undefined") opts.resizeWidth=uploadSettings.resizeWidth;
   if (typeof uploadSettings.resizeHeight!="undefined") opts.resizeHeight=uploadSettings.resizeHeight;
