@@ -384,7 +384,7 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
     var cacheLookup = indiciaData.speciesGrid[gridId].cacheLookup;
     makeSpareRow(gridId, readAuth, lookupListId, url, null, false);
     //Deal with user clicking on edit taxon icon
-    $('.edit-taxon-name').live('click', function(e) {
+    indiciaFns.on('click', '.edit-taxon-name', {}, function(e) {
       if ($('.ac_results:visible').length>0 || !$(e.target).is(':visible')) {
         // don't go into edit mode if they are picking a species name already
         return;
@@ -434,8 +434,8 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
       ctrl.bind('keydown', resetSpeciesTextOnEscape);
     });
   };
-  
-  $('.remove-row').live('click', function(e) {
+
+  indiciaFns.on('click', '.remove-row', {}, function(e) {
     e.preventDefault();
     // Allow forms to hook into the event of a row being deleted, most likely use would be to have a confirmation dialog
     if (typeof hook_species_checklist_pre_delete_row !== "undefined") {
@@ -468,7 +468,7 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
     }
   });
   //Open the specified page when the user clicks on the page link icon on a species grid row, use a dirty URL as this will work whether clean urls is on or not
-  $('.species-grid-link-page-icon').live('click', function(e) {
+  indiciaFns.on('click', '.species-grid-link-page-icon', {}, function(e) {
     var row = $($(e.target).parents('tr:first'));
     var taxa_taxon_list_id_to_use;
     //We cannot get the taxa_taxon_list_id by simply just getting the presence cell value, as sometimes there is more than one
@@ -488,7 +488,7 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
    * it has been linked to a taxon. Adds a row to the grid specifically to contain a file uploader for images
    * linked to that occurrence.
    */
-  $('.add-media-link').live('click', function(evt) {
+  indiciaFns.on('click', '.add-media-link', {}, function(evt) {
     evt.preventDefault();
     var table = evt.target.id.replace('add-media','sc') + ':occurrence_medium',
         ctrlId='container-'+table+'-'+Math.floor((Math.random())*0x10000),
@@ -525,8 +525,8 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
     imageRow.find('div').uploader(opts);
     $(evt.target).hide();
   });
-  
-  $('.hide-image-link').live('click', function(evt) {
+
+  indiciaFns.on('click', '.hide-image-link', {}, function(evt) {
     evt.preventDefault();
     var ctrlId=(evt.target.id.replace(/^hide\-images/, 'container-sc') + ':occurrence_medium').replace(/:/g, '\\:');
     if ($(evt.target).hasClass('images-hidden')) {
