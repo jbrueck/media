@@ -349,11 +349,8 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
       nonce: readAuth.nonce,
       taxon_list_id: lookupListId
     };
-    if (indiciaData.speciesGrid[gridId].cacheLookup)
-      extraParams.orderby = indiciaData.speciesGrid[gridId].selectMode ? 'original,preferred_taxon' : 'searchterm_length,original,preferred_taxon';
-    else
-      extraParams.orderby = 'taxon';
-    if (typeof indiciaData['taxonExtraParams-'+gridId]!=="undefined") { 
+    extraParams.orderby = indiciaData.speciesGrid[gridId].cacheLookup ? 'original,preferred_taxon' : 'taxon';
+    if (typeof indiciaData['taxonExtraParams-'+gridId]!=="undefined") {
       $.extend(extraParams, indiciaData['taxonExtraParams-'+gridId]);
       // a custom query on the list id overrides the standard filter..
       if (typeof extraParams.query!=="undefined" && extraParams.query.indexOf('taxon_list_id')!==-1) {
