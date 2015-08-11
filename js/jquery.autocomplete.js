@@ -462,6 +462,7 @@ $.Autocompleter = function(input, options) {
           limit: options.max+1
         }, extraParams),
         success: function(data) {
+          options.tooMuch = data && data.length && data.length>options.max;
           var parsed = options.parse && options.parse(data) || parse(data);
           cache.add(term, parsed);
           success(term, parsed);
@@ -777,12 +778,12 @@ $.Autocompleter.Select = function (options, input, select, config) {
       listItems.slice(0, 1).addClass(CLASSES.ACTIVE);
       active = 0;
     }
-    if (data.length>options.max & !options.doneMore) {
+    if (options.tooMuch & !options.doneMore) {
       list.append('<li class="ac_more"><span title="' + options.langMoreDetails + '">' + options.langMore + '...</span></li>');
       list.find('.ac_more').click(function() {
         $(input).trigger('moreClick');
       });
-    } else if (data.length>options.max) {
+    } else if (options.tooMuch) {
       list.append('<li class="ac_more"><span>' + options.langMoreDetails + '...</span></li>');
     }
     // apply bgiframe if available
