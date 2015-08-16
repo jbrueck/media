@@ -816,8 +816,7 @@ var destroyAllFeatures;
         // multimap layers are no longer provided, so map any requests to OSM for backwards compatibility.
         multimap_default : function() {return new OpenLayers.Layer.OSM();},
         multimap_landranger : function() {return new OpenLayers.Layer.OSM();},
-        osm : function() {return new OpenLayers.Layer.OSM();}, // default OpenStreetMap Mapnik layer
-        osm_th : function() {return new OpenLayers.Layer.OSM("OpenStreetMap Tiles@Home", "http://tah.openstreetmap.org/Tiles/tile/${z}/${x}/${y}.png");} // OpenStreetMap Tiles@Home
+        osm : function() {return new OpenLayers.Layer.OSM();} // default OpenStreetMap Mapnik layer
       };
       // To protect ourselves against exceptions because the Google script would not link up, we
       // only enable these layers if the Google constants are available. We separately check for google V2 and V3 layers
