@@ -39,6 +39,7 @@ var Georeferencer;
         tokens.push(settings.georefCountry);
       }
       searchfor=tokens.join(' ');
+      // Note - Yahoo API not available over https
       request = 'http://where.yahooapis.com/v1/places.q(' + searchfor + ');count=100';
       $.getJSON(request + "?format=json&lang="+settings.georefLang+
             "&appid="+settings.geoplanet_api_key+"&callback=?", function(data) {
