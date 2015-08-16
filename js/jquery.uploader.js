@@ -57,7 +57,7 @@ var checkSubmitInProgress = function () {
       return;
     }
     $.ajax({
-      url: "http://noembed.com/embed?format=json&callback=?&url="+encodeURIComponent(url),
+      url: indiciaData.protocol + "://noembed.com/embed?format=json&callback=?&url="+encodeURIComponent(url),
       dataType: 'json',
       success: function(data) {
         if (data.error) {
