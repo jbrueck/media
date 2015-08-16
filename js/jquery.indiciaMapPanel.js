@@ -808,7 +808,6 @@ var destroyAllFeatures;
     */
     function _getPresetLayers(settings) {
       var r={
-        nasa_mosaic : function() {return new OpenLayers.Layer.WMS('NASA Global Mosaic', 'http://t1.hypercube.telascience.org/cgi-bin/landsat7', {layers: 'landsat7'}, {'sphericalMercator': true});},
         // legacy support only
         virtual_earth: function() {return new OpenLayers.Layer.Bing({name: 'Bing Aerial', 'type': 'Aerial', 'key': settings.bing_api_key, 'sphericalMercator': true});},
         bing_aerial : function() {return new OpenLayers.Layer.Bing({name: 'Bing Aerial', 'type': 'Aerial', 'key': settings.bing_api_key, 'sphericalMercator': true});},
