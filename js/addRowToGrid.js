@@ -754,6 +754,7 @@ function getAutocompleteSettings(extraParams, gridId) {
     simplify: indiciaData.speciesGrid[gridId].cacheLookup, // uses simplified version of search string in cache to remove errors due to punctuation etc.
     max: indiciaData.speciesGrid[gridId].numValues,
     selectMode: indiciaData.speciesGrid[gridId].selectMode,
+    matchContains: indiciaData.speciesGrid[gridId].matchContains,
     parse: function(data) {
       var results = [], done={};
       jQuery.each(data, function(i, item) {
