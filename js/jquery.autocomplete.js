@@ -336,6 +336,9 @@ $.Autocompleter = function(input, options) {
   }
   
   function simplify(value) {
+    if (options.matchContains && value.substr(0, 1)!=='*') {
+      value = '*' + value;
+    }
     // use same regexp as used to populate cache_taxon_searchterms to simplify the search string
     if (options.simplify) {
       return value.toLowerCase().replace(/\(.+\)/g,'').replace(/ae/g,'e').replace(/\. /g, '* ').replace(/[^a-zA-Z0-9\+\?*]/g,'');
