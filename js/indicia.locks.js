@@ -103,7 +103,7 @@
     var pageHash = simpleHash(document.title);
     var lockedArray = [];
     if ($.cookie(COOKIE_NAME + user)) {
-      lockedArray = JSON.parse($.cookie(COOKIE_NAME + user));
+      lockedArray = JSON.parse($.cookie(COOKIE_NAME + user)) || [];
     } else {
       return;
     }
@@ -451,7 +451,7 @@
         setControlFromLock(this.id, formMode);
       });
       // install the live click handler for the lockable controls
-      $('.locked-icon, .unlocked-icon').live('click', function(event) {
+      indiciaFns.on('click', '.locked-icon, .unlocked-icon', null, function(event) {
         var id = this.id;
         var escId = esc4jq(id);
         var controlId = id.replace('_lock', '');
