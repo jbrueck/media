@@ -46,7 +46,7 @@ setupButtons = function (tabs, index) {
     var tabs = wizList.parent();
     // first, validate
     var current=indiciaFns.activeTab(wizList.parent().children('.ui-tabs'));
-    var tabinputs = $('#entry_form div > .ui-tabs-panel:eq('+current+')').find('input,select').not(':disabled,[name=],.scTaxonCell,.inactive');
+    var tabinputs = $('#entry_form div > .ui-tabs-panel:eq('+current+')').find('input,select').not(':disabled,[name=""],.scTaxonCell,.inactive');
     if (typeof tabinputs.valid !== "undefined" && tabinputs.length>0 && !tabinputs.valid()) {
       return;
     }
@@ -182,7 +182,7 @@ var validateInputsOnCurrentTab=function(current) {
     var $currentTab = $('#' + indiciaData.validatedFormId + ' div > .ui-tabs-panel:eq('+current+')'),
         // find all the inputs that require validation. Note that .inactive excludes all inputs in species grid rows
         // that are not yet filled in
-        tabinputs = $('input,select,textarea', $currentTab).not(':disabled,[name=],.inactive'),        
+        tabinputs = $('input,select,textarea', $currentTab).not(':disabled,[name=""],.inactive'),
         clonableRowDisplay, $clonableRow;    
     if (tabinputs.length>0 && !tabinputs.valid()) {
       alert(indiciaData.langErrorsOnTab);
