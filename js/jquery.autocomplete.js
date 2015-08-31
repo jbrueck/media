@@ -336,6 +336,9 @@ $.Autocompleter = function(input, options) {
   }
   
   function simplify(value) {
+    if (options.matchContains && value.substr(0, 1)!=='*') {
+      value = '*' + value;
+    }
     // use same regexp as used to populate cache_taxon_searchterms to simplify the search string
     if (options.simplify) {
       return value.toLowerCase().replace(/\(.+\)/g,'').replace(/ae/g,'e').replace(/\. /g, '* ').replace(/[^a-zA-Z0-9\+\?*]/g,'');
@@ -462,6 +465,7 @@ $.Autocompleter = function(input, options) {
           limit: options.max+1
         }, extraParams),
         success: function(data) {
+          options.tooMuch = data && data.length && data.length>options.max;
           var parsed = options.parse && options.parse(data) || parse(data);
           cache.add(term, parsed);
           success(term, parsed);
@@ -777,12 +781,12 @@ $.Autocompleter.Select = function (options, input, select, config) {
       listItems.slice(0, 1).addClass(CLASSES.ACTIVE);
       active = 0;
     }
-    if (data.length>options.max & !options.doneMore) {
+    if (options.tooMuch & !options.doneMore) {
       list.append('<li class="ac_more"><span title="' + options.langMoreDetails + '">' + options.langMore + '...</span></li>');
       list.find('.ac_more').click(function() {
         $(input).trigger('moreClick');
       });
-    } else if (data.length>options.max) {
+    } else if (options.tooMuch) {
       list.append('<li class="ac_more"><span>' + options.langMoreDetails + '...</span></li>');
     }
     // apply bgiframe if available

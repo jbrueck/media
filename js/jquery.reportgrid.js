@@ -1160,7 +1160,7 @@ var simple_tooltip;
     var href=$(e.target).attr('href');
     if (href) {
       $.ajax({
-        url: "http://noembed.com/embed?format=json&callback=?&url="+encodeURIComponent(href),
+        url: indiciaData.protocol + "://noembed.com/embed?format=json&callback=?&url="+encodeURIComponent(href),
         dataType: 'json',
         success: function(data) {
           if (data.error) {

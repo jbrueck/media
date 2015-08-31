@@ -808,8 +808,6 @@ var destroyAllFeatures;
     */
     function _getPresetLayers(settings) {
       var r={
-        openlayers_wms : function() {return new OpenLayers.Layer.WMS('OpenLayers WMS', 'http://labs.metacarta.com/wms/vmap0', {layers: 'basic'}, {'sphericalMercator': true});},
-        nasa_mosaic : function() {return new OpenLayers.Layer.WMS('NASA Global Mosaic', 'http://t1.hypercube.telascience.org/cgi-bin/landsat7', {layers: 'landsat7'}, {'sphericalMercator': true});},
         // legacy support only
         virtual_earth: function() {return new OpenLayers.Layer.Bing({name: 'Bing Aerial', 'type': 'Aerial', 'key': settings.bing_api_key, 'sphericalMercator': true});},
         bing_aerial : function() {return new OpenLayers.Layer.Bing({name: 'Bing Aerial', 'type': 'Aerial', 'key': settings.bing_api_key, 'sphericalMercator': true});},
@@ -818,8 +816,7 @@ var destroyAllFeatures;
         // multimap layers are no longer provided, so map any requests to OSM for backwards compatibility.
         multimap_default : function() {return new OpenLayers.Layer.OSM();},
         multimap_landranger : function() {return new OpenLayers.Layer.OSM();},
-        osm : function() {return new OpenLayers.Layer.OSM();}, // default OpenStreetMap Mapnik layer
-        osm_th : function() {return new OpenLayers.Layer.OSM("OpenStreetMap Tiles@Home", "http://tah.openstreetmap.org/Tiles/tile/${z}/${x}/${y}.png");} // OpenStreetMap Tiles@Home
+        osm : function() {return new OpenLayers.Layer.OSM();} // default OpenStreetMap Mapnik layer
       };
       // To protect ourselves against exceptions because the Google script would not link up, we
       // only enable these layers if the Google constants are available. We separately check for google V2 and V3 layers
