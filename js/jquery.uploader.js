@@ -477,7 +477,7 @@ var checkSubmitInProgress = function () {
       if (this.settings.useFancybox) {
         // Hack to get fancybox working as a jQuery live, because some of our images load from AJAX calls. 
         // So we temporarily create a dummy link to our image and click it.
-        $('a.fancybox').live('click', function() {
+        indiciaFns.on('click', 'a.fancybox', null, function() {
           jQuery("body").after('<a id="link_fancybox" style="display: hidden;" href="'+jQuery(this).attr('href')+'"></a>');
           jQuery('#link_fancybox').fancybox(); 
           jQuery('#link_fancybox').click();
@@ -485,8 +485,8 @@ var checkSubmitInProgress = function () {
           return false;
         });
       }
-      
-      $('.delete-file').live('click', function(evt) {
+
+      indiciaFns.on('click', '.delete-file', null, function(evt) {
         // if this is a newly uploaded file or still uploading, we can simply delete the div since all that has been done is an upload to the 
         // temp upload folder, which will get purged anyway. isNewField is a hidden input that marks up new and existing files.
         var id=evt.target.id.substr(4);
