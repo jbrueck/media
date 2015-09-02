@@ -1812,6 +1812,9 @@ var destroyAllFeatures;
         {
           var layer = presetLayers[item]();
           div.map.addLayer(layer);
+          if (typeof layer.mapObject!=="undefined") {
+            layer.mapObject.setTilt(0);
+          }
         } else {
           alert('Requested preset layer ' + item + ' is not recognised.');
         }
