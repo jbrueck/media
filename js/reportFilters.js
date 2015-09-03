@@ -397,6 +397,8 @@ jQuery(document).ready(function($) {
             filterParamsChanged();
           }
         }
+        // cleanup
+        delete indiciaData.filter.def['sref:geom'];
       },
       preloadForm:function() {
         // max size the map
