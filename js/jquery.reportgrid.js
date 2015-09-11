@@ -469,8 +469,9 @@ var simple_tooltip;
                 }
                 if (col.visible!==false && col.visible!=='false') {
                   if ((col.img === true || col.img==='true') && row[col.fieldname]!==null && row[col.fieldname]!=='' && typeof col.template === "undefined") {
-                    var imgs = row[col.fieldname].split(','), imgclass=imgs.length>1 ? 'multi' : 'single', match;
-                    value='';
+                    var imgs = row[col.fieldname].split(','), match, value='',
+                      imgclass=imgs.length>1 ? 'multi' : 'single',
+                      group=imgs.length>1 && div.settings.rowId!=='' ? ' rel="group-' + row[div.settings.rowId] + '"' : '';
                     $.each(imgs, function(idx, img) {
                       match = img.match(/^http(s)?:\/\/(www\.)?([a-z]+)/);
                       if (match!==null) {
@@ -478,7 +479,7 @@ var simple_tooltip;
                       } else if ($.inArray(img.split('.').pop(), ['mp3','wav'])>-1) {
                         value += '<audio controls src="'+div.settings.imageFolder+img+'" type="audio/mpeg"/>';
                       } else {
-                        value += '<a href="'+div.settings.imageFolder+img+'" class="fancybox ' + imgclass + '"><img src="'+
+                        value += '<a href="'+div.settings.imageFolder+img+'" class="fancybox ' + imgclass + '"' + group + '><img src="'+
                             div.settings.imageFolder+div.settings.imageThumbPreset+'-'+img+'" /></a>';
                       }
                     });
