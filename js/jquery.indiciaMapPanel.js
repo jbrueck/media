@@ -1023,9 +1023,10 @@ var destroyAllFeatures;
             }
             // create a protocol for the WMS getFeatureInfo requests if we need to
             if (wmsUrl!=='') {
-              this.protocol = new OpenLayers.Protocol.HTTP({
+              this.protocol = new OpenLayers.Protocol.Script({
                 url: wmsUrl,
-                format: new OpenLayers.Format.WMSGetFeatureInfo()
+                callback: this.onResponse,
+                scope: this
               });
             }
             OpenLayers.Control.prototype.activate.call(this);
@@ -1052,13 +1053,13 @@ var destroyAllFeatures;
               // Do a WMS request
               var params={
                   REQUEST: "GetFeatureInfo",
-                  EXCEPTIONS: "application/vnd.ogc.se_xml",
+                  EXCEPTIONS: "text/javascript",
                   VERSION: "1.1.0",
                   STYLES: '',
                   BBOX: div.map.getExtent().toBBOX(),
                   X: Math.round(this.lastclick.x),
                   Y: Math.round(this.lastclick.y),
-                  INFO_FORMAT: 'application/vnd.ogc.gml',
+                  INFO_FORMAT: 'text/javascript',
                   LAYERS: clickableWMSLayerNames,
                   QUERY_LAYERS: clickableWMSLayerNames,
                   WIDTH: div.map.size.w,
@@ -1081,10 +1082,13 @@ var destroyAllFeatures;
                 OpenLayers.ProxyHost = "";
               }
               try {
+                // GeoServer specific settings for the JSONP request.
+                // GeoServer must have JSONP enabled in webapps/geoserver/WEB_INF/web.xml
+                // for this to work.
+                this.protocol.callbackKey = 'format_options';
+                this.protocol.callbackPrefix = 'callback:';
                 this.protocol.read({
-                  params: params,
-                  callback: this.onResponse,
-                  scope: this
+                  params: params
                 });
               } finally {
                 OpenLayers.ProxyHost = oldPh;
