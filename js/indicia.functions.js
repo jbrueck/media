@@ -162,7 +162,7 @@ if (typeof window.indiciaData==="undefined") {
   indiciaFns.on = function(events, selector, data, handler) {
     var version = jQuery.fn.jquery.split('.');
     if (version[0] === '1' && version[1] < 4) {
-      $(selector).live(events, data, handler);
+      $(selector).live(events, handler);
     } else if (version[0] === '1' && version[1] < 7) {
       $(document).delegate(selector, events, data, handler);
     } else {
