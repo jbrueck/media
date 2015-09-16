@@ -831,6 +831,8 @@ jQuery(document).ready(function($) {
       // apply the filter to any reports on the page
       $.each(indiciaData.reports, function(i, group) {
         $.each(group, function(j, grid) {
+          // reset to first page
+          grid[0].settings.offset=0;
           // store a copy of the original params before any reset, so we can revert.
           if (typeof grid[0].settings.origParams==="undefined") {
             grid[0].settings.origParams = $.extend({}, grid[0].settings.extraParams);
