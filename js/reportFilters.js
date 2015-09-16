@@ -1075,7 +1075,9 @@ jQuery(document).ready(function($) {
         indiciaData.mapdiv.map.updateSize();
         indiciaData.mapdiv.settings.drawObjectType='queryPolygon';
         // No need to do this when loading a site boundary as indiciaMapPanel automates it.
-        indiciaData.mapdiv.map.zoomToExtent(indiciaData.mapdiv.map.editLayer.getDataExtent());
+        if (indiciaData.mapdiv.map.editLayer.features.length) {
+          indiciaData.mapdiv.map.zoomToExtent(indiciaData.mapdiv.map.editLayer.getDataExtent());
+        }
       }
     },
     onClosed: function(e) {
