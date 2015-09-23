@@ -104,22 +104,30 @@ if (typeof window.indiciaData==="undefined") {
     }
   };
   
-  /** 
+  /**
+   * Select a jQuery tab or return the index of the current selected one.
    * jQuery UI 1.10 replaced option.selected with option.active. Use this function to allow non-version specific
    * code.
    */
   indiciaFns.activeTab = function(tabs, index) {
-    var version=$.ui.version.split('.'), 
+    var version=$.ui.version.split('.'),
+        versionPre1_10 = version[0] === '1' && version[1] < 10,
         propname;
-    // behaviour differs if getting or setting the tab index and changes at jQuery UI 1.10.
-    if (typeof index==="undefined" && version[0]==='1' && version[1]<10) {
-      return tabs.tabs('option', 'selected');
-    } else if (typeof index==="undefined") {
-      return tabs.tabs('option', 'active');
-    } else if (version[0]==='1' && version[1]<10) {
-      return tabs.tabs('select', index);
+    if (typeof index==="undefined") {
+      // Getting a tab index
+      if (versionPre1_10) {
+        return tabs.tabs('option', 'selected');
+      } else if (typeof index === "undefined") {
+        return tabs.tabs('option', 'active');
+      }
     } else {
-      return tabs.tabs('option', 'active', index);
+      // Setting selected tab index. If index is passed as the tab's ID, convert to numeric index.
+      index = $('#' + index + '-tab').index();
+      if (versionPre1_10) {
+        return tabs.tabs('select', index);
+      } else {
+        return tabs.tabs('option', 'active', index);
+      }
     }
   };
   

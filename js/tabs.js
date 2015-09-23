@@ -157,7 +157,7 @@ initTabAddressing=function(divId) {
 
   $.address.externalChange(function(event){
     // Changes tab
-    $("#"+divId).tabs('select', $('#link-' + event.value).attr('href'));
+    indiciaFns.activeTab($("#"+divId), $('#link-' + event.value).attr('href'));
     if ($('.wiz-prog').length>0)
       scrollTopIntoView('.wiz-prog');
     else
