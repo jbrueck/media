@@ -645,11 +645,18 @@ form #map-toolbar {
   padding-bottom: 0;
 }
 
-.report-metadata {
-  width: 500px;
+.report-metadata-popup {
+  width: 800px;
+  max-height: 600px;
+  overflow-y: auto;
 }
 
-.report-metadata td {
+.report-metadata-popup table {
+  width: 100%;
+  padding-bottom: 1em;
+}
+
+.report-metadata-popup td {
   text-align: left;
 }
 

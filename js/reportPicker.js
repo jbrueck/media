@@ -41,21 +41,34 @@ jQuery(document).ready(function($) {
     var rpt = $('ul.treeview input:checked').val();
     $.ajax({
       dataType: "jsonp",
-      url: indiciaData.read.url+'index.php/services/report/requestReport',
-      data: {"reportSource":"local","report":rpt+'.xml', 'wantRecords':0, 'wantColumns':1, 'wantCount':0, 'wantParameters':1,
-        "auth_token":indiciaData.read.auth_token, "nonce":indiciaData.read.nonce},
+      url: indiciaData.read.url+'index.php/services/report/requestMetadata',
+      data: {"report":rpt+'.xml', "auth_token":indiciaData.read.auth_token, "nonce":indiciaData.read.nonce},
       success: function(data) {
+        var columnRows='', paramRows='', display, description, datatype, ns='<em>Not set</em>';
         if (typeof data.columns!=="undefined") {
-          var rows='';
           $.each(data.columns, function(field, def) {
-            if (typeof def.display==="undefined") {
-              def.display='Not set';
-            }
-            rows += '<tr><th schope="row">' + field + '</th><td>' + def.display + '</td></tr>';
+            display = typeof def.display==="undefined" || def.display===null ? ns : def.display;
+            columnRows += '<tr><th scope="row">' + field + '</th><td>' + display + '</td></tr>';
           });
-          $.fancybox('<table class="report-metadata ui-widget"><caption>Report columns</caption>' +
+          $.each(data.parameters, function(parameter, def) {
+            display = def.display===null ? ns : def.display;
+            description = def.description===null ? ns : def.description;
+            datatype = def.datatype===null ? ns : def.datatype;
+            paramRows += '<tr><th scope="row">' + parameter + '</th><td>' + display +
+              '</td><td>' + description + '</td><td>' + datatype + '</td></tr>';
+          });
+          $.fancybox('<div class="report-metadata-popup">' +
+              '<table class="ui-widget"><caption class="ui-widget-header">Report summary</caption>' +
+              '<thead class="ui-widget-header"><tr><th>Attribute</th><th>Value</th></tr></thead>' +
+              '<tbody><tr><th scope="row">Report path</th><td>' + rpt + '</td>' +
+              '</tbody></table>' +
+              '<table class="ui-widget"><caption class="ui-widget-header">Report columns</caption>' +
               '<thead class="ui-widget-header"><tr><th>Field</th><th>Title</th></tr></thead>' +
-              '<tbody>' + rows + '</tbody></table>');
+              '<tbody>' + columnRows + '</tbody></table>' +
+              '<table class="ui-widget"><caption class="ui-widget-header">Report parameters</caption>' +
+              '<thead class="ui-widget-header"><tr><th>Field</th><th>Title</th><th>Description</th><th>Data type</th></tr></thead>' +
+              '<tbody>' + paramRows + '</tbody></table>' +
+            '</div>');
         }
       },
       error: function() {
