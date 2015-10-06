@@ -64317,9 +64317,11 @@ OpenLayers.Layer.Google.v3 = {
                             me.moveTo(me.map.getCenter());
                             cache.googleControl.appendChild(map.viewPortDiv);
                         });
-                        map.div.appendChild(container);
-                        google.maps.event.trigger(this.mapObject, 'resize');
+                    } else {
+                        cache.googleControl.appendChild(map.viewPortDiv);
                     }
+                    map.div.appendChild(container);
+                    google.maps.event.trigger(this.mapObject, 'resize');
                 }
                 this.mapObject.setMapTypeId(type);                
             } else if (cache.googleControl.hasChildNodes()) {
