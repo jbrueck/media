@@ -1504,7 +1504,7 @@ var destroyAllFeatures;
       }
       // Next, OSGB
       if (!sys && $('#'+opts.srefSystemId+' option[value="OSGB"]').length
-          && point.x >= -1081873 && point.x <= -422933 && point.y >= 6405988 && point.y <= 8944478) {
+          && point.x >= -1081873 && point.x <= 422934 && point.y >= 6405988 && point.y <= 8944480) {
         // Got a rough match, now transform to the correct system so we can do exact match. This time we can do a pure
         // rectangle, as the IE grid refs have already been taken out
         proj=new OpenLayers.Projection('EPSG:27700');
