@@ -1488,6 +1488,10 @@ var destroyAllFeatures;
       if ($('select#'+opts.srefSystemId).length===0) {
         return system;
       }
+      // don't switch if system does not support autoswitching
+      if (system.toUpperCase()!=='OSGB' && system.toUpperCase()!=='OSIE' && system.toUpperCase()!=='LUGR') {
+        return system;
+      }
       sys = false;
       // Use the web mercator projection to do a rough test for each possible system.
       // First, OSIE
