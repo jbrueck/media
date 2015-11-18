@@ -637,14 +637,21 @@
                     }
                 })
                 .end()
+                .find('> tbody > tr:not(.' + cls.detail + ')').each(function(){
+                    // Locate rows for which details have been created, whether visible or not.
+                    var $row = $(this);
+                    if ($row.next().hasClass(cls.detail)) {
+                        $row.find("[data-bind-name]").each(function () {
+                            // Move bound inputs to where they will be visible.
+                            ft.toggleInput(this);
+                        });
+                    }              
+                })
+                .end()
                 .find('> tbody > tr.' + cls.detailShow).each(function () {
                     ft.createOrUpdateDetailRow(this);
                 });
-
-            $table.find("[data-bind-name]").each(function () {
-                ft.toggleInput(this);
-            });
-
+                
             $table.find('> tbody > tr.' + cls.detailShow + ':visible').each(function () {
                 var $next = $(this).next();
                 if ($next.hasClass(cls.detail)) {
@@ -808,7 +815,7 @@
             var bindName = $(column).attr("data-bind-name");
             if(bindName != null) {
                 var bindValue = $('.' + cls.detailInnerValue + '[' + 'data-bind-value="' + bindName + '"]');
-                if(bindValue != null) {
+                if(bindValue.length > 0) {
                     if($(column).is(":visible")) {
                         if(!$(bindValue).is(':empty')) $(column).html($(bindValue).contents().detach());
                     } else if(!$(column).is(':empty')) {
