@@ -151,6 +151,9 @@ if (typeof hook_species_checklist_pre_delete_row === "undefined") {
         
         // Locate the container for the media upload control we must create.
         var $container = $row.next().find('.scMedia');
+        // The file-box class is not added until now because addRowToGrid uses
+        // it as a marker for deleting rows in the non-reponsive case.
+        $container.addClass('file-box');
         // Extract the 'table' value for the upload control which is buried in
         // the container id in the format
         // container-tableValue-randomNumber
