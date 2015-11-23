@@ -4,8 +4,8 @@
 // http://fooplugins.com/plugins/footable-jquery/
 //
 (function($){
-  // Add indiciaFootable to the jQuery function object.
-  $.fn.indiciaFootable = function(options) {
+  // Add indiciaFootableReport to the jQuery function object.
+  $.fn.indiciaFootableReport = function(options) {
     
     // Loop through the selected items (which are assumed to be indicia
     // report grid containers).
@@ -23,7 +23,7 @@
       
       // Attach an event handler to precede the normal footable_redraw to  
       // remove the filter row on all future changes too.      
-      indiciaFns.on('footable_resizing.indiciaFootable', tableSelector, {}, function(){
+      indiciaFns.on('footable_resizing.indiciaFootableReport', tableSelector, {}, function(){
         var $table = $(this);
         // Remove the filter row from the thead before calling footable
         $table.find('.filter-row').detach();
@@ -37,7 +37,7 @@
       
       // Attach an event handler to follow the normal footable_redraw to  
       // reattach the filter row on all future changes.      
-      indiciaFns.on('footable_resized.indiciaFootable', tableSelector, $filterRow, function(){
+      indiciaFns.on('footable_resized.indiciaFootableReport', tableSelector, $filterRow, function(){
         var $table = $(this);
         restoreFilterRow($table, $filterRow);
       });      
