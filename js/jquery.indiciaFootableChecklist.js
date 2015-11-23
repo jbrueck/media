@@ -189,20 +189,20 @@ if (typeof hook_species_checklist_pre_delete_row === "undefined") {
         if (typeof file_box_uploaded_imageTemplate !== "undefined") { opts.file_box_uploaded_imageTemplate = file_box_uploaded_imageTemplate; }
         $container.uploader(opts);
         
-      // 
-      // DISPLAY MEDIA
-      // 
-      // Manage the display of the Media and Add Media fields in the details 
-      // view.
-      indiciaFns.on('footable_row_detail_updated', tableSelector, {}, function(e) {
-        updateMediaDetails(e.row);
-      });      
+        // 
+        // DISPLAY MEDIA
+        // 
+        // Manage the display of the Media and Add Media fields in the details 
+        // view.
+        indiciaFns.on('footable_row_detail_updated', tableSelector, {}, function(e) {
+          updateMediaDetails(e.row);
+        });      
 
+      });
+
+      // Return the original object for chaining.
+      return this;
     });
-    
-    // Return the original object for chaining.
-    return this;
-  });
   }
   
   /**
@@ -246,7 +246,6 @@ if (typeof hook_species_checklist_pre_delete_row === "undefined") {
   /**
    * Restores the colspan in the Clonable Row.
    * @param object $table A jQuery object of the table
-
    */
   function restoreClonableRow($table) {
     var $clonableRow = $table.find('.scClonableRow');
@@ -259,6 +258,5 @@ if (typeof hook_species_checklist_pre_delete_row === "undefined") {
       $taxonCell.attr('colspan', '2');
     }
   }
-  
-  
+    
 })(jQuery);
