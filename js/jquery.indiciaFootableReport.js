@@ -64,12 +64,12 @@
       var $filterCell = $filterCells.eq(index);
       if($(this).css('display') == 'none') {
         // This column is hidden so hide it in the filter.
-        $filterCell.eq(index).css('display', 'none');
+        $filterCell.css('display', 'none');
         $filterCell.removeClass('footable-visible');
       }
       else {
         // This column is visible so ensure it appears in the filter.
-        $filterCell.eq(index).css('display', 'initial');
+        $filterCell.css('display', 'auto');
       }
     });
     $table.find('thead tr').after($filterRow);
