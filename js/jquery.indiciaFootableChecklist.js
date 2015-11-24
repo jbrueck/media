@@ -188,17 +188,17 @@ if (typeof hook_species_checklist_pre_delete_row === "undefined") {
         if (typeof file_box_initial_file_infoTemplate !== "undefined") { opts.file_box_initial_file_infoTemplate = file_box_initial_file_infoTemplate; }
         if (typeof file_box_uploaded_imageTemplate !== "undefined") { opts.file_box_uploaded_imageTemplate = file_box_uploaded_imageTemplate; }
         $container.uploader(opts);
-        
-        // 
-        // DISPLAY MEDIA
-        // 
-        // Manage the display of the Media and Add Media fields in the details 
-        // view.
-        indiciaFns.on('footable_row_detail_updated', tableSelector, {}, function(e) {
-          updateMediaDetails(e.row);
-        });      
-
       });
+        
+      // 
+      // DISPLAY MEDIA
+      // 
+      // Manage the display of the Media and Add Media fields in the details 
+      // view.
+      indiciaFns.on('footable_row_detail_updated', tableSelector, {}, function(e) {
+        updateMediaDetails(e.row);
+      });      
+
 
       // Return the original object for chaining.
       return this;
