@@ -4,6 +4,9 @@
 // http://fooplugins.com/plugins/footable-jquery/
 //
 (function($){
+  // Track whether the controls tab has an event handler attached
+  var tabsHandled = false;
+  
   // Add indiciaFootableReport to the jQuery function object.
   $.fn.indiciaFootableReport = function(options) {
     
@@ -41,6 +44,29 @@
         var $table = $(this);
         restoreFilterRow($table, $filterRow);
       });      
+    
+      // The table may be hidden on a tab, in which case it will have not 
+      // responded to resize events. Therefore, when its tab is activated,
+      // trigger a redraw.
+      // The tabs may not be initialised at the point when this code is hit but
+      // the html will be present and the Dynamic Report Explorer puts all the 
+      // tabs in a div#controls.
+      var $tabs = $(this).closest('#controls');
+      if ($tabs.length > 0 && !tabsHandled) {
+        tabsHandled = true;
+        indiciaFns.bindTabsActivate($tabs, function(evt, ui) {
+          var panel = typeof ui.newPanel==='undefined' ? ui.panel : ui.newPanel[0];
+          var $tables = $(panel).find('table.footable')
+          if ($tables.length > 0) {
+            // The activated panel holds some footablea.
+            $tables.each(function(){
+              $table = $(this);
+              var ft = $table.data('footable');
+              ft.resize();
+            });
+          }
+        });
+      }
     });
     
     // Return the original object for chaining.
