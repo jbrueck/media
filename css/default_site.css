@@ -1093,3 +1093,17 @@ div.note-fail, p.note-fail {
 .status-icon.status-R.substatus-5.query-Q, .status-icon.status-R.substatus-5.query-A {
   background-position: -32px -112px;
 }
+.licence {
+  background: url(../images/licences-sprite.png) no-repeat center left;
+  padding-left: 100px;
+  box-sizing: border-box;
+}
+.licence-cc-by {
+  background-position: 0 -18px;
+}
+.licence-cc-by-nc {
+  background-position: 0 -36px;
+}
+.licence-cc0 {
+  background-position: 0 -54px;
+}
