@@ -142,12 +142,11 @@ if (typeof hook_species_checklist_pre_delete_row === "undefined") {
         
         // Ensure the details row is displayed.
         $button.hide();
-        if ($row.hasClass(ft.options.classes.detailShow)) {
-          updateMediaDetails($row);
-        }
-        else {
+        if (!$row.hasClass(ft.options.classes.detailShow)) {
           ft.toggleDetail($row);
         }
+        // Ensure that the media details will be visible.
+        updateMediaDetails($row);
         
         // Locate the container for the media upload control we must create.
         var $container = $row.next().find('.scMedia');
@@ -198,7 +197,6 @@ if (typeof hook_species_checklist_pre_delete_row === "undefined") {
       indiciaFns.on('footable_row_detail_updated', tableSelector, {}, function(e) {
         updateMediaDetails(e.row);
       });      
-
 
       // Return the original object for chaining.
       return this;
