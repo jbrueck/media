@@ -179,6 +179,22 @@ if (typeof window.indiciaData==="undefined") {
 
   };
 
+  /**
+   * jQuery version independent .die/.undelegate/.off code.
+   */
+  indiciaFns.off = function(event, selector, handler) {
+    var version = jQuery.fn.jquery.split('.');
+    if (version[0] === '1' && version[1] < 4) {
+      $(selector).die(event, handler);
+    } else if (version[0] === '1' && version[1] < 7) {
+        $(document).undelegate(selector, event, handler);
+    } 
+    else {
+      $(document).off(event, selector, handler);
+    }
+
+  };
+
 }) (jQuery);
 
 jQuery(document).ready(function($) {
