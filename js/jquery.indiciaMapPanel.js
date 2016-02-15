@@ -380,6 +380,13 @@ var destroyAllFeatures;
             _handleEnteredSref($('#'+opts.srefId).val(), div);
           }
         });
+        $('#'+opts.srefSystemId).change(function() {
+          //If the user has previously clicked on the map, then if they change the spatial reference system
+          //we can reclick on the map in the same place (virtually using code). This will then change the spatial reference in the box.
+          if (indiciaData.lastClickedOrTypedLatLon) {
+            processLonLatPositionOnMap(indiciaData.lastClickedOrTypedLatLon,div);
+          }
+        });
       }
 
       // If a place search (georeference) control exists, bind it to the map.
@@ -505,6 +512,10 @@ var destroyAllFeatures;
                   }  
                   openlayersLatlong.lon=openlayersLatlong.lon/wktPoints.length;
                   openlayersLatlong.lat=openlayersLatlong.lat/wktPoints.length;
+                  //Remember the position as a Lat Long, this means if the user changes the spatial reference system, we know where
+                  //the last position was, and effectively re-click the map in code using the newly selected system. This has the effect
+                  //of changing the spatial reference in real-time.
+                  indiciaData.lastClickedOrTypedLatLon=openlayersLatlong;
                   //Run code that handles when a user has selected a position on the map (either a click or changing sref)
                   processLonLatPositionOnMap(openlayersLatlong,div);
                 }
@@ -1385,6 +1396,10 @@ var destroyAllFeatures;
      */
     function clickOnMap(xy, div) {
       var lonlat = div.map.getLonLatFromPixel(xy);
+      //Remember the position as a Lat Long, this means if the user changes the spatial reference system, we know where
+      //the last position was, and can effectively re-click the map (virtually, using code) using the newly selected system. This has the effect
+      //of changing the spatial reference in real-time.
+      indiciaData.lastClickedOrTypedLatLon = lonlat;
       processLonLatPositionOnMap(lonlat, div);
     }
 
