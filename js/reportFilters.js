@@ -242,7 +242,7 @@ jQuery(document).ready(function($) {
           });
         }
         // these auto-disable on form submission
-        $('#taxon_group_list\\:search\\:title').removeAttr('disabled');
+        $('#taxon_group_list\\:search\\:q').removeAttr('disabled');
         $('#higher_taxa_taxon_list_list\\:search\\:taxon').removeAttr('disabled');
         $('#taxa_taxon_list_list\\:search\\:taxon').removeAttr('disabled');
       }
