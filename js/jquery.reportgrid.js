@@ -458,7 +458,6 @@ var simple_tooltip;
                   if (map.projection.getCode() != map.div.indiciaProjection.getCode()) {
                     geom.transform(map.div.indiciaProjection, map.projection);
                   }
-                  geom = geom.getCentroid();
                   feature = new OpenLayers.Feature.Vector(geom, {type: 'linked'});
                   if (div.settings.rowId!=="") {
                     feature.id = row[div.settings.rowId];
