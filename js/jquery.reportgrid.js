@@ -369,7 +369,7 @@ var simple_tooltip;
         success: function(response) {
           var tbody = $(div).find('tbody'), rows, rowclass, rowclasses, tdclasses, classes, hasMore=false,
               value, rowInProgress=false, rowOutput='', rowId, features=[],
-              feature, geom, map, valueData;
+              feature, geom, map=indiciaData.mapdiv.map, valueData;
           // if we get a count back, then update the stored count
           if (typeof response.count !== "undefined") {
             rows = response.records;
@@ -407,7 +407,6 @@ var simple_tooltip;
             return;
           }
           if (div.settings.sendOutputToMap && typeof indiciaData.reportlayer!=="undefined") {
-            map=indiciaData.reportlayer.map;
             indiciaData.mapdiv.removeAllFeatures(indiciaData.reportlayer, 'linked');
           }
           rowTitle = (div.settings.rowId && typeof indiciaData.reportlayer!=="undefined") ?
