@@ -369,7 +369,7 @@ var simple_tooltip;
         success: function(response) {
           var tbody = $(div).find('tbody'), rows, rowclass, rowclasses, tdclasses, classes, hasMore=false,
               value, rowInProgress=false, rowOutput='', rowId, features=[],
-              feature, geom, map=indiciaData.mapdiv.map, valueData;
+              feature, geom, map, valueData;
           // if we get a count back, then update the stored count
           if (typeof response.count !== "undefined") {
             rows = response.records;
@@ -453,7 +453,8 @@ var simple_tooltip;
               $.each(div.settings.columns, function(idx, col) {
                 tdclasses=[];
                 if (div.settings.sendOutputToMap && typeof indiciaData.reportlayer!=="undefined" &&
-                    typeof col.mappable!=="undefined" && (col.mappable==="true" || col.mappable===true)) {                  
+                    typeof col.mappable!=="undefined" && (col.mappable==="true" || col.mappable===true)) {
+                  map=indiciaData.mapdiv.map;
                   geom=OpenLayers.Geometry.fromWKT(row[col.fieldname]);
                   if (map.projection.getCode() != map.div.indiciaProjection.getCode()) {
                     geom.transform(map.div.indiciaProjection, map.projection);
