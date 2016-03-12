@@ -107,13 +107,21 @@ label, form label {
   *display:inline;
   vertical-align: top;
   margin: 4px 0 4px 0;
+  font-weight: bold;
 }
 
 form input:not([type="submit"]), form select, form textarea, #form-params textarea, .timeEntry_control,
     .inline-control, button.inline-control, input.inline-control {
   vertical-align: top;
   margin: 4px 0;
-  display: inline; 
+  display: inline;
+}
+
+form input:not([type="submit"]), form select, form textarea {
+  padding: 4px;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
 }
 
 a {
@@ -781,8 +789,9 @@ input.findme {
   background-image: url(../images/findme.png);
   width: 16px;
   height: 16px;
-  margin: 6px 0 0 -18px;
+  margin: 8px 0 0 -18px;
   vertical-align: top;
+  padding-right: 2px;
 }
 
 #findme-icon.spinning {
