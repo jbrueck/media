@@ -74,6 +74,8 @@ div.ui-effects-wrapper {
 
 .deh-required {
   color: red;
+  font-size: 150%;
+  font-weight: bold;
 }
 
 p.inline-error {
