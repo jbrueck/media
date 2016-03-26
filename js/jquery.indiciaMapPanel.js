@@ -39,6 +39,10 @@ mapLocationSelectedHooks = [];
  */
 mapClickForSpatialRefHooks = [];
 
+//Save the position of the last clicked as a lat long and zoom. This can then be used to automatically change the spatial
+//reference when the spatial reference system is altered.
+var lastClickedLatLonZoom = {};
+
 var destroyAllFeatures;
 /**
 * Class: indiciaMapPanel
@@ -358,6 +362,7 @@ var destroyAllFeatures;
      * bound to them to associate them with the map.
      */
     function _bindControls(div) {
+      var currentZoom;
       if (opts.clickForSpatialRef) {
         // If the spatial ref input control exists, bind it to the map, so entering a ref updates the map
         $('#'+opts.srefId).change(function() {
@@ -381,10 +386,29 @@ var destroyAllFeatures;
           }
         });
         $('#'+opts.srefSystemId).change(function() {
-          //If the user has previously clicked on the map, then if they change the spatial reference system
-          //we can reclick on the map in the same place (virtually using code). This will then change the spatial reference in the box.
-          if (indiciaData.lastClickedOrTypedLatLon) {
-            processLonLatPositionOnMap(indiciaData.lastClickedOrTypedLatLon,div);
+          //When Spatial reference system is changed then do the following....
+          //-If the spatial referece has already been changed by the user since the page was loaded
+          //then use that last position to provide the position to switch the spatial reference system for
+          //-If the spatial reference field is loaded onto the page (e.g. existing data) then get the position
+          //from the centre of the geometry rather than the last click point
+          //Only do the conversion if the spatial reference field is not blank
+          if ($('#' + opts.srefId).val()){ 
+            //When the user zooms out on the map, the spatial reference doesn't change until they click on the map,
+            //This means when we convert the spatial reference we need to remember the zoom state the map was in
+            //when it was last clicked (else the precision will suddenly change when switching sref system)
+            //However once the conversion is done, we need to set the zoom back to its proper state so that the zoombar
+            //continues to operate normally.
+            currentZoom=div.map.zoom;
+            if (lastClickedLatLonZoom.lat) {
+              div.map.zoom=lastClickedLatLonZoom.zoom;
+              processLonLatPositionOnMap(lastClickedLatLonZoom,div);
+            } else if ($('#'+opts.srefSystemId).val() && div.map.editLayer.features[0].geometry.getCentroid().y && div.map.editLayer.features[0].geometry.getCentroid().x) {
+              lastClickedLatLonZoom.lat=div.map.editLayer.features[0].geometry.getCentroid().y;
+              lastClickedLatLonZoom.lon=div.map.editLayer.features[0].geometry.getCentroid().x;
+              lastClickedLatLonZoom.zoom=div.map.zoom;
+              processLonLatPositionOnMap(lastClickedLatLonZoom,div);
+            }
+            div.map.zoom=currentZoom;
           }
         });
       }
@@ -512,13 +536,14 @@ var destroyAllFeatures;
                   }  
                   openlayersLatlong.lon=openlayersLatlong.lon/wktPoints.length;
                   openlayersLatlong.lat=openlayersLatlong.lat/wktPoints.length;
-                  //Remember the position as a Lat Long, this means if the user changes the spatial reference system, we know where
-                  //the last position was, and effectively re-click the map in code using the newly selected system. This has the effect
-                  //of changing the spatial reference in real-time.
-                  indiciaData.lastClickedOrTypedLatLon=openlayersLatlong;
                   //Run code that handles when a user has selected a position on the map (either a click or changing sref)
                   processLonLatPositionOnMap(openlayersLatlong,div);
                 }
+                //Save the position so that the spatial reference can be converted when the user just changes
+                //the spatial reference system
+                lastClickedLatLonZoom.lat=div.map.editLayer.features[0].geometry.getCentroid().y;
+                lastClickedLatLonZoom.lon=div.map.editLayer.features[0].geometry.getCentroid().x;
+                lastClickedLatLonZoom.zoom=div.map.zoom;
                 _showWktFeature(div, data.mapwkt, div.map.editLayer, null, false, "clickPoint");
               }
               $('#'+opts.geomId).val(data.wkt);
@@ -1395,11 +1420,12 @@ var destroyAllFeatures;
      * Function called by the map click handler.
      */
     function clickOnMap(xy, div) {
-      var lonlat = div.map.getLonLatFromPixel(xy);
-      //Remember the position as a Lat Long, this means if the user changes the spatial reference system, we know where
-      //the last position was, and can effectively re-click the map (virtually, using code) using the newly selected system. This has the effect
-      //of changing the spatial reference in real-time.
-      indiciaData.lastClickedOrTypedLatLon = lonlat;
+      var lonlat = div.map.getLonLatFromPixel(xy);   
+      //Save the click position so that the spatial reference can be converted when the user just changes
+      //the spatial reference system
+      lastClickedLatLonZoom.lon = lonlat.lon;
+      lastClickedLatLonZoom.lat = lonlat.lat;
+      lastClickedLatLonZoom.zoom=div.map.zoom;
       processLonLatPositionOnMap(lonlat, div);
     }
 
