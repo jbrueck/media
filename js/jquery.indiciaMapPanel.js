@@ -392,15 +392,17 @@ var destroyAllFeatures;
           //-If the spatial reference field is loaded onto the page (e.g. existing data) then get the position
           //from the centre of the geometry rather than the last click point
           //Only do the conversion if the spatial reference field is not blank
-          if ($('#' + opts.srefId).val()){ 
+          if ($('#' + opts.srefId).val()) {           
             //When the user zooms out on the map, the spatial reference doesn't change until they click on the map,
             //This means when we convert the spatial reference we need to remember the zoom state the map was in
             //when it was last clicked (else the precision will suddenly change when switching sref system)
             //However once the conversion is done, we need to set the zoom back to its proper state so that the zoombar
             //continues to operate normally.
             currentZoom=div.map.zoom;
+            //When switching spatial reference system, we don't want to suddenly zoom in without warning
+            indiciaData.skip_zoom=true;
             if (lastClickedLatLonZoom.lat) {
-              div.map.zoom=lastClickedLatLonZoom.zoom;
+              div.map.zoom=lastClickedLatLonZoom.zoom;   
               processLonLatPositionOnMap(lastClickedLatLonZoom,div);
             } else if ($('#'+opts.srefSystemId).val() && div.map.editLayer.features[0].geometry.getCentroid().y && div.map.editLayer.features[0].geometry.getCentroid().x) {
               lastClickedLatLonZoom.lat=div.map.editLayer.features[0].geometry.getCentroid().y;
@@ -408,7 +410,7 @@ var destroyAllFeatures;
               lastClickedLatLonZoom.zoom=div.map.zoom;
               processLonLatPositionOnMap(lastClickedLatLonZoom,div);
             }
-            div.map.zoom=currentZoom;
+            div.map.zoom=currentZoom; 
           }
         });
       }
@@ -609,11 +611,19 @@ var destroyAllFeatures;
      * of the position subsequently.
      */
     function updateZoomAfterMapClick(data, div) {
-      // Optional zoom in after clicking when helpDiv not in use.
-      _zoomInToClickPoint(div);
-      // Optional switch to satellite layer when using click_zoom
-      if (div.settings.helpToPickPrecisionSwitchAt && data.sref.length >= div.settings.helpToPickPrecisionSwitchAt) {
-        switchToSatelliteBaseLayer(div.map);
+      //Skip zooming as a "one-off" even if click_zoom is on. This is currenty used when the spatial reference is set
+      //by a switch in the spatial reference system where we don't want it to suddeny zoom in without warning.
+      if (!indiciaData.skip_zoom||indiciaData.skip_zoom===false) {
+        // Optional zoom in after clicking when helpDiv not in use.
+        _zoomInToClickPoint(div);
+        // Optional switch to satellite layer when using click_zoom
+        if (div.settings.helpToPickPrecisionSwitchAt && data.sref.length >= div.settings.helpToPickPrecisionSwitchAt) {
+          switchToSatelliteBaseLayer(div.map);
+        }
+      } else {
+        //If we are skipping zoom on this occasion then set back to no skip it next time as skip_zoom is a used as a one_off
+        //rather than permanent setting
+        indiciaData.skip_zoom=false
       }
     }
 
