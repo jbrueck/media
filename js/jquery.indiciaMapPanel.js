@@ -392,25 +392,30 @@ var destroyAllFeatures;
           //-If the spatial reference field is loaded onto the page (e.g. existing data) then get the position
           //from the centre of the geometry rather than the last click point
           //Only do the conversion if the spatial reference field is not blank
-          if ($('#' + opts.srefId).val()) {           
-            //When the user zooms out on the map, the spatial reference doesn't change until they click on the map,
-            //This means when we convert the spatial reference we need to remember the zoom state the map was in
-            //when it was last clicked (else the precision will suddenly change when switching sref system)
-            //However once the conversion is done, we need to set the zoom back to its proper state so that the zoombar
-            //continues to operate normally.
-            currentZoom=div.map.zoom;
-            //When switching spatial reference system, we don't want to suddenly zoom in without warning
-            indiciaData.skip_zoom=true;
-            if (lastClickedLatLonZoom.lat) {
-              div.map.zoom=lastClickedLatLonZoom.zoom;   
-              processLonLatPositionOnMap(lastClickedLatLonZoom,div);
-            } else if ($('#'+opts.srefSystemId).val() && div.map.editLayer.features[0].geometry.getCentroid().y && div.map.editLayer.features[0].geometry.getCentroid().x) {
-              lastClickedLatLonZoom.lat=div.map.editLayer.features[0].geometry.getCentroid().y;
-              lastClickedLatLonZoom.lon=div.map.editLayer.features[0].geometry.getCentroid().x;
-              lastClickedLatLonZoom.zoom=div.map.zoom;
-              processLonLatPositionOnMap(lastClickedLatLonZoom,div);
+          if ($('#' + opts.srefId).val()) {   
+            //indiciaData.no_conversion_on_sp_system_changed should not be needed, however the system doesn't not currently support the 
+            //conversion of spatial reference if clickForPlot is off and the sp reference is typed by hand, so we need to switch off this function
+            //in that scenario
+            if (!indiciaData.no_conversion_on_sp_system_changed||indiciaData.no_conversion_on_sp_system_changed===false) {
+              //When the user zooms out on the map, the spatial reference doesn't change until they click on the map,
+              //This means when we convert the spatial reference we need to remember the zoom state the map was in
+              //when it was last clicked (else the precision will suddenly change when switching sref system)
+              //However once the conversion is done, we need to set the zoom back to its proper state so that the zoombar
+              //continues to operate normally.
+              currentZoom=div.map.zoom;
+              //When switching spatial reference system, we don't want to suddenly zoom in without warning
+              indiciaData.skip_zoom=true;
+              if (lastClickedLatLonZoom.lat) {
+                div.map.zoom=lastClickedLatLonZoom.zoom;   
+                processLonLatPositionOnMap(lastClickedLatLonZoom,div);
+              } else if ($('#'+opts.srefSystemId).val() && div.map.editLayer.features[0].geometry.getCentroid().y && div.map.editLayer.features[0].geometry.getCentroid().x) {
+                lastClickedLatLonZoom.lat=div.map.editLayer.features[0].geometry.getCentroid().y;
+                lastClickedLatLonZoom.lon=div.map.editLayer.features[0].geometry.getCentroid().x;
+                lastClickedLatLonZoom.zoom=div.map.zoom;
+                processLonLatPositionOnMap(lastClickedLatLonZoom,div);
+              }
+              div.map.zoom=currentZoom;
             }
-            div.map.zoom=currentZoom; 
           }
         });
       }
@@ -540,12 +545,23 @@ var destroyAllFeatures;
                   openlayersLatlong.lat=openlayersLatlong.lat/wktPoints.length;
                   //Run code that handles when a user has selected a position on the map (either a click or changing sref)
                   processLonLatPositionOnMap(openlayersLatlong,div);
+                } 
+                if (typeof indiciaData.no_conversion_on_sp_system_changed === 'undefined') {
+                  lastClickedLatLonZoom.lat=div.map.editLayer.features[0].geometry.getCentroid().y;
+                  lastClickedLatLonZoom.lon=div.map.editLayer.features[0].geometry.getCentroid().x;
+                  lastClickedLatLonZoom.zoom=div.map.zoom;
+                  indiciaData.no_conversion_on_sp_system_changed=false;
+                } else if (div.settings.clickForPlot){
+                  //Save the position so that the spatial reference can be converted when the user just changes
+                  //the spatial reference system. Not this still has the limitation that typed spatial references
+                  //can't be converted unless using clickForPlot
+                  indiciaData.no_conversion_on_sp_system_changed=false;
+                  lastClickedLatLonZoom.lon=openlayersLatlong.lon;
+                  lastClickedLatLonZoom.lat=openlayersLatlong.lat;
+                  lastClickedLatLonZoom.zoom=div.map.zoom;
+                } else {
+                  indiciaData.no_conversion_on_sp_system_changed=true;
                 }
-                //Save the position so that the spatial reference can be converted when the user just changes
-                //the spatial reference system
-                lastClickedLatLonZoom.lat=div.map.editLayer.features[0].geometry.getCentroid().y;
-                lastClickedLatLonZoom.lon=div.map.editLayer.features[0].geometry.getCentroid().x;
-                lastClickedLatLonZoom.zoom=div.map.zoom;
                 _showWktFeature(div, data.mapwkt, div.map.editLayer, null, false, "clickPoint");
               }
               $('#'+opts.geomId).val(data.wkt);
@@ -1433,6 +1449,7 @@ var destroyAllFeatures;
       var lonlat = div.map.getLonLatFromPixel(xy);   
       //Save the click position so that the spatial reference can be converted when the user just changes
       //the spatial reference system
+      indiciaData.no_conversion_on_sp_system_changed=false;
       lastClickedLatLonZoom.lon = lonlat.lon;
       lastClickedLatLonZoom.lat = lonlat.lat;
       lastClickedLatLonZoom.zoom=div.map.zoom;
