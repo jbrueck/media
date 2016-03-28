@@ -391,12 +391,14 @@ var destroyAllFeatures;
           //then use that last position to provide the position to switch the spatial reference system for
           //-If the spatial reference field is loaded onto the page (e.g. existing data) then get the position
           //from the centre of the geometry rather than the last click point
+          ////TO DO
+          //-If the Spatial Reference is typed then currently it will only do a conversion if the clickForPlot option is used (which isn't very often)
           //Only do the conversion if the spatial reference field is not blank
           if ($('#' + opts.srefId).val()) {   
             //indiciaData.no_conversion_on_sp_system_changed should not be needed, however the system doesn't not currently support the 
             //conversion of spatial reference if clickForPlot is off and the sp reference is typed by hand, so we need to switch off this function
             //in that scenario
-            if (!indiciaData.no_conversion_on_sp_system_changed||indiciaData.no_conversion_on_sp_system_changed===false) {
+            if (!indiciaData.no_conversion_on_sp_system_changed||indiciaData.no_conversion_on_sp_system_changed==false) {
               //When the user zooms out on the map, the spatial reference doesn't change until they click on the map,
               //This means when we convert the spatial reference we need to remember the zoom state the map was in
               //when it was last clicked (else the precision will suddenly change when switching sref system)
@@ -405,10 +407,13 @@ var destroyAllFeatures;
               currentZoom=div.map.zoom;
               //When switching spatial reference system, we don't want to suddenly zoom in without warning
               indiciaData.skip_zoom=true;
+              //If user has already clicked on map, then use last click position for the conversion
               if (lastClickedLatLonZoom.lat) {
                 div.map.zoom=lastClickedLatLonZoom.zoom;   
                 processLonLatPositionOnMap(lastClickedLatLonZoom,div);
+                //If user not yet clicked on map, we can use the centre of the spatial reference geom loaded from database to do a conversion
               } else if ($('#'+opts.srefSystemId).val() && div.map.editLayer.features[0].geometry.getCentroid().y && div.map.editLayer.features[0].geometry.getCentroid().x) {
+                //Set the loaded spatial reference geom to be our last "click point"
                 lastClickedLatLonZoom.lat=div.map.editLayer.features[0].geometry.getCentroid().y;
                 lastClickedLatLonZoom.lon=div.map.editLayer.features[0].geometry.getCentroid().x;
                 lastClickedLatLonZoom.zoom=div.map.zoom;
@@ -543,25 +548,19 @@ var destroyAllFeatures;
                   }  
                   openlayersLatlong.lon=openlayersLatlong.lon/wktPoints.length;
                   openlayersLatlong.lat=openlayersLatlong.lat/wktPoints.length;
+                   //TO DO - Get spatial reference conversion working when sp system is changed when clickForPlot is off
+                  if (!indiciaData.no_conversion_on_sp_system_changed || indiciaData.no_conversion_on_sp_system_changed==false) {
+                    lastClickedLatLonZoom.lon=openlayersLatlong.lon;
+                    lastClickedLatLonZoom.lat=openlayersLatlong.lat;
+                    lastClickedLatLonZoom.zoom=div.map.zoom;
+                  } else {
+                    //If clickForPlot is off, then typed spatial reference conversions are not currently supported
+                    indiciaData.no_conversion_on_sp_system_changed=true;
+                  }
                   //Run code that handles when a user has selected a position on the map (either a click or changing sref)
                   processLonLatPositionOnMap(openlayersLatlong,div);
                 } 
-                if (typeof indiciaData.no_conversion_on_sp_system_changed === 'undefined') {
-                  lastClickedLatLonZoom.lat=div.map.editLayer.features[0].geometry.getCentroid().y;
-                  lastClickedLatLonZoom.lon=div.map.editLayer.features[0].geometry.getCentroid().x;
-                  lastClickedLatLonZoom.zoom=div.map.zoom;
-                  indiciaData.no_conversion_on_sp_system_changed=false;
-                } else if (div.settings.clickForPlot){
-                  //Save the position so that the spatial reference can be converted when the user just changes
-                  //the spatial reference system. Not this still has the limitation that typed spatial references
-                  //can't be converted unless using clickForPlot
-                  indiciaData.no_conversion_on_sp_system_changed=false;
-                  lastClickedLatLonZoom.lon=openlayersLatlong.lon;
-                  lastClickedLatLonZoom.lat=openlayersLatlong.lat;
-                  lastClickedLatLonZoom.zoom=div.map.zoom;
-                } else {
-                  indiciaData.no_conversion_on_sp_system_changed=true;
-                }
+       
                 _showWktFeature(div, data.mapwkt, div.map.editLayer, null, false, "clickPoint");
               }
               $('#'+opts.geomId).val(data.wkt);
@@ -626,7 +625,7 @@ var destroyAllFeatures;
      */
     function updateZoomAfterMapClick(data, div) {
       //Skip zooming as a "one-off" even if click_zoom is on. This is currenty used when the spatial reference is set
-      //by a switch in the spatial reference system where we don't want it to suddeny zoom in without warning.
+      //by a switch in the spatial reference system where we don't want it to suddenly zoom -in without warning.
       if (!indiciaData.skip_zoom||indiciaData.skip_zoom===false) {
         // Optional zoom in after clicking when helpDiv not in use.
         _zoomInToClickPoint(div);
@@ -635,7 +634,7 @@ var destroyAllFeatures;
           switchToSatelliteBaseLayer(div.map);
         }
       } else {
-        //If we are skipping zoom on this occasion then set back to no skip it next time as skip_zoom is a used as a one_off
+        //If we are skipping zoom on this occasion then set back to not skip it next time as skip_zoom is a used as a one_off
         //rather than permanent setting
         indiciaData.skip_zoom=false
       }
