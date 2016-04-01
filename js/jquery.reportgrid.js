@@ -142,8 +142,9 @@ var simple_tooltip;
       return template;
     }
 
-    function getActions (div, row, actions) {
+    function getActions (div, row, actions, queryParams) {
       var result='', onclick, href, content, img;
+      row = $.extend(queryParams, row);
       $.each(actions, function(idx, action) {
         if (typeof action.visibility_field === "undefined" || row[action.visibility_field]!=='f') {
           if (typeof action.javascript !== "undefined") {
@@ -171,7 +172,7 @@ var simple_tooltip;
               link='{rootFolder}'+link;
             }
             link = mergeParamsIntoTemplate(div, row, link);
-            if (typeof action.urlParams !== "undefined") {
+            if (!$.isEmptyObject(action.urlParams)) {
               if (link.indexOf('?')===-1) {
                 link += '?';
               } else {
@@ -343,7 +344,7 @@ var simple_tooltip;
           rowCount++;
         }
       });
-      
+
       return rowsToDisplay;
     }
 
@@ -423,6 +424,7 @@ var simple_tooltip;
           } else {
             $(div).find('tfoot .pager').show();
           }
+          var queryParams = indiciaFns.getUrlVars();
           $.each(rows, function(rowidx, row) {
             if (div.settings.rowClass!=='') {
               rowclasses=[mergeParamsIntoTemplate(div, row, div.settings.rowClass)];
@@ -491,7 +493,7 @@ var simple_tooltip;
                   if (typeof col.template !== "undefined") {
                     value = mergeParamsIntoTemplate(div, row, col.template);
                   } else if (typeof col.actions !== "undefined") {
-                    value = getActions(div, row, col.actions);
+                    value = getActions(div, row, col.actions, queryParams);
                     tdclasses.push('actions');
                   } else {
                     value = row[col.fieldname];
