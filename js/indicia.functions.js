@@ -195,6 +195,21 @@ if (typeof window.indiciaData==="undefined") {
 
   };
 
+  /**
+   * Retrieves an array containing all the current URL query parameters.
+   * @returns {Array}
+   */
+  indiciaFns.getUrlVars = function() {
+    var vars = {}, hash;
+    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    for(var i = 0; i < hashes.length; i++)
+    {
+      hash = hashes[i].split('=');
+      vars[hash[0]] = hash[1];
+    }
+    return vars;
+  }
+
 }) (jQuery);
 
 jQuery(document).ready(function($) {
