@@ -192,7 +192,8 @@ var simple_tooltip;
             content = '<img src="'+img+'" title="'+action.caption+'" />';
           } else
             content = action.caption;
-          result += '<a class="action-button"'+onclick+href+'>'+content+'</a>';
+          var classlist = "action-button" +(typeof action.class !== "undefined" ? ' '+action.class : '');
+          result += '<a class="' + classlist +'" '+onclick+href+'>'+content+'</a>';
         }
       });
       return result;
