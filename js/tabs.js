@@ -62,11 +62,17 @@ setupButtons = function (tabs, index) {
     function()
     {
       $(this).addClass('wiz-hover');
-      $(this).next().addClass('wiz-hover');
+      if($(this).hasClass('arrow-block'))
+      	$(this).next().addClass('wiz-hover');
+  	  else
+        $(this).prev().addClass('wiz-hover');
     },
     function(){
       $(this).removeClass('wiz-hover');
-      $(this).next().removeClass('wiz-hover');
+      if($(this).hasClass('arrow-block'))
+    	$(this).next().removeClass('wiz-hover');
+	  else
+        $(this).prev().removeClass('wiz-hover');
     }
   );
   if (nextLi.length===0) {
@@ -143,8 +149,9 @@ wizardProgressIndicator=function(options) {
   //now set up handlers for tab events
   //the selected tab is given class wiz-selected and has wiz-disabled/enabled removed.
   //once a tab has been visited it is given class wiz-enabled and it gets hover and click events.
-  $("#" + o.divId).bind('tabsselect', function(event, ui){
-    setupButtons($(this), ui.index);
+  indiciaFns.bindTabsActivate($("#" + o.divId), function(event, ui){
+	  var index = $(this).find('.ui-tabs-active').index();
+	  setupButtons($(this), index);
   });
   setupButtons($("#" + o.divId), 0);
 };
