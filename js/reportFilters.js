@@ -216,7 +216,7 @@ jQuery(document).ready(function($) {
           $('input#taxon_group_list\\:search\\:q').setExtraParams({"idlist":context.taxon_group_list});
           $('#species-group-tab .context-instruct').show();
         }
-        else {
+        else if($('input#taxon_group_list\\:search\\:q').length > 0) {
           $('input#taxon_group_list\\:search\\:q').unsetExtraParams('query');
         }
         // need to load the sub list control for taxon groups.
@@ -241,6 +241,8 @@ jQuery(document).ready(function($) {
                 '<input type="hidden" value="' + id + '" name="taxa_taxon_list_list[]"/></li>');
           });
         }
+        if(typeof hook_reportfilter_loadForm != 'undefined')
+        	hook_reportfilter_loadForm('what');
         // these auto-disable on form submission
         $('#taxon_group_list\\:search\\:q').removeAttr('disabled');
         $('#higher_taxa_taxon_list_list\\:search\\:taxon').removeAttr('disabled');
@@ -631,6 +633,8 @@ jQuery(document).ready(function($) {
       }
     }
   };
+  if(typeof hook_reportFilters_alter_paneObj != 'undefined')
+	  paneObjList = hook_reportFilters_alter_paneObj(paneObjList);
 
   // Event handler for a draw tool boundary being added which clears the other controls on the map pane.
   function addedFeature() {
