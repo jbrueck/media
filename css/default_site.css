@@ -1051,7 +1051,7 @@ div.note-fail, p.note-fail {
   height: 16px;
   display: inline-block;
 }
-.status-icon.status-C.substatus-.certainty- {
+.status-icon.status-.substatus-.certainty-,.status-icon.status-C.substatus-.certainty- {
   background: none;
 }
 
