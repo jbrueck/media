@@ -93,7 +93,7 @@
 
 })(jQuery);
 
-$.fn.indiciaTreeBrowser.defaults = {
+jQuery.fn.indiciaTreeBrowser.defaults = {
     panelClass: "ui-widget ui-widget-content ui-corner-all",
     headerClass: "",
     listItemClass: "ui-state-default ui-corner-all"

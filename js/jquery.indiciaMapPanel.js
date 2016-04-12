@@ -2437,8 +2437,8 @@ jQuery.fn.indiciaMapPanel.defaults = {
     // Are we using the OpenLayers defaults, or are they all provided?
     useOlDefaults: true,
     rememberPos: false, // set to true to enable restoring the map position when the page is reloaded. Requires jquery.cookie plugin.
-    hintNavigation: 'Select this tool to navigate around the map by dragging, or double clicking to centre the map.',
-    hintScrollWheel: ' Using the scroll bar whilst over the map will zoom in and out.',
+    hintNavigation: 'Select this tool to navigate around the map by dragging, or double clicking to zoom the map.',
+    hintScrollWheel: ' Using the mouse scroll wheel whilst over the map will zoom in and out.',
     hintClickSpatialRefTool: 'Select this tool to enable clicking on the map to set your location',
     hintQueryDataPointsTool: 'Select this tool then click on or drag a box over data points on the map to view the underlying records.',
     hintDrawPolygonHint: 'Select this tool to draw a polygon, clicking on the map to draw the shape and double clicking to finish.',

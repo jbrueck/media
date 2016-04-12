@@ -515,6 +515,7 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
         if (typeof indiciaData.uploadSettings.resizeWidth!=="undefined") { opts.resizeWidth=indiciaData.uploadSettings.resizeWidth; }
         if (typeof indiciaData.uploadSettings.resizeHeight!=="undefined") { opts.resizeHeight=indiciaData.uploadSettings.resizeHeight; }
         if (typeof indiciaData.uploadSettings.resizeQuality!=="undefined") { opts.resizeQuality=indiciaData.uploadSettings.resizeQuality; }
+        if (typeof indiciaData.uploadSettings.maxFileCount!=="undefined") { opts.maxFileCount=indiciaData.uploadSettings.maxFileCount; }
         if (typeof buttonTemplate!=="undefined") { opts.buttonTemplate=buttonTemplate; }
         if (typeof file_boxTemplate!=="undefined") { opts.file_boxTemplate=file_boxTemplate; }
         if (typeof file_box_initial_file_infoTemplate!=="undefined") { opts.file_box_initial_file_infoTemplate=file_box_initial_file_infoTemplate; }
