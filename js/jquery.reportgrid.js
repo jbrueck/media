@@ -247,7 +247,7 @@ var simple_tooltip;
         pagerContent=pagerContent.replace('{showing}', div.settings.noRecords);
       } else {
         showing = showing.replace('{1}', div.settings.offset+1);
-        showing = showing.replace('{2}', div.settings.offset + $(div).find('tbody').children().length);
+        showing = showing.replace('{2}', div.settings.offset + div.settings.currentPageCount);
         showing = showing.replace('{3}', div.settings.recordCount);
         pagerContent = pagerContent.replace('{showing}', showing);
       }
@@ -395,7 +395,8 @@ var simple_tooltip;
           } 
           if (typeof response.count !== "undefined") {
             div.settings.recordCount = parseInt(response.count);
-          } 
+          }
+          div.settings.currentPageCount = Math.min(rows.length, div.settings.itemsPerPage);
           // clear current grid rows
           if (clearExistingRows) {
             tbody.children().remove();
@@ -597,7 +598,7 @@ var simple_tooltip;
           e.preventDefault();
           if (div.loading) {return;}
           div.loading = true;
-          div.settings.offset += $(div).find('tbody').children().length; // in case not showing full page after deletes
+          div.settings.offset += div.settings.currentPageCount; // in case not showing full page after deletes
           if (div.settings.offset>lastPageOffset) {
             div.settings.offset=lastPageOffset;
           }
@@ -1196,6 +1197,7 @@ jQuery.fn.reportgrid.defaults = {
   sortdir : 'ASC',
   itemsPerPage : null,
   offset : 0,
+  currentPageCount : 0,
   rowClass : '', // template for the output row class
   altRowClass : 'odd',
   rowId: '',
