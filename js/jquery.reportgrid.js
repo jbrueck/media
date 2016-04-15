@@ -142,8 +142,9 @@ var simple_tooltip;
       return template;
     }
 
-    function getActions (div, row, actions) {
+    function getActions (div, row, actions, queryParams) {
       var result='', onclick, href, content, img;
+      row = $.extend(queryParams, row);
       $.each(actions, function(idx, action) {
         if (typeof action.visibility_field === "undefined" || row[action.visibility_field]!=='f') {
           if (typeof action.javascript !== "undefined") {
@@ -171,7 +172,7 @@ var simple_tooltip;
               link='{rootFolder}'+link;
             }
             link = mergeParamsIntoTemplate(div, row, link);
-            if (typeof action.urlParams !== "undefined") {
+            if (!$.isEmptyObject(action.urlParams)) {
               if (link.indexOf('?')===-1) {
                 link += '?';
               } else {
@@ -191,7 +192,8 @@ var simple_tooltip;
             content = '<img src="'+img+'" title="'+action.caption+'" />';
           } else
             content = action.caption;
-          result += '<a class="action-button"'+onclick+href+'>'+content+'</a>';
+          var classlist = "action-button" +(typeof action.class !== "undefined" ? ' '+action.class : '');
+          result += '<a class="' + classlist +'" '+onclick+href+'>'+content+'</a>';
         }
       });
       return result;
@@ -247,7 +249,7 @@ var simple_tooltip;
         pagerContent=pagerContent.replace('{showing}', div.settings.noRecords);
       } else {
         showing = showing.replace('{1}', div.settings.offset+1);
-        showing = showing.replace('{2}', div.settings.offset + $(div).find('tbody').children().length);
+        showing = showing.replace('{2}', div.settings.offset + div.settings.currentPageCount);
         showing = showing.replace('{3}', div.settings.recordCount);
         pagerContent = pagerContent.replace('{showing}', showing);
       }
@@ -343,7 +345,7 @@ var simple_tooltip;
           rowCount++;
         }
       });
-      
+
       return rowsToDisplay;
     }
 
@@ -395,7 +397,8 @@ var simple_tooltip;
           } 
           if (typeof response.count !== "undefined") {
             div.settings.recordCount = parseInt(response.count);
-          } 
+          }
+          div.settings.currentPageCount = Math.min(rows.length, div.settings.itemsPerPage);
           // clear current grid rows
           if (clearExistingRows) {
             tbody.children().remove();
@@ -407,7 +410,6 @@ var simple_tooltip;
             return;
           }
           if (div.settings.sendOutputToMap && typeof indiciaData.reportlayer!=="undefined") {
-            map=indiciaData.reportlayer.map;
             indiciaData.mapdiv.removeAllFeatures(indiciaData.reportlayer, 'linked');
           }
           rowTitle = (div.settings.rowId && typeof indiciaData.reportlayer!=="undefined") ?
@@ -424,6 +426,7 @@ var simple_tooltip;
           } else {
             $(div).find('tfoot .pager').show();
           }
+          var queryParams = indiciaFns.getUrlVars();
           $.each(rows, function(rowidx, row) {
             if (div.settings.rowClass!=='') {
               rowclasses=[mergeParamsIntoTemplate(div, row, div.settings.rowClass)];
@@ -454,12 +457,12 @@ var simple_tooltip;
               $.each(div.settings.columns, function(idx, col) {
                 tdclasses=[];
                 if (div.settings.sendOutputToMap && typeof indiciaData.reportlayer!=="undefined" &&
-                    typeof col.mappable!=="undefined" && (col.mappable==="true" || col.mappable===true)) {                  
+                    typeof col.mappable!=="undefined" && (col.mappable==="true" || col.mappable===true)) {
+                  map=indiciaData.mapdiv.map;
                   geom=OpenLayers.Geometry.fromWKT(row[col.fieldname]);
                   if (map.projection.getCode() != map.div.indiciaProjection.getCode()) {
                     geom.transform(map.div.indiciaProjection, map.projection);
                   }
-                  geom = geom.getCentroid();
                   feature = new OpenLayers.Feature.Vector(geom, {type: 'linked'});
                   if (div.settings.rowId!=="") {
                     feature.id = row[div.settings.rowId];
@@ -492,7 +495,7 @@ var simple_tooltip;
                   if (typeof col.template !== "undefined") {
                     value = mergeParamsIntoTemplate(div, row, col.template);
                   } else if (typeof col.actions !== "undefined") {
-                    value = getActions(div, row, col.actions);
+                    value = getActions(div, row, col.actions, queryParams);
                     tdclasses.push('actions');
                   } else {
                     value = row[col.fieldname];
@@ -597,7 +600,7 @@ var simple_tooltip;
           e.preventDefault();
           if (div.loading) {return;}
           div.loading = true;
-          div.settings.offset += $(div).find('tbody').children().length; // in case not showing full page after deletes
+          div.settings.offset += div.settings.currentPageCount; // in case not showing full page after deletes
           if (div.settings.offset>lastPageOffset) {
             div.settings.offset=lastPageOffset;
           }
@@ -1196,6 +1199,7 @@ jQuery.fn.reportgrid.defaults = {
   sortdir : 'ASC',
   itemsPerPage : null,
   offset : 0,
+  currentPageCount : 0,
   rowClass : '', // template for the output row class
   altRowClass : 'odd',
   rowId: '',
