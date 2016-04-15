@@ -899,7 +899,7 @@ jQuery(document).ready(function($) {
     $('#filter-delete').addClass('disabled');
     $('#filter-apply').addClass('disabled');
     // reset the filter label
-    $('#active-filter-label').html(indiciaData.lang.FilterReport);
+    $('#active-filter-label').html('');
     $('#standard-params .header span.changed').hide();
   }
 
