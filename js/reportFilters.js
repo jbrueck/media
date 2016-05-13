@@ -18,7 +18,7 @@
  * @link    http://code.google.com/p/indicia/
  */
 
-var loadFilter, loadFilterUser, applyFilterToReports;
+var loadFilter, loadFilterUser, refreshFilters, applyFilterToReports;
 
 jQuery(document).ready(function($) {
   "use strict";
@@ -821,11 +821,20 @@ jQuery(document).ready(function($) {
     }
   }
 
+  refreshFilters = function() {
+    $.each(paneObjList, function(name, obj) {
+      if (typeof obj.refreshFilter!=="undefined") {
+        obj.refreshFilter();
+      }
+    });
+  }
+
   applyFilterToReports = function(reload) {
     if (typeof reload==="undefined") {
       reload=true;
     }
     applyContextLimits();
+    refreshFilters(); // make sure upto date.
     var filterDef = $.extend({}, indiciaData.filter.def);
     delete filterDef.taxon_group_names;
     delete filterDef.taxa_taxon_list_names;
