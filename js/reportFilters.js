@@ -121,12 +121,12 @@ jQuery(document).ready(function($) {
             groups.push(group);
           });
         }
-        if (typeof indiciaData.filter.def.higher_taxa_taxon_list_names!=="undefined") {
+        if (typeof indiciaData.filter.def.higher_taxa_taxon_list_list!=="undefined") {
           $.each(indiciaData.filter.def.higher_taxa_taxon_list_names, function(idx, taxon) {
             taxa.push(taxon);
           });
         }
-        if (typeof indiciaData.filter.def.taxa_taxon_list_names!=="undefined") {
+        if (typeof indiciaData.filter.def.taxa_taxon_list_list!=="undefined") {
           $.each(indiciaData.filter.def.taxa_taxon_list_names, function(idx, taxon) {
             taxa.push(taxon);
           });
