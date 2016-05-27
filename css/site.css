@@ -29,10 +29,13 @@ p
 
 #banner
 {
-  background: #000000 url(../images/banner.jpg) no-repeat top right;
+  background: #000000 url(../images/banner.png) no-repeat top right;
   color: #FEFEFE;
   height: 126px;
   width: 966px;
+}
+#logo {
+  margin: 12px;
 }
 
 table
