@@ -719,7 +719,7 @@ $.Autocompleter.Select = function (options, input, select, config) {
       
     needsInit = false;
   //Prevent select list from being closed while using scroll bar
-  $(".ac_results").hover(function(event) {overSelectList=true; event.stopPropagation();},function(event) {overSelectList=false;$("#"+input.id).focus();});
+  $(".ac_results").hover(function(event) {overSelectList=true; event.stopPropagation();},function(event) {overSelectList=false;$("#"+input.id.replace(':', '\\:')).focus();});
   } 
   
   function target(event) {
