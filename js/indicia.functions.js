@@ -74,7 +74,7 @@ if (typeof window.indiciaData==="undefined") {
    * respectively.
    */
   indiciaFns.hoverIdDiffIcon = function(e) {
-    if ($(e.currentTarget).attr('title')==='') {
+    if (typeof $(e.currentTarget).attr('title')==="undefined" || $(e.currentTarget).attr('title')==='') {
       // Hovering over an ID difficulty marker, so load up the message hint. We load the whole 
       // lot for this rule, to save multiple service hits. So check if we've loaded this rule already
       if (typeof indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]==="undefined") {
