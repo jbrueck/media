@@ -84,17 +84,19 @@ if (typeof window.indiciaData==="undefined") {
           data: {"verification_rule_id":$(e.currentTarget).attr('data-rule'), "header_name":"INI",
             "auth_token":indiciaData.read.auth_token, "nonce":indiciaData.read.nonce},
           success: function(data) {
-            indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]={};
-            $.each(data, function(idx, msg) {
-              indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]
-                  ['diff'+msg.key] = msg.value;
-            });
-            $(e.currentTarget).attr('title', indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]
-                ['diff'+$(e.currentTarget).attr('data-diff')]);
-          },
-          error: function() {
-            // put a default in place.
-            $(e.currentTarget).attr('title', 'Caution, identification difficulty level ' + $(e.currentTarget).attr('data-rule') + ' out of 5');
+            // JSONP can't handle http status code errors. So error check in success response.
+            if (typeof data.error !== "undefined") {
+              // put a default in place.
+              $(e.currentTarget).attr('title', 'Caution, identification difficulty level ' + $(e.currentTarget).attr('data-rule') + ' out of 5');
+            } else {
+              indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]={};
+              $.each(data, function(idx, msg) {
+                indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]
+                    ['diff'+msg.key] = msg.value;
+              });
+              $(e.currentTarget).attr('title', indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]
+                  ['diff'+$(e.currentTarget).attr('data-diff')]);
+            }
           }
         });
       } else {
