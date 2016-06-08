@@ -509,7 +509,8 @@ var destroyAllFeatures;
             "&system=" + _getSystem() +
             "&mapsystem=" + _projToSystem(div.map.projection, false),
           success: function(data) {
-            if(typeof data.error != 'undefined')
+            // JSONP can't handle http status code errors. So error check in success response.
+            if(typeof data.error !== 'undefined')
               if(data.code === 4001)
                 alert(div.settings.msgSrefNotRecognised);
               else
@@ -566,14 +567,6 @@ var destroyAllFeatures;
                 _showWktFeature(div, data.mapwkt, div.map.editLayer, null, false, "clickPoint");
               }
               $('#'+opts.geomId).val(data.wkt);
-            }
-          },
-          error: function(data) {
-            var response = JSON.parse(data.response.replace(/^jsonp\d+\(/, '').replace(/\)$/, ''));
-            if(response.code === 4001) {
-              alert(div.settings.msgSrefNotRecognised);
-            } else {
-              alert(response.error);
             }
           }
         });
