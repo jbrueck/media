@@ -115,7 +115,7 @@ jQuery(document).ready(function($) {
         }
       },
       getDescription:function() {
-        var groups=[], taxa=[], r=[];
+        var groups=[], taxa=[], designations=[], r=[];
         if (typeof indiciaData.filter.def.taxon_group_list!=="undefined") {
           $.each(indiciaData.filter.def.taxon_group_names, function(idx, group) {
             groups.push(group);
@@ -131,11 +131,19 @@ jQuery(document).ready(function($) {
             taxa.push(taxon);
           });
         }
+        if (typeof indiciaData.filter.def.taxon_designation_list!=="undefined") {
+          $.each(indiciaData.filter.def.taxon_designation_list_names, function(idx, designation) {
+            designations.push(designation);
+          });
+        }
         if (groups.length>0) {
           r.push(groups.join(', '));
         }
         if (taxa.length>0) {
           r.push(taxa.join(', '));
+        }
+        if (designations.length>0) {
+          r.push(designations.join(', '));
         }
         if (typeof indiciaData.filter.def.taxon_rank_sort_order_combined!=="undefined" &&
             indiciaData.filter.def.taxon_rank_sort_order_combined!=="") {
@@ -155,10 +163,13 @@ jQuery(document).ready(function($) {
         delete indiciaData.filter.def['higher_taxa_taxon_list_list:search:taxon'];
         delete indiciaData.filter.def['taxa_taxon_list_list:search'];
         delete indiciaData.filter.def['taxa_taxon_list_list:search:taxon'];
+        delete indiciaData.filter.def['taxon_designation_list:search'];
+        delete indiciaData.filter.def['taxon_designation_list:search:taxon'];
         // reset the list of group names and species
         indiciaData.filter.def.taxon_group_names={};
         indiciaData.filter.def.higher_taxa_taxon_list_names={};
         indiciaData.filter.def.taxa_taxon_list_names={};
+        indiciaData.filter.def.taxon_designation_list_names={};
         // if nothing selected, clean up the def
         if ($('input[name="taxon_group_list\\[\\]"]').length===0) {
           indiciaData.filter.def.taxon_group_list='';
@@ -184,6 +195,14 @@ jQuery(document).ready(function($) {
             indiciaData.filter.def.taxa_taxon_list_names[$(ctrl).val()] = $.trim($(ctrl).parent().text());
           });
         }
+        if ($('input[name="taxon_designation_list\\[\\]"]').length===0) {
+          indiciaData.filter.def.taxon_designation_list='';
+        } else {
+          // store the list of names in the def, though not used for the report they save web service hits later
+          $.each($('input[name="taxon_designation_list\\[\\]"]'), function(idx, ctrl) {
+            indiciaData.filter.def.taxon_designation_list_names[$(ctrl).val()] = $.trim($(ctrl).parent().text());
+          });
+        }
         // because the rank sort order key includes both the sort order and rank ID, clean this up for the actual filter
         if (typeof indiciaData.filter.def.taxon_rank_sort_order_combined!=="undefined") {
           indiciaData.filter.def.taxon_rank_sort_order = indiciaData.filter.def.taxon_rank_sort_order_combined.split(':')[0];
@@ -201,6 +220,9 @@ jQuery(document).ready(function($) {
           firstTab = 2;
           disabled = [0, 1];
           $('#species-tab').find('.context-instruct').show();
+        }
+        if (context && context.taxon_designation_list) {
+          disabled.push(2);
         }
         if (context && context.marine_flag && context.marine_flag!=='all') {
           $('#marine_flag').find('option[value='+context.marine_flag+']').attr('selected', 'selected');
@@ -241,12 +263,20 @@ jQuery(document).ready(function($) {
                 '<input type="hidden" value="' + id + '" name="taxa_taxon_list_list[]"/></li>');
           });
         }
+        $('#taxon_designation_list\\:sublist').children().remove();
+        if (typeof indiciaData.filter.def.taxon_designation_list_names!=="undefined") {
+          $.each(indiciaData.filter.def.taxon_designation_list_names, function(id, name) {
+            $('#taxon_designation_list\\:sublist').append('<li class="ui-widget-content ui-corner-all"><span class="ind-delete-icon"> </span>' + name +
+              '<input type="hidden" value="' + id + '" name="taxon_designation_list[]"/></li>');
+          });
+        }
         if(typeof hook_reportfilter_loadForm != 'undefined')
         	hook_reportfilter_loadForm('what');
         // these auto-disable on form submission
         $('#taxon_group_list\\:search\\:q').removeAttr('disabled');
         $('#higher_taxa_taxon_list_list\\:search\\:taxon').removeAttr('disabled');
         $('#taxa_taxon_list_list\\:search\\:taxon').removeAttr('disabled');
+        $('#taxon_designation_list\\:search\\:taxon').removeAttr('disabled');
       }
     },
     when:{
@@ -829,8 +859,12 @@ jQuery(document).ready(function($) {
     var filterDef = $.extend({}, indiciaData.filter.def);
     delete filterDef.taxon_group_names;
     delete filterDef.taxa_taxon_list_names;
+    delete filterDef.higher_taxon_list_names;
+    delete filterDef.taxon_designation_list_names;
     delete filterDef.taxon_group_names_context;
     delete filterDef.taxa_taxon_list_names_context;
+    delete filterDef.higher_taxon_list_names_context;
+    delete filterDef.taxon_designation_list_names_context;
     if (indiciaData.reports) {
       // apply the filter to any reports on the page
       $.each(indiciaData.reports, function(i, group) {
