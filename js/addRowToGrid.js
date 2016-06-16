@@ -565,7 +565,7 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
         // make sure the input shows, though at this stage it is in a hidden div. @todo This is a bit of a nasty hack,
         // would rather obay CSS precedence rules but !important is getting in the way.
         $(input).css('cssText', 'display: inline !important');
-        $('#click-' + identifier).fancybox({titleShow: false, showCloseButton: false});
+        $('#click-' + identifier).fancybox({helpers : {title : null}, closeBtn: false});
       }
     });
 

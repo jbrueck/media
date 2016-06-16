@@ -1053,10 +1053,9 @@ jQuery(document).ready(function($) {
       $(ctrl).attr('checked', typeof indiciaData.filter.def[$(ctrl).attr('name')]!=="undefined" && indiciaData.filter.def[$(ctrl).attr('name')]==$(ctrl).val());
     });
   }
-
   $('.fb-filter-link').fancybox({
-    onStart: function(e) {
-      var pane=$(e[0].href.replace(/^[^#]+/, '')),
+    beforeLoad: function() {
+      var pane=$(this.href.replace(/^[^#]+/, '')),
           paneName=$(pane).attr('id').replace('controls-filter_', '');
       if (typeof paneObjList[paneName].preloadForm!=="undefined") {
         paneObjList[paneName].preloadForm();
@@ -1065,8 +1064,8 @@ jQuery(document).ready(function($) {
       pane.find('.fb-apply').data('clicked', false);
       updateControlValuesToReflectCurrentFilter(pane);
     },
-    onComplete: function(e) {
-      var pane=$(e[0].href.replace(/^[^#]+/, '')), context,
+    afterShow: function() {
+      var pane=$(this.href.replace(/^[^#]+/, '')), context,
           paneName=$(pane).attr('id').replace('controls-filter_', '');
       // if a context is loaded, need to let the forms configure themselves on this basis
       context = $('#context-filter').length ? indiciaData.filterContextDefs[$('#context-filter').val()] : null;
@@ -1084,8 +1083,8 @@ jQuery(document).ready(function($) {
         }
       }
     },
-    onClosed: function(e) {
-      var pane=$(e[0].href.replace(/^[^#]+/, ''));
+    afterClose: function() {
+      var pane=$(this.href.replace(/^[^#]+/, ''));
       if (pane[0].id==='controls-filter_where' && typeof indiciaData.linkToMapDiv!=="undefined") {
         var element=$('#' + indiciaData.linkToMapDiv);
         $(indiciaData.mapdiv).css('width', indiciaData.origMapSize.width);
