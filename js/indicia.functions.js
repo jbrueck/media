@@ -74,7 +74,7 @@ if (typeof window.indiciaData==="undefined") {
    * respectively.
    */
   indiciaFns.hoverIdDiffIcon = function(e) {
-    if ($(e.currentTarget).attr('title')==='') {
+    if (typeof $(e.currentTarget).attr('title')==="undefined" || $(e.currentTarget).attr('title')==='') {
       // Hovering over an ID difficulty marker, so load up the message hint. We load the whole 
       // lot for this rule, to save multiple service hits. So check if we've loaded this rule already
       if (typeof indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]==="undefined") {
@@ -84,17 +84,19 @@ if (typeof window.indiciaData==="undefined") {
           data: {"verification_rule_id":$(e.currentTarget).attr('data-rule'), "header_name":"INI",
             "auth_token":indiciaData.read.auth_token, "nonce":indiciaData.read.nonce},
           success: function(data) {
-            indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]={};
-            $.each(data, function(idx, msg) {
-              indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]
-                  ['diff'+msg.key] = msg.value;
-            });
-            $(e.currentTarget).attr('title', indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]
-                ['diff'+$(e.currentTarget).attr('data-diff')]);
-          },
-          error: function() {
-            // put a default in place.
-            $(e.currentTarget).attr('title', 'Caution, identification difficulty level ' + $(e.currentTarget).attr('data-rule') + ' out of 5');
+            // JSONP can't handle http status code errors. So error check in success response.
+            if (typeof data.error !== "undefined") {
+              // put a default in place.
+              $(e.currentTarget).attr('title', 'Caution, identification difficulty level ' + $(e.currentTarget).attr('data-rule') + ' out of 5');
+            } else {
+              indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]={};
+              $.each(data, function(idx, msg) {
+                indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]
+                    ['diff'+msg.key] = msg.value;
+              });
+              $(e.currentTarget).attr('title', indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]
+                  ['diff'+$(e.currentTarget).attr('data-diff')]);
+            }
           }
         });
       } else {

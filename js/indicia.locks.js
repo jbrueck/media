@@ -151,9 +151,10 @@
 
   var lockControl = function(controlId) {
     // create or update lock cookie for supplied control
-    var lockedArray = getOtherLocks(controlId);
-    var locked = {};
-    var escControlId = esc4jq(controlId);
+    var lockedArray = getOtherLocks(controlId),
+      locked = {},
+      rawControlId = controlId.replace(/:lookup$/, ''),
+      escControlId = esc4jq(rawControlId);
     locked.ctl_page = simpleHash(document.title);
     locked.ctl_id = controlId;
     if ($('#' + escControlId).length==1) {
@@ -353,9 +354,9 @@
   };
 
   var setControlFromLock = function(id, mode) {
-    var escId = esc4jq(id);
-    var controlId = id.replace('_lock', '');
-    var escControlId = escId.replace('_lock', '');
+    var escId = esc4jq(id),
+      controlId = id.replace('_lock', ''),
+      rawControlId = controlId.replace(/:lookup$/, '');
     // establish lock state and set class/value
     if (isControlLocked(controlId) && mode !== 'RELOAD') {
       if (controlHasError(controlId)) {
@@ -365,7 +366,8 @@
       } else {
         // set to locked value
         $('#' + escId).addClass('locked-icon');
-        setControlValue(controlId, getLockedValue(controlId), getLockedCaption(controlId));
+
+        setControlValue(rawControlId, getLockedValue(controlId), getLockedCaption(controlId));
       }
     } else {
       // lock is open and don't set value
