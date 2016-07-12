@@ -499,6 +499,7 @@ var destroyAllFeatures;
     }
 
     function _handleEnteredSref(value, div) {
+      indiciaData.invalidSrefDetected=false;
       // old sref no longer valid so clear the geom
       $('#'+opts.geomId).val('');
       if (value!=='') {
@@ -511,9 +512,10 @@ var destroyAllFeatures;
           success: function(data) {
             // JSONP can't handle http status code errors. So error check in success response.
             if(typeof data.error !== 'undefined')
-              if(data.code === 4001)
+              if(data.code === 4001) {
+                indiciaData.invalidSrefDetected=true;
                 alert(div.settings.msgSrefNotRecognised);
-              else
+              } else
                 alert(data.error);
             else {
               // data should contain 2 wkts, one in indiciaProjection which is stored in the geom field,
