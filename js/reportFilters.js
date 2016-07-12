@@ -158,13 +158,13 @@ jQuery(document).ready(function($) {
       applyFormToDefinition:function() {
         // don't send unnecessary stuff
         delete indiciaData.filter.def['taxon_group_list:search'];
-        delete indiciaData.filter.def['taxon_group_list:search:title'];
+        delete indiciaData.filter.def['taxon_group_list:search:q'];
         delete indiciaData.filter.def['higher_taxa_taxon_list_list:search'];
-        delete indiciaData.filter.def['higher_taxa_taxon_list_list:search:taxon'];
+        delete indiciaData.filter.def['higher_taxa_taxon_list_list:search:searchterm'];
         delete indiciaData.filter.def['taxa_taxon_list_list:search'];
-        delete indiciaData.filter.def['taxa_taxon_list_list:search:taxon'];
+        delete indiciaData.filter.def['taxa_taxon_list_list:search:searchterm'];
         delete indiciaData.filter.def['taxon_designation_list:search'];
-        delete indiciaData.filter.def['taxon_designation_list:search:taxon'];
+        delete indiciaData.filter.def['taxon_designation_list:search:title'];
         // reset the list of group names and species
         indiciaData.filter.def.taxon_group_names={};
         indiciaData.filter.def.higher_taxa_taxon_list_names={};
@@ -274,9 +274,9 @@ jQuery(document).ready(function($) {
         	hook_reportfilter_loadForm('what');
         // these auto-disable on form submission
         $('#taxon_group_list\\:search\\:q').removeAttr('disabled');
-        $('#higher_taxa_taxon_list_list\\:search\\:taxon').removeAttr('disabled');
-        $('#taxa_taxon_list_list\\:search\\:taxon').removeAttr('disabled');
-        $('#taxon_designation_list\\:search\\:taxon').removeAttr('disabled');
+        $('#higher_taxa_taxon_list_list\\:search\\:searchterm').removeAttr('disabled');
+        $('#taxa_taxon_list_list\\:search\\:searchterm').removeAttr('disabled');
+        $('#taxon_designation_list\\:search\\:title').removeAttr('disabled');
       }
     },
     when:{
@@ -699,7 +699,7 @@ jQuery(document).ready(function($) {
   });
 
   // Ensure that only one of families, species and species groups are picked on the what filter
-  var taxonSelectionMethods=['higher_taxa_taxon_list_list', 'taxa_taxon_list_list', 'taxon_group_list'];
+  var taxonSelectionMethods=['higher_taxa_taxon_list_list', 'taxa_taxon_list_list', 'taxon_group_list'], fieldname;
   var keep = function(toKeep) {
     $.each(taxonSelectionMethods, function() {
       if (this!==toKeep) {
@@ -708,7 +708,8 @@ jQuery(document).ready(function($) {
     });
   };
   $.each(taxonSelectionMethods, function(idx, method) {
-    $('#'+this+'\\:search\\:taxon').keypress(function(e) {
+    fieldname = this==='taxon_group_list' ? 'q' : 'searchterm';
+    $('#'+this+'\\:search\\:' + fieldname).keypress(function(e) {
       if (e.which===13) {
         keep(method);
       }
