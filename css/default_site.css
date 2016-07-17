@@ -842,7 +842,9 @@ span.ind-cancel-icon {
   background-image: url(../images/cancel.png);
   margin: 0.5em;
 }
-
+.filter-popup #location_list\:box {
+  vertical-align: top;
+}
 .popup-filter-options-container {
   overflow-y: scroll; 
   max-height: 400px; 

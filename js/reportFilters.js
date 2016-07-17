@@ -23,8 +23,46 @@ var loadFilter, loadFilterUser, refreshFilters, applyFilterToReports;
 jQuery(document).ready(function($) {
   "use strict";
   indiciaData.filter = {"def":{},"id":null,"title":null};
-  var saving=false, filterOverride={};
+  var saving=false, loadingSites=false, filterOverride={};
 
+  // override append and remove so we can track addition of sublist locations and draw them on the map
+  var origAppend = $.fn.append, origRemove = $.fn.remove;
+
+  $.fn.append = function () {
+    return origAppend.apply(this, arguments).trigger("append");
+  };
+
+  $.fn.remove = function () {
+    return origRemove.apply(this, arguments).trigger("remove");
+  };
+
+  function removeSite() {
+    var idToRemove = $(this).find('input[name="location_list\[\]"]').val(), toRemove = [],
+      layer = indiciaData.mapdiv.map.editLayer;
+    $.each(layer.features, function() {
+      if (this.attributes.id == idToRemove) {
+        toRemove.push(this);
+      }
+    });
+    layer.removeFeatures(toRemove, {});
+  }
+
+  $("#location_list\\:sublist").bind("append", function() {
+    if (!loadingSites) {
+      loadSites($(this).find('li input[name="location_list[]"]').last().val(), false);
+      // remove all non-site boundaries, i.e. grid squares
+      indiciaData.mapdiv.removeAllFeatures(indiciaData.mapdiv.map.editLayer, 'boundary', true);
+    }
+    $("#location_list\\:sublist li:last-child").bind("remove", removeSite);
+  });
+
+  /**
+   * If an of the supplied fields are defined in the supplied context filter, then disables
+   * the list of controls given, otherwise re-enables them.
+   * @param context
+   * @param fields
+   * @param ctrlIds
+   */
   function disableIfPresent(context, fields, ctrlIds) {
     var disable=false;
     $.each(fields, function(idx, field) {
@@ -87,8 +125,7 @@ jQuery(document).ready(function($) {
    * @returns boolean
    */
   function siteOrGridRefSelected() {
-    return ($('#imp-location').val()!=='' && $('#imp-location').val()!==null)
-      || ($('#imp-sref').val()!=='' && $('#imp-sref').val()!==null);
+    return $('input[name="location_list[]"]').length>0 || ($('#imp-sref').val()!=='' && $('#imp-sref').val()!==null);
   }
 
   // functions that drive each of the filter panes, e.g. to obtain the description from the controls.
@@ -272,11 +309,6 @@ jQuery(document).ready(function($) {
         }
         if(typeof hook_reportfilter_loadForm != 'undefined')
         	hook_reportfilter_loadForm('what');
-        // these auto-disable on form submission
-        $('#taxon_group_list\\:search\\:q').removeAttr('disabled');
-        $('#higher_taxa_taxon_list_list\\:search\\:searchterm').removeAttr('disabled');
-        $('#taxa_taxon_list_list\\:search\\:searchterm').removeAttr('disabled');
-        $('#taxon_designation_list\\:search\\:title').removeAttr('disabled');
       }
     },
     when:{
@@ -390,13 +422,18 @@ jQuery(document).ready(function($) {
             indiciaData.filter.def.indexed_location_id=$('#site-type').val().replace(/^loc:/, '');
             indiciaData.filter.def.remembered_location_name = $('#site-type :selected').text();
             return;
-          } else if ($('#imp-location').val()) {
+          } else if ($('input[name="location_list[]"]').length>0) {
+            var ids = [], names = [];
+            $.each($('#location_list\\:sublist li'), function() {
+              ids.push($(this).find('input[name="location_list[]"]').val());
+              names.push($(this).text().trim());
+            });
             if ($.inArray(parseInt($('#site-type').val()), indiciaData.indexedLocationTypeIds)!==-1) {
-              indiciaData.filter.def.indexed_location_id=$('#imp-location').val();
+              indiciaData.filter.def.indexed_location_list=ids.join(',');
             } else {
-              indiciaData.filter.def.location_id=$('#imp-location').val();
+              indiciaData.filter.def.location_list=ids.join(',');
             }
-            indiciaData.filter.def.remembered_location_name = $('#imp-location :selected').text();
+            indiciaData.filter.def.remembered_location_name = names.join(',');
             return;
           }
         }
@@ -438,30 +475,34 @@ jQuery(document).ready(function($) {
         $('#filter-map-container').css('height', $(window).height()-380);
       },
       loadForm:function(context) {
+        // legacy
+        if (indiciaData.filter.def.location_id && !indiciaData.filter.def.location_list) {
+          indiciaData.filter.def.location_list = indiciaData.filter.def.location_id;
+          delete indiciaData.filter.def.location_id;
+        }
+        if (indiciaData.filter.def.indexed_location_id && !indiciaData.filter.def.indexed_location_list) {
+          indiciaData.filter.def.indexed_location_list = indiciaData.filter.def.indexed_location_id;
+          delete indiciaData.filter.def.indexed_location_id;
+        }
         indiciaData.disableMapDataLoading=true;
         indiciaData.mapOrigCentre=indiciaData.mapdiv.map.getCenter();
         indiciaData.mapOrigZoom=indiciaData.mapdiv.map.getZoom();
-        if (indiciaData.filter.def.indexed_location_id &&
-            $("#site-type option[value='loc:"+indiciaData.filter.def.indexed_location_id+"']").length > 0) {
-          $('#site-type').val('loc:'+indiciaData.filter.def.indexed_location_id);
-        } else if (indiciaData.filter.def.indexed_location_id || indiciaData.filter.def.location_id) {
-          var locationToLoad=indiciaData.filter.def.indexed_location_id ? indiciaData.filter.def.indexed_location_id : indiciaData.filter.def.location_id;
+        if (indiciaData.filter.def.indexed_location_list &&
+            $("#site-type option[value='loc:"+indiciaData.filter.def.indexed_location_list+"']").length > 0) {
+          $('#site-type').val('loc:'+indiciaData.filter.def.indexed_location_list);
+        } else if (indiciaData.filter.def.indexed_location_list || indiciaData.filter.def.location_list) {
+          var locationsToLoad=indiciaData.filter.def.indexed_location_list ?
+            indiciaData.filter.def.indexed_location_list : indiciaData.filter.def.location_list, siteType
           if (indiciaData.filter.def['site-type']) {
-            $('#site-type').val(indiciaData.filter.def['site-type']);
+            siteType = indiciaData.filter.def['site-type'];
           } else {
             // legacy
-            $('#site-type').val('my');
+            siteType='my';
           }
-          changeSiteType(locationToLoad);
-        }
-        if (typeof indiciaData.linkToMapDiv!=="undefined") {
-          // move the map div to our container so it appears on the popup
-          var element=$('#' + indiciaData.linkToMapDiv);
-          indiciaData.origMapParent = element.parent();
-          indiciaData.origMapSize = {"width": $(indiciaData.mapdiv).css('width'), "height": $(indiciaData.mapdiv).css('height')};
-          $(indiciaData.mapdiv).css('width', '100%');
-          $(indiciaData.mapdiv).css('height', '100%');
-          $('#filter-map-container').append(element);
+          if ($('#site-type').val()!==siteType) {
+            $('#site-type').val(siteType);
+            changeSiteType();
+          }
         }
         if (siteOrGridRefSelected()) {
           // don't want to be able to edit a loaded site boundary or grid reference
@@ -478,8 +519,8 @@ jQuery(document).ready(function($) {
         if (context && (context.location_id || context.indexed_location_id || context.location_name || context.searchArea)) {
           $('#controls-filter_where .context-instruct').show();
         }
-        disableIfPresent(context, ['location_id','location_name'], ['#imp-location\\:name','#location_name']);
-        disableIfPresent(context, ['indexed_location_id'], ['#indexed_location_id']);
+        disableIfPresent(context, ['location_id','location_list','indexed_location_id','indexed_location_list','location_name'],
+          ['#location_list\\:search\\:name','#location_name']);
         disableIfPresent(context, ['sref','searchArea'], ['#imp-sref']);
         if (context && (context.sref || context.searchArea)) {
           $('#controls-filter_where legend').hide();
@@ -489,21 +530,27 @@ jQuery(document).ready(function($) {
         } else {
           $('#controls-filter_where legend').show();
         }
-
       },
       loadFilter: function() {
         if (typeof indiciaData.mapdiv!=="undefined") {
-          var map=indiciaData.mapdiv.map;
-          if (indiciaData.filter.def.searchArea) {
-            var parser = new OpenLayers.Format.WKT(), feature = parser.read(indiciaData.filter.def.searchArea);
+          var filter=indiciaData.filter.def, map=indiciaData.mapdiv.map;
+          if (filter.searchArea) {
+            var parser = new OpenLayers.Format.WKT(), feature = parser.read(filter.searchArea);
             if (map.projection.getCode() !== indiciaData.mapdiv.indiciaProjection.getCode()) {
               feature.geometry.transform(indiciaData.mapdiv.indiciaProjection, map.projection);
             }
             map.editLayer.addFeatures([feature]);
-          } else if (indiciaData.filter.def.location_id) {
-            indiciaData.mapdiv.locationSelectedInInput(indiciaData.mapdiv, indiciaData.filter.def.location_id);
-          } else if (indiciaData.filter.def.indexed_location_id) {
-            indiciaData.mapdiv.locationSelectedInInput(indiciaData.mapdiv, indiciaData.filter.def.indexed_location_id);
+            map.zoomToExtent(map.editLayer.getDataExtent());
+          } else if (filter.location_id || filter.location_list || filter.indexed_location_id || filter.indexed_location_list) {
+            // need to load filter location boundaries onto map. Location_id variants are for legacy
+            if (filter.location_id && !filter.location_list) {
+              filter.location_list=filter.location_id;
+            }
+            if (filter.indexed_location_id && !filter.indexed_location_list) {
+              filter.indexed_location_list=filter.indexed_location_id;
+            }
+            var locationsToLoad=filter.indexed_location_list ? filter.indexed_location_list : filter.location_list;
+            loadSites(locationsToLoad);
           }
         }
       }
@@ -668,8 +715,15 @@ jQuery(document).ready(function($) {
 
   // Event handler for a draw tool boundary being added which clears the other controls on the map pane.
   function addedFeature() {
-    $('#controls-filter_where').find(':input').not('#imp-sref-system,:checkbox,[type=button]').val('');
+    $('#controls-filter_where').find(':input').not('#imp-sref-system,:checkbox,[type=button],[name="location_list\[\]"]').val('');
     $('#controls-filter_where').find(':checkbox').attr('checked', false);
+    // If a selected site but switching to freehand, we need to clear the site boundary.
+    if (siteOrGridRefSelected()) {
+      clearSites();
+      $('#location_list\\:box').hide();
+      indiciaData.mapdiv.map.updateSize();
+      $('#imp-sref').val('');
+    }
   }
 
   // Hook the addedFeature handler up to the draw controls on the map
@@ -687,9 +741,9 @@ jQuery(document).ready(function($) {
   $('.filter-controls fieldset :input').change(function(e) {
     var formDiv=$(e.currentTarget).parents('.filter-popup'),
       thisFieldset=$(e.currentTarget).parents('fieldset')[0];
-    if ($(formDiv)[0].id==='controls-filter_where') {
-      indiciaData.mapdiv.map.editLayer.removeAllFeatures();
-    }
+    //if ($(formDiv)[0].id==='controls-filter_where') {
+    //  indiciaData.mapdiv.map.editLayer.removeAllFeatures();
+    //}
     $.each($(formDiv).find('fieldset.exclusive'), function(idx, fieldset) {
       if (fieldset!==thisFieldset) {
         $(fieldset).find(':input').not('#imp-sref-system,:checkbox,[type=button]').val('');
@@ -719,44 +773,88 @@ jQuery(document).ready(function($) {
     });
   });
 
-  function loadSites(filter, idToSelect) {
+  function clearSites(all) {
+    $('#location_list\\:sublist').children().remove();
+    $('.ac_results').hide();
+    $('input#location_list\\:search\\:name').val('');
+    var map=indiciaData.mapdiv;
+    if (typeof all==="undefined" || all===false) {
+      indiciaData.mapdiv.removeAllFeatures(indiciaData.mapdiv.map.editLayer, 'boundary');
+    } else {
+      indiciaData.mapdiv.map.editLayer.removeAllFeatures();
+    }
+  }
+
+  function loadSites(idsToSelect, doClear) {
+    if (typeof doClear==="undefined" || doClear) {
+      clearSites(true);
+    }
+    if (typeof idsToSelect === "undefined" || idsToSelect.length === 0) {
+      return;
+    }
+    var id_query = '{"in":{"id":[' + idsToSelect + ']}}';
+    loadingSites = true;
     $.ajax({
       dataType: "json",
       url: indiciaData.read.url + 'index.php/services/data/location',
-      data: 'mode=json&view=list&orderby=name&auth_token='+indiciaData.read.auth_token+'&nonce='+indiciaData.read.nonce+'&'+filter+'&callback=?',
+      data: 'mode=json&view=list&orderby=name&auth_token='+indiciaData.read.auth_token+'&nonce='+indiciaData.read.nonce+
+        '&query='+id_query+'&view=detail&callback=?',
       success: function(data) {
-        $.each(data, function(idx, loc) {
-          $('#imp-location').append('<option value="'+loc.id+'">' + loc.name + '</option>');
-        });
-        if (typeof idToSelect !== "undefined") {
-          $('#imp-location').val(idToSelect);
+        var features = [];
+        if (data.length) {
+          $.each(data, function (idx, loc) {
+            if ($('input[name="location_list\[\]"][value="' + loc.id + '"]').length===0) {
+              $('#location_list\\:sublist').append('<li class="ui-widget-content ui-corner-all"><span class="ind-delete-icon">' +
+                '&nbsp;</span>' + loc.name + '<input type="hidden" name="location_list[]" value="' + loc.id + '"/></li>');
+            }
+            if (loc.boundary_geom || loc.centroid_geom) {
+              var geomwkt = loc.boundary_geom || loc.centroid_geom,
+                parser = new OpenLayers.Format.WKT();
+              if (indiciaData.mapdiv.map.projection.getCode() !== indiciaData.mapdiv.indiciaProjection.getCode()) {
+                geomwkt = parser.read(geomwkt).geometry.transform(indiciaData.mapdiv.indiciaProjection, indiciaData.mapdiv.map.projection).toString();
+              }
+              var feature = parser.read(geomwkt);
+              feature.attributes.type = 'boundary';
+              feature.attributes.id = loc.id;
+              features.push(feature);
+            }
+          });
+          indiciaData.mapdiv.map.editLayer.addFeatures(features);
+          indiciaData.mapdiv.map.zoomToExtent(indiciaData.mapdiv.map.editLayer.getDataExtent());
         }
+        loadingSites = false;
       }
     });
   }
 
-  function changeSiteType(idToSelect) {
-    $('#imp-location').children().remove();
-    $('#imp-location').append('<option value="">'+indiciaData.lang.pleaseSelect+'</option>');
+  function changeSiteType() {
+    clearSites();
     if ($('#site-type').val()==='my') {
       // my sites
-      $('#imp-location').show();
+      $('#location_list\\:box').show();
       if (indiciaData.includeSitesCreatedByUser) {
-        loadSites('view=detail&created_by_id='+indiciaData.user_id, idToSelect);
+        $('input#location_list\\:search\\:name').setExtraParams({
+          "view":"detail",
+          "created_by_id":indiciaData.user_id
+        });
+        $('input#location_list\\:search\\:name').unsetExtraParams('location_type_id');
       }
     } else if ($('#site-type').val().match(/^[0-9]+$/)) {
       // a location_type_id selected
-      $('#imp-location').show();
-      loadSites('location_type_id='+$('#site-type').val(), idToSelect);
+      $('#location_list\\:box').show();
+      $('input#location_list\\:search\\:name').setExtraParams({
+        "view":"list",
+        "location_type_id":$('#site-type').val()
+      });
+      $('input#location_list\\:search\\:name').unsetExtraParams('created_by_id');
     } else {
       // a shortcut site from the site-types list
-      $('#imp-location').hide();
+      $('#location_list\\:box').hide();
       if ($('#site-type').val().match(/^loc:[0-9]+$/)) {
-        // add a dummy location entry and pick it, so we can fire change to redraw the map
-        $('#imp-location').children().append('<option selected="selected" value="'+$('#site-type').val().replace(/^loc:/, '')+'">x</option>');
         indiciaData.mapdiv.locationSelectedInInput(indiciaData.mapdiv, $('#site-type').val().replace(/^loc:/, ''));
       }
     }
+    indiciaData.mapdiv.map.updateSize();
   }
 
   $('#site-type').change(function() {
@@ -938,9 +1036,9 @@ jQuery(document).ready(function($) {
       });
     });
     // clear map edit layer
-    if (indiciaData.mapdiv) {
-      indiciaData.mapdiv.map.editLayer.removeAllFeatures();
-    }
+    clearSites();
+    $('#site-type').val('');
+    $('#location_list\\:box').hide();
     updateFilterDescriptions();
     $('#filter-build').html(indiciaData.lang.CreateAFilter);
     $('#filter-reset').addClass('disabled');
@@ -955,14 +1053,23 @@ jQuery(document).ready(function($) {
     var description, name;
     $.each($('#filter-panes .pane'), function(idx, pane) {
       name=pane.id.replace(/^pane-filter_/,'');
-      if (paneObjList[name].loadFilter) {
-        paneObjList[name].loadFilter();
-      }
       description = paneObjList[name].getDescription();
       if (description==='') {
         description=indiciaData.lang['NoDescription' + name];
       }
       $(pane).find('span.filter-desc').html(description);
+    });
+  }
+
+  function loadFilterOntoForms() {
+    var description, name,
+      context = $('#context-filter').length ? indiciaData.filterContextDefs[$('#context-filter').val()] : null;
+    $.each($('#filter-panes .pane'), function(idx, pane) {
+      name = pane.id.replace(/^pane-filter_/, '');
+      // Does the pane have any special code for loading the definition into the form?
+      if (typeof paneObjList[name].loadForm !== "undefined") {
+        paneObjList[name].loadForm(context);
+      }
     });
   }
 
@@ -976,7 +1083,14 @@ jQuery(document).ready(function($) {
     $('#filter-reset').removeClass('disabled');
     $('#filter-delete').removeClass('disabled');
     $('#active-filter-label').html('Active filter: '+data[0].title);
+    $.each($('#filter-panes .pane'), function(idx, pane) {
+      var name = pane.id.replace(/^pane-filter_/, '');
+      if (paneObjList[name].loadFilter) {
+        paneObjList[name].loadFilter();
+      }
+    });
     updateFilterDescriptions();
+    loadFilterOntoForms();
     $('#filter-build').html(indiciaData.lang.ModifyFilter);
     $('#standard-params .header span.changed').hide();
     // can't delete a filter you didn't create.
@@ -1089,7 +1203,7 @@ jQuery(document).ready(function($) {
   // Applies the current loaded filter to the controls within the pane.
   function updateControlValuesToReflectCurrentFilter(pane) {
     // regexp extracts the pane ID from the href. Loop through the controls in the pane
-    $.each(pane.find(':input').not('#imp-sref-system,:checkbox,[type=button]'), function(idx, ctrl) {
+    $.each(pane.find(':input').not('#imp-sref-system,:checkbox,[type=button],[name="location_list\[\]"]'), function(idx, ctrl) {
       // set control value to the stored filter setting
       $(ctrl).val(indiciaData.filter.def[$(ctrl).attr('name')]);
     });
@@ -1109,23 +1223,31 @@ jQuery(document).ready(function($) {
       updateControlValuesToReflectCurrentFilter(pane);
     },
     afterShow: function() {
-      var pane=$(this.href.replace(/^[^#]+/, '')), context,
+      var pane=$(this.href.replace(/^[^#]+/, '')),
           paneName=$(pane).attr('id').replace('controls-filter_', '');
-      // if a context is loaded, need to let the forms configure themselves on this basis
-      context = $('#context-filter').length ? indiciaData.filterContextDefs[$('#context-filter').val()] : null;
       $('.context-instruct').hide();
-      // Does the pane have any special code for loading the definition into the form?
-      if (typeof paneObjList[paneName].loadForm!=="undefined") {
-        paneObjList[paneName].loadForm(context);
-      }
       if (pane[0].id==='controls-filter_where') {
-        indiciaData.mapdiv.map.updateSize();
-        indiciaData.mapdiv.settings.drawObjectType='queryPolygon';
-        // No need to do this when loading a site boundary as indiciaMapPanel automates it.
-        if (indiciaData.mapdiv.map.editLayer.features.length) {
-          indiciaData.mapdiv.map.zoomToExtent(indiciaData.mapdiv.map.editLayer.getDataExtent());
+        if (typeof indiciaData.linkToMapDiv !== "undefined") {
+          // move the map div to our container so it appears on the popup
+          var element = $('#' + indiciaData.linkToMapDiv);
+          indiciaData.origMapParent = element.parent();
+          indiciaData.origMapSize = {
+            "width": $(indiciaData.mapdiv).css('width'),
+            "height": $(indiciaData.mapdiv).css('height')
+          };
+          $(indiciaData.mapdiv).css('width', '100%');
+          $(indiciaData.mapdiv).css('height', '100%');
+          $('#filter-map-container').append(element);
+          indiciaData.mapdiv.map.updateSize();
+          indiciaData.mapdiv.settings.drawObjectType = 'queryPolygon';
         }
       }
+      // these auto-disable on form submission
+      $('#taxon_group_list\\:search\\:q').removeAttr('disabled');
+      $('#higher_taxa_taxon_list_list\\:search\\:searchterm').removeAttr('disabled');
+      $('#taxa_taxon_list_list\\:search\\:searchterm').removeAttr('disabled');
+      $('#taxon_designation_list\\:search\\:title').removeAttr('disabled');
+      $('#location_list\\:search\\:name').removeAttr('disabled');
     },
     afterClose: function() {
       var pane=$(this.href.replace(/^[^#]+/, ''));
@@ -1138,6 +1260,11 @@ jQuery(document).ready(function($) {
         indiciaData.mapdiv.map.updateSize();
         indiciaData.mapdiv.settings.drawObjectType='boundary';
         indiciaData.disableMapDataLoading=false;
+        $.each(indiciaData.mapdiv.map.controls, function() {
+          if (this.CLASS_NAME==='OpenLayers.Control.DrawFeature') {
+            this.deactivate();
+          }
+        });
       }
     }
   });
@@ -1199,7 +1326,7 @@ jQuery(document).ready(function($) {
   });
 
   // Select a named location - deactivate the drawFeature and hide modifyFeature controls.
-  $('#imp-location').change(function() {
+  $('#location_list\\:search\\:name').change(function() {
     $.each(indiciaData.mapdiv.map.controls, function() {
       if (this.CLASS_NAME==='OpenLayers.Control.DrawFeature') {
         this.deactivate();
@@ -1215,12 +1342,6 @@ jQuery(document).ready(function($) {
       if (this.CLASS_NAME==='OpenLayers.Control.DrawFeature' || this.CLASS_NAME==='OpenLayers.Control.ModifyFeature') {
         this.events.register('activate', '', function() {
           $('.olControlModifyFeatureItemInactive, .olControlModifyFeatureItemActive').show();
-          // If a selected site but switching to freehand, we need to clear the site boundary.
-          if (siteOrGridRefSelected()) {
-            $('#imp-location').val('');
-            $('#imp-sref').val('');
-            div.map.editLayer.removeAllFeatures()
-          }
         });
         this.events.register('deactivate', '', function() {
           $('.olControlModifyFeatureItemInactive').hide();
@@ -1232,7 +1353,8 @@ jQuery(document).ready(function($) {
   mapClickForSpatialRefHooks.push(function(data, mapdiv) {
     // on click to set a grid square, clear any other boundary data
     mapdiv.removeAllFeatures(mapdiv.map.editLayer, 'clickPoint', true);
-    $('#controls-filter_where').find(':input').not('#imp-sref,#imp-sref-system,:checkbox,[type=button]').val('');
+    clearSites();
+    $('#controls-filter_where').find(':input').not('#imp-sref,#imp-sref-system,:checkbox,[type=button],[name="location_list\[\]"]').val('');
   });
 
   $('form.filter-controls').submit(function(e){
@@ -1363,12 +1485,15 @@ jQuery(document).ready(function($) {
     );
   };
 
-  $('#imp-location').hide();
+  $('#location_list\\:box').hide();
   $('#filter-save').click(saveFilter);
   $('#context-filter').change(resetFilter);
 
   filterChange();
   applyDefaults();
+  $('#imp-sref').change(function() {
+    window.setTimeout(function() { clearSites(); }, 500);
+  });
   $('form.filter-controls').validate();
 
 });
