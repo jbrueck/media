@@ -408,8 +408,10 @@ jQuery(document).ready(function($) {
       },
       applyFormToDefinition:function() {
         var geoms=[], geom;
-        indiciaData.filter.def.location_id='';
-        indiciaData.filter.def.indexed_location_id='';
+        delete indiciaData.filter.def.location_id;
+        delete indiciaData.filter.def.indexed_location_id;
+        delete indiciaData.filter.def.location_list;
+        delete indiciaData.filter.def.indexed_location_list;
         delete indiciaData.filter.def.remembered_location_name;
         delete indiciaData.filter.def.searchArea;
         delete indiciaData.filter.def['imp-location:name'];
@@ -419,7 +421,7 @@ jQuery(document).ready(function($) {
         }
         if ($('#site-type').val()!=='') {
           if ($('#site-type').val().match(/^loc:[0-9]+$/)) {
-            indiciaData.filter.def.indexed_location_id=$('#site-type').val().replace(/^loc:/, '');
+            indiciaData.filter.def.indexed_location_list=$('#site-type').val().replace(/^loc:/, '');
             indiciaData.filter.def.remembered_location_name = $('#site-type :selected').text();
             return;
           } else if ($('input[name="location_list[]"]').length>0) {
@@ -433,7 +435,7 @@ jQuery(document).ready(function($) {
             } else {
               indiciaData.filter.def.location_list=ids.join(',');
             }
-            indiciaData.filter.def.remembered_location_name = names.join(',');
+            indiciaData.filter.def.remembered_location_name = names.join(', ');
             return;
           }
         }
