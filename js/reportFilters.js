@@ -152,24 +152,24 @@ jQuery(document).ready(function($) {
         }
       },
       getDescription:function() {
-        var groups=[], taxa=[], designations=[], r=[];
-        if (typeof indiciaData.filter.def.taxon_group_list!=="undefined") {
-          $.each(indiciaData.filter.def.taxon_group_names, function(idx, group) {
+        var groups=[], taxa=[], designations=[], r=[], filterDef=indiciaData.filter.def;
+        if (filterDef.taxon_group_list && filterDef.taxon_group_names) {
+          $.each(filterDef.taxon_group_names, function(idx, group) {
             groups.push(group);
           });
         }
-        if (typeof indiciaData.filter.def.higher_taxa_taxon_list_list!=="undefined") {
-          $.each(indiciaData.filter.def.higher_taxa_taxon_list_names, function(idx, taxon) {
+        if (filterDef.higher_taxa_taxon_list_list && filterDef.higher_taxa_taxon_list_names) {
+          $.each(filterDef.higher_taxa_taxon_list_names, function(idx, taxon) {
             taxa.push(taxon);
           });
         }
-        if (typeof indiciaData.filter.def.taxa_taxon_list_list!=="undefined") {
-          $.each(indiciaData.filter.def.taxa_taxon_list_names, function(idx, taxon) {
+        if (filterDef.taxa_taxon_list_list && filterDef.taxa_taxon_list_names) {
+          $.each(filterDef.taxa_taxon_list_names, function(idx, taxon) {
             taxa.push(taxon);
           });
         }
-        if (typeof indiciaData.filter.def.taxon_designation_list!=="undefined") {
-          $.each(indiciaData.filter.def.taxon_designation_list_names, function(idx, designation) {
+        if (filterDef.taxon_designation_list && filterDef.taxon_designation_list_names) {
+          $.each(filterDef.taxon_designation_list_names, function(idx, designation) {
             designations.push(designation);
           });
         }
@@ -182,13 +182,12 @@ jQuery(document).ready(function($) {
         if (designations.length>0) {
           r.push(designations.join(', '));
         }
-        if (typeof indiciaData.filter.def.taxon_rank_sort_order_combined!=="undefined" &&
-            indiciaData.filter.def.taxon_rank_sort_order_combined!=="") {
+        if (filterDef.taxon_rank_sort_order_combined) {
           r.push($("#level-label").text() + ' ' + $("#taxon_rank_sort_order_op").find("option:selected").text() + ' ' +
               $("#taxon_rank_sort_order_combined").find("option:selected").text());
         }
-        if (typeof indiciaData.filter.def.marine_flag!=="undefined" && indiciaData.filter.def.marine_flag!=="all") {
-          r.push($("#marine_flag").find("option[value="+indiciaData.filter.def.marine_flag+"]").text());
+        if (filterDef.marine_flag && indiciaData.filter.def.marine_flag!=="all") {
+          r.push($("#marine_flag").find("option[value="+filterDef.marine_flag+"]").text());
         }
         return r.join('<br/>');
       },
