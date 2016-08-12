@@ -199,6 +199,20 @@ var simple_tooltip;
       return result;
     }
 
+    function loadColPickerSettingsFromCookie(div) {
+      // the col picker only saves to cookie if grid id specified, otherwise you get grids overwriting each other's settings
+      if (!div.id.match(/^report-grid-\d+$/)) {
+        var visibleCols = $.cookie(div.id + '-visibleCols');
+        if (visibleCols) {
+          visibleCols = visibleCols.split(',');
+          $(div).find('thead th,tbody td').hide();
+          $.each(visibleCols, function () {
+            $(div).find('.col-'+this).show();
+          });
+        }
+      }
+    }
+
     function simplePager (pager, div, hasMore) {
       var pagerContent='';
       if (div.settings.offset!==0) {
@@ -487,11 +501,13 @@ var simple_tooltip;
                     value = mergeParamsIntoTemplate(div, row, col.template);
                   } else if (typeof col.actions !== "undefined") {
                     value = getActions(div, row, col.actions, queryParams);
-                    tdclasses.push('actions');
+                    tdclasses.push('col-actions');
                   } else {
                     value = row[col.fieldname];
                     tdclasses.push('data');
-                    tdclasses.push(col.fieldname);
+                  }
+                  if (col.fieldname) {
+                    tdclasses.push('col-' + col.fieldname);
                   }
                   if (typeof col['class'] !== "undefined" && col['class']!=='') {
                     tdclasses.push(col['class']);
@@ -514,6 +530,7 @@ var simple_tooltip;
             tbody.append(rowOutput);
           }
           tbody.find('a.fancybox').fancybox();
+          loadColPickerSettingsFromCookie(div);
           if (features.length>0) {
             indiciaData.reportlayer.addFeatures(features);
             map.zoomToExtent(indiciaData.reportlayer.getDataExtent());
@@ -1110,6 +1127,23 @@ var simple_tooltip;
         });
       });
 
+      function saveColPickerToCookie() {
+        // the col picker only saves to cookie if grid id specified, otherwise you get grids overwriting each other's settings
+        if (!div.id.match(/^report-grid-\d+$/)) {
+          var visibleCols = [];
+          $.each($(div).find('thead tr:first-child th:visible'), function () {
+            $.each(this.classList, function() {
+              if (this.match(/^col-/)) {
+                visibleCols.push(this.replace(/^col-/, ''));
+              }
+            });
+          });
+          $.cookie(div.id + '-visibleCols', visibleCols, {expires: 7});
+        }
+      }
+
+      loadColPickerSettingsFromCookie(div);
+
       // Col picker event handlers
 
       indiciaFns.on('click', '.apply-col-picker', {}, function() {
@@ -1123,6 +1157,7 @@ var simple_tooltip;
             el.hide();
           }
         });
+        saveColPickerToCookie();
         $.fancybox.close();
       });
       indiciaFns.on('change', '#col-checkbox-all', {}, function() {
