@@ -354,16 +354,7 @@ var simple_tooltip;
       var elem = div.settings.recordCount ? $(div).find('tbody') :  $(div).find('table'),
           offset = div.settings.recordCount ? [0,0,-1,0] : [0,1,-2,-2],
           rowTitle;
-      // skip the loading overlay in <IE9 as it is buggy
-      if ($.support.cssFloat) {
-        $(div).find(".loading-overlay").css({
-          top     : $(elem).position().top+offset[0],
-          left    : $(elem).position().left+offset[1],
-          width   : $(elem).outerWidth()+offset[2],
-          height  : $(elem).outerHeight()+offset[3]
-        });
-        $(div).find(".loading-overlay").show();
-      }
+      $(div).find(".loading-overlay").show();
       $.ajax({
         dataType: "json",
         url: request,
@@ -405,7 +396,7 @@ var simple_tooltip;
           }
           if (typeof rows.error!=="undefined") {
             div.loading=false;
-            if ($.support.cssFloat) {$(div).find(".loading-overlay").hide();}
+            $(div).find(".loading-overlay").hide();
             alert('The report did not load correctly.');
             return;
           }
@@ -536,7 +527,7 @@ var simple_tooltip;
           updatePager(div, hasMore);
           div.loading=false;
           setupReloadLinks(div);
-          if ($.support.cssFloat) {$(div).find(".loading-overlay").hide();}
+          $(div).find(".loading-overlay").hide();
 
           // execute callback it there is one
           if (div.settings.callback !== "") {
@@ -546,7 +537,7 @@ var simple_tooltip;
         },
         error: function() {
           div.loading=false;
-          if ($.support.cssFloat) {$(div).find(".loading-overlay").hide();}
+          $(div).find(".loading-overlay").hide();
           alert('The report did not load correctly.');
         }
       });
@@ -734,12 +725,6 @@ var simple_tooltip;
     }
 
     function _internalMapRecords(div, request, offset, callback, recordCount) {
-      $(indiciaData.mapdiv).parent().find(".loading-overlay").css({
-          top     : $(indiciaData.mapdiv).position().top,
-          left    : $(indiciaData.mapdiv).position().left,
-          width   : $(indiciaData.mapdiv).outerWidth(),
-          height  : $(indiciaData.mapdiv).outerHeight()
-      });
       $('#map-loading').show();  
       var matchString, feature, url;
       // first call- get the record count
@@ -889,6 +874,8 @@ var simple_tooltip;
     return this.each(function() {
       this.settings = opts;
 
+
+
       // Make this accessible inside functions
       var div=this;
 
@@ -1036,6 +1023,28 @@ var simple_tooltip;
         popupFilterHtml += '<input type=\"button\" class=\"apply-popup-filter\" value=\"Apply\">';
         $.fancybox(popupFilterHtml);
       });
+
+      // Show a picker for the visible columns
+      $(div).find('.col-picker').click(function() {
+        var checked,
+            colPickerHtml = '<div class="col-picker-options-container"><p>Choose which columns to display:</p><ul>',
+            visibleCols = $(div).find('thead tr:first-child th:visible').length,
+            hiddenCols = $(div).find('thead tr:first-child th:not(:visible)').length,
+            checked = visibleCols > 0 ? 'checked="checked"' : '',
+            opacity = visibleCols > 0 && hiddenCols > 0 ? ' style="opacity: 0.4"' : '';
+        colPickerHtml += '<li id="col-checkbox-all-container" ' + opacity + '><input id="col-checkbox-all" type="checkbox" ' + checked + '/>' +
+            '<label for="col-checkbox-all">Check/uncheck all</label></li>';
+        $.each($(div).find('thead tr:first-child th'), function(idx) {
+          if ($(this).text()!=='') {
+            checked = $(this).is(':visible') ? ' checked="checked"' : '';
+            colPickerHtml += '<li><input id="show-col-' + idx + '" class="col-checkbox" type="checkbox" ' + checked +
+              '/><label for="show-col-' + idx + '">' + $(this).text() + '</label></li>';
+          }
+        });
+        colPickerHtml += '</ul></div>';
+        colPickerHtml += '<input type=\"button\" class=\"apply-col-picker\" value=\"Apply\">';
+        $.fancybox(colPickerHtml);
+      });
       
       /*
        * Sort the items on the popup filter
@@ -1100,6 +1109,44 @@ var simple_tooltip;
           }
         });
       });
+
+      // Col picker event handlers
+
+      indiciaFns.on('click', '.apply-col-picker', {}, function() {
+        var colIdx, el;
+        $.each($('.col-checkbox'), function() {
+          colIdx = parseInt(this.id.replace('show-col-', '')) + 1;
+          el = $(div).find('th:nth-child(' + colIdx + '),td:nth-child(' + colIdx + ')');
+          if (this.checked) {
+            el.show();
+          } else {
+            el.hide();
+          }
+        });
+        $.fancybox.close();
+      });
+      indiciaFns.on('change', '#col-checkbox-all', {}, function() {
+        $('#col-checkbox-all-container').css('opacity', 1);
+        if (this.checked) {
+          $('.col-checkbox').attr('checked', 'checked');
+        } else {
+          $('.col-checkbox').removeAttr('checked');
+        }
+      });
+      indiciaFns.on('change', '.col-checkbox', {}, function() {
+        // set the state of the check all button when the individual checkboxes change
+        var checkedCols = $('.col-checkbox:checked').length,
+          uncheckedCols = $('.col-checkbox:not(:checked)').length,
+          checked = checkedCols > 0,
+          opacity = checkedCols === 0 || uncheckedCols === 0 ? 1 : 0.4;
+        if (checked) {
+          $('#col-checkbox-all').attr('checked', 'checked');
+        } else {
+          $('#col-checkbox-all').removeAttr('checked');
+        }
+        $('#col-checkbox-all-container').css('opacity', opacity);
+      });
+
       setupReloadLinks(div);
 
       if (div.settings.rowId) {
