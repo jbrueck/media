@@ -129,7 +129,7 @@ var destroyAllFeatures;
      */
     function locationSelectedInInput(div, val) {
       if (div.map.editLayer) {
-        div.map.editLayer.destroyFeatures();
+        removeAllFeatures(div.map.editLayer, 'boundary');
       }
       var intValue = parseInt(val);
       if (!isNaN(intValue)) {
