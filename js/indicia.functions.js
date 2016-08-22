@@ -73,39 +73,43 @@ if (typeof window.indiciaData==="undefined") {
    * data-rule and data-diff attributes, pointing to to the rule ID and id difficulty level
    * respectively.
    */
-  indiciaFns.hoverIdDiffIcon = function(e) {
-    if (!$(e.currentTarget).attr('title')) {
-      // Hovering over an ID difficulty marker, so load up the message hint. We load the whole 
+  indiciaFns.hoverIdDiffIcon = function (e) {
+    var $elem = $(e.currentTarget);
+    if (!$elem.attr('title')) {
+      // Hovering over an ID difficulty marker, so load up the message hint. We load the whole
       // lot for this rule, to save multiple service hits. So check if we've loaded this rule already
-      if (typeof indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]==="undefined") {
+      if (typeof indiciaData.idDiffRuleMessages['rule' + $elem.attr('data-rule')] === 'undefined') {
         $.ajax({
-          dataType: "jsonp",
-          url: indiciaData.read.url+'index.php/services/data/verification_rule_datum',
-          data: {"verification_rule_id":$(e.currentTarget).attr('data-rule'), "header_name":"INI",
-            "auth_token":indiciaData.read.auth_token, "nonce":indiciaData.read.nonce},
-          success: function(data) {
+          dataType: 'jsonp',
+          url: indiciaData.read.url + 'index.php/services/data/verification_rule_datum',
+          data: {
+            verification_rule_id: $elem.attr('data-rule'),
+            header_name: 'INI',
+            auth_token: indiciaData.read.auth_token,
+            nonce: indiciaData.read.nonce
+          },
+          success: function (data) {
             // JSONP can't handle http status code errors. So error check in success response.
-            if (typeof data.error !== "undefined") {
+            if (typeof data.error !== 'undefined') {
               // put a default in place.
-              $(e.currentTarget).attr('title', 'Caution, identification difficulty level ' + $(e.currentTarget).attr('data-rule') + ' out of 5');
+              $elem.attr('title', 'Caution, identification difficulty level ' + $elem.attr('data-rule') + ' out of 5');
             } else {
-              indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]={};
-              $.each(data, function(idx, msg) {
-                indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]
-                    ['diff'+msg.key] = msg.value;
+              indiciaData.idDiffRuleMessages['rule' + $elem.attr('data-rule')] = {};
+              $.each(data, function (idx, msg) {
+                indiciaData.idDiffRuleMessages['rule' + $elem.attr('data-rule')]['diff' + msg.key] = msg.value;
               });
-              $(e.currentTarget).attr('title', indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]
-                  ['diff'+$(e.currentTarget).attr('data-diff')]);
+              $(e.currentTarget).attr('title',
+                  indiciaData.idDiffRuleMessages['rule' + $elem.attr('data-rule')]['diff' + $elem.attr('data-diff')]);
             }
           }
         });
       } else {
-        $(e.currentTarget).attr('title', indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]
-                  ['diff'+$(e.currentTarget).attr('data-diff')]);
+        $elem.attr('title',
+          indiciaData.idDiffRuleMessages['rule' + $elem.attr('data-rule')]['diff' + $elem.attr('data-diff')]);
       }
     }
   };
-  
+
   /**
    * Select a jQuery tab or return the index of the current selected one.
    * jQuery UI 1.10 replaced option.selected with option.active. Use this function to allow non-version specific
