@@ -67,14 +67,14 @@ if (typeof window.indiciaData==="undefined") {
     $('#findme-icon').addClass('spinning');
     navigator.geolocation.getCurrentPosition(onSuccess, onFail);
   }
-  
+
   /**
-   * Method to attach to the hover event of an id difficulty warning icon. The icon should have 
+   * Method to attach to the hover event of an id difficulty warning icon. The icon should have
    * data-rule and data-diff attributes, pointing to to the rule ID and id difficulty level
    * respectively.
    */
   indiciaFns.hoverIdDiffIcon = function(e) {
-    if (typeof $(e.currentTarget).attr('title')==="undefined" || $(e.currentTarget).attr('title')==='') {
+    if (!$(e.currentTarget).attr('title')) {
       // Hovering over an ID difficulty marker, so load up the message hint. We load the whole 
       // lot for this rule, to save multiple service hits. So check if we've loaded this rule already
       if (typeof indiciaData.idDiffRuleMessages['rule'+$(e.currentTarget).attr('data-rule')]==="undefined") {
