@@ -196,29 +196,10 @@ var destroyAllFeatures;
     }
 
     /**
-     * Convert any projection representation to a system string.
-     */
-    function _projToSystem(proj, convertGoogle) {
-      var system;
-      if(typeof proj != "string") { // assume a OpenLayers Projection Object
-          system = proj.getCode();
-      } else {
-          system = proj;
-      }
-      if(system.substring(0,5)=='EPSG:'){
-          system = system.substring(5);
-      }
-      if(convertGoogle && system=="900913"){
-          system="3857";
-      }
-      return system;
-    }
-
-    /**
      * Compare 2 projection representations.
      */
     function _diffProj(proj1, proj2) {
-      return (_projToSystem(proj1, true) != _projToSystem(proj2, true));
+      return (indiciaFns.projectionToSystem(proj1, true) != indiciaFns.projectionToSystem(proj2, true));
     }
 
     /**
@@ -507,7 +488,7 @@ var destroyAllFeatures;
           url: div.settings.indiciaSvc + "index.php/services/spatial/sref_to_wkt",
           data:"sref=" + value +
             "&system=" + _getSystem() +
-            "&mapsystem=" + _projToSystem(div.map.projection, false),
+            "&mapsystem=" + indiciaFns.projectionToSystem(div.map.projection, false),
           success: function(data) {
             // JSONP can't handle http status code errors. So error check in success response.
             if(typeof data.error !== 'undefined')
@@ -1310,7 +1291,7 @@ var destroyAllFeatures;
      */
     function pointToSref(div, point, system, callback, pointSystem, precision) {
       if (typeof pointSystem==="undefined") {
-        pointSystem=_projToSystem(div.map.projection, false);
+        pointSystem=indiciaFns.projectionToSystem(div.map.projection, false);
       }
       // get precision required dependent on map zoom
       var precisionInfo=getPrecisionInfo(div, precision);
@@ -1323,7 +1304,7 @@ var destroyAllFeatures;
                 "?wkt=" + point +
                 "&system=" + system +
                 "&wktsystem=" + pointSystem +
-                "&mapsystem=" + _projToSystem(div.map.projection, false) +
+                "&mapsystem=" + indiciaFns.projectionToSystem(div.map.projection, false) +
                 "&precision=" + precisionInfo.precision +
                 "&metresAccuracy=" + precisionInfo.metres +
                 "&output=" + div.settings.latLongFormat +

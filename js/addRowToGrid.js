@@ -610,10 +610,33 @@ var resetSpeciesTextOnEscape;
 
   };
 
-  RegExp.escape= function(s) {
+  RegExp.escape = function (s) {
     return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
   };
-}) (jQuery);
+
+  /* Validator for spatial reference column in the species checklist grid */
+  indiciaFns.on('change', '.scSpatialRef', {}, function (e) {
+    $.ajax({
+      dataType: 'jsonp',
+      url: indiciaData.warehouseUrl + 'index.php/services/spatial/sref_to_wkt',
+      data: 'sref=' + $(e.currentTarget).val() +
+        '&system=' + $('#' + indiciaData.mapdiv.settings.srefSystemId).val() +
+        '&mapsystem=' + indiciaFns.projectionToSystem(indiciaData.mapdiv.map.projection, false),
+      success: function (data) {
+        if (typeof data.error !== 'undefined') {
+          if (data.code === 4001) {
+            alert(indiciaData.mapdiv.settings.msgSrefNotRecognised);
+          } else {
+            alert(data.error);
+          }
+          $(e.currentTarget).addClass('ui-state-error');
+        } else {
+          $(e.currentTarget).removeClass('ui-state-error');
+        }
+      }
+    });
+  });
+})(jQuery);
 
 
 function createSubSpeciesList(url, selectedItemPrefId, selectedItemPrefName, lookupListId, subSpeciesCtrlId, readAuth, selectedChild) {
