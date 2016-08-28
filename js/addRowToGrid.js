@@ -21,35 +21,56 @@
   the newly added rows.
  */
 
-var mainSpeciesValue = null, formatter;
+var mainSpeciesValue = null;
+var formatter;
 
-//Javascript functions using jQuery now need to be defined inside a "(function ($) { }) (jQuery);" wrapper.
-//This means they cannot normally be seen by the outside world, so in order to make a call to one of these 
-//functions, we need to assign it to a global variable.
+/*
+Javascript functions using jQuery now need to be defined inside a "(function ($) { }) (jQuery);" wrapper.
+This means they cannot normally be seen by the outside world, so in order to make a call to one of these
+functions, we need to assign it to a global variable. */
 
-var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new_row, handleSelectedTaxon, 
-    taxonNameBeforeUserEdit,returnPressedInAutocomplete,resetSpeciesTextOnEscape;
+var addRowToGrid;
+var keyHandler;
+var ConvertControlsToPopup;
+var hook_species_checklist_new_row;
+var handleSelectedTaxon;
+var taxonNameBeforeUserEdit;
+var returnPressedInAutocomplete;
+var resetSpeciesTextOnEscape;
 
 (function ($) {
-  "use strict";
-  
-  $(document).ready(function() {
+  'use strict';
+
+  var resetSpeciesText;
+
+  $(document).ready(function () {
     // prevent validation of the clonable row
     $('.scClonableRow :input').addClass('inactive');
   });
-  
+
   hook_species_checklist_new_row = [];
-  
-  var resetSpeciesText;
-          
+
   /*
    * A keyboard event handler for the grid.
    */
-  keyHandler = function(evt) {
-    var rows, row, rowIndex, cells, cell, cellIndex, ctrl = this, deltaX = 0, deltaY = 0,
-      isTextbox=this.nodeName.toLowerCase() === 'input' && $(this).attr('type') === 'text',
-      isSelect = this.nodeName.toLowerCase() === 'select',
-      newInput, $newInput, selStart, selLength, selEnd;
+  keyHandler = function (evt) {
+    var rows;
+    var row;
+    var rowIndex;
+    var cells;
+    var cell;
+    var cellIndex;
+    var ctrl = this;
+    var deltaX = 0;
+    var deltaY = 0;
+    var isTextbox = this.nodeName.toLowerCase() === 'input' && $(this).attr('type') === 'text';
+    var isSelect = this.nodeName.toLowerCase() === 'select';
+    var newInput;
+    var $newInput;
+    var selStart;
+    var selLength;
+    var selEnd;
+    var inputRange;
     if ((evt.keyCode >= 37 && evt.keyCode <= 40) || evt.keyCode === 9) {
       rows = $(this).parents('tbody').children();
       row = $(this).parents('tr')[0];
@@ -63,10 +84,9 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
           selStart = this.selectionStart;
           selEnd = this.selectionEnd;
           selLength = selEnd - selStart;
-        } 
-        else {  
+        } else {
           // Internet Explorer before version 9
-          var inputRange = document.selection.createRange().duplicate();
+          inputRange = document.selection.createRange().duplicate();
           selLength = inputRange.text.length;
           // Move selection start to 0 position
           inputRange.moveStart('character', -this.value.length);
@@ -81,43 +101,45 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
         // tab direction depends on shift key and occurs irrespective of caret
         deltaX = evt.shiftKey ? -1 : 1;
         break;
-      case 37: 
+      case 37:
         // left. Caret must be at left of text with nothing selected
         if (!isTextbox || (selStart === 0 && selLength === 0)) {
           deltaX = -1;
         }
         break;
-      case 38: 
+      case 38:
         // up. Doesn't work in select as this changes the value
         if (!isSelect && rowIndex > 0) {
           deltaY = -1;
         }
         break;
-      case 39: 
-        // right. Caret must be at right of text 
+      case 39:
+        // right. Caret must be at right of text
         if (!isTextbox || selStart >= this.value.length ) {
           deltaX = 1;
         }
         break;
-      case 40: 
+      case 40:
         // down. Doesn't work in select as this changes the value
         if (!isSelect && rowIndex < rows.length-1) {
           deltaY = 1;
         }
         break;
     }
-    //When the user moves around the grid we need to call the function that copies data into a new row 
-    //from the previous row if that option is set to be used on the edit tab.
-    //$(this).closest('table').attr('id') gets the gridId for use in the option check.
+    /*
+     When the user moves around the grid we need to call the function that copies data into a new row
+     from the previous row if that option is set to be used on the edit tab.
+     $(this).closest('table').attr('id') gets the gridId for use in the option check.
+     */
     if (indiciaData['copyDataFromPreviousRow-'+$(this).closest('table').attr('id')] == true) {
       if (deltaX + deltaY !== 0) {
-        changeIn2ndToLastRow(this); 
+        changeIn2ndToLastRow(this);
       }
     }
     if (deltaX !== 0) {
       var inputs = $(this).closest('table').find(':input:visible');
       // timeout necessary to allow keyup to occur on correct control
-      setTimeout(function() {
+      setTimeout(function () {
         $newInput = inputs.eq(inputs.index(ctrl) + deltaX);
         if ($newInput.length > 0) {
           // If we have not reached the end of the table
@@ -125,14 +147,13 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
           // If we have move to a new input which is a text box, select contents so it
           // can be overwritten.
           isTextbox = newInput.nodeName.toLowerCase() === 'input' && $newInput.attr('type') === 'text'
-          if (isTextbox){
+          if (isTextbox) {
             if (typeof newInput.selectionStart !== 'undefined') {
               newInput.selectionStart = 0;
               newInput.selectionEnd = newInput.value.length;
-            }
-            else {
+            } else {
               // Internet Explorer before version 9
-              var inputRange = newInput.createTextRange();
+              inputRange = newInput.createTextRange();
               // Move start of range to beginning of input
               inputRange.moveStart('character', -newInput.value.length);
               // Move end of range to end of input
@@ -141,95 +162,105 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
             }
           }
           $newInput.focus();
-      }
+        }
       }, 200);
       evt.preventDefault();
       // see https://bugzilla.mozilla.org/show_bug.cgi?id=291082 - preventDefault bust in FF
       // so reset the value as arrow keys change the value
       if (isSelect) {
-        var select=this, val = $(this).val();
-        setTimeout(function() {
+        var select = this, val = $(this).val();
+        setTimeout(function () {
           $(select).val(val);
         });
       }
       return false;
     }
     if (deltaY !== 0) {
-      $(rows[rowIndex+deltaY]).find('td[headers=' + $(cell).attr('headers') + '] input').focus();
+      $(rows[rowIndex + deltaY]).find('td[headers=' + $(cell).attr('headers') + '] input').focus();
     }
-  };  
+  };
 
   // Create an inner function for adding blank rows to the bottom of the grid
   var makeSpareRow = function(gridId, readAuth, lookupListId, url, evt, scroll, keycode, force) {
-  
+
     /**
      * Function fired when return pressed in the species selector - adds a new row and focuses it. Must be enclosed so that
      * it can refer to things like the gridId if there are multiple grids.
      */
-    returnPressedInAutocomplete=function(evt) {
-      var rows=$(evt.currentTarget).parents('tbody').children(),
-          rowIndex=rows.index($(evt.currentTarget).parents('tr')[0]);
-      if (rowIndex===rows.length-1) {
-        var ctrl=makeSpareRow(gridId, readAuth, lookupListId, url, null, true, 13, true);
+    returnPressedInAutocomplete = function (e) {
+      var rows = $(e.currentTarget).parents('tbody').children();
+      var rowIndex = rows.index($(e.currentTarget).parents('tr')[0]);
+      if (rowIndex === rows.length - 1) {
+        var ctrl = makeSpareRow(gridId, readAuth, lookupListId, url, null, true, 13, true);
         // is return key pressed, if so focus next row
-        setTimeout(function() { $(ctrl).focus(); });
+        setTimeout(function () { $(ctrl).focus(); });
       } else {
         // focus the next row
         $(rows[rowIndex+1]).find('td.scTaxonCell input').focus();
-        evt.preventDefault();
+        e.preventDefault();
       }
     };
-    
-    handleSelectedTaxon = function(event, data, value) {
-      var taxonCell, checkbox, rowId, row, label, subSpeciesCellId, regex, deleteAndEditHtml;
-      //As soon as the user selects a species, we need to save its id as otherwise the information is lost. 
-      //This is used if the user selects a sub-species, but then selects the blank option again, we can then use the main species id
+
+    handleSelectedTaxon = function(e, data, value) {
+      var taxonCell;
+      var checkbox;
+      var rowId;
+      var row;
+      var label;
+      var subSpeciesCellId;
+      var regex;
+      var deleteAndEditHtml;
+      /*
+       As soon as the user selects a species, we need to save its id as otherwise the information is lost. This is used
+       if the user selects a sub-species, but then selects the blank option again, we can then use the main species id.
+       */
       mainSpeciesValue = value;
       // on picking a result in the autocomplete, ensure we have a spare row
       // clear the event handlers
-      $(event.target).unbind('result', handleSelectedTaxon);
-      $(event.target).unbind('return', returnPressedInAutocomplete);
-      taxonCell=event.target.parentNode; 
-      //Create edit icons for taxon cells. Only add the edit icon if the user has this functionality available on the edit tab.
-      //Also create Notes and Delete icons when required
-      var linkPageIconSource = indiciaData.imagesPath + "nuvola/find-22px.png";
-      if (indiciaData['editTaxaNames-'+gridId]==true) {
+      $(e.target).unbind('result', handleSelectedTaxon);
+      $(e.target).unbind('return', returnPressedInAutocomplete);
+      taxonCell = e.target.parentNode;
+      /* Create edit icons for taxon cells. Only add the edit icon if the user has this functionality available on the
+      edit tab. Also create Notes and Delete icons when required */
+      var linkPageIconSource = indiciaData.imagesPath + 'nuvola/find-22px.png';
+      if (indiciaData['editTaxaNames-' + gridId] == true) {
         deleteAndEditHtml = "<td class='row-buttons'>\n\
-            <img class='action-button remove-row' src=" + indiciaData.imagesPath + "nuvola/cancel-16px.png>\n" 
+            <img class='action-button remove-row' src=" + indiciaData.imagesPath + "nuvola/cancel-16px.png>\n"
         deleteAndEditHtml += "<img class='action-button edit-taxon-name' src=" + indiciaData.imagesPath + "nuvola/package_editors-16px.png>\n";
         if (indiciaData['includeSpeciesGridLinkPage-'+gridId]==true) {
           deleteAndEditHtml += '<img class="species-grid-link-page-icon" title="'+indiciaData.speciesGridPageLinkTooltip+'" alt="Notes icon" src=' + linkPageIconSource + '>';
         }
-        deleteAndEditHtml += "</td>";
-      } else {   
+        deleteAndEditHtml += '</td>';
+      } else {
         deleteAndEditHtml = "<td class='row-buttons'>\n\
-            <img class='action-button action-button remove-row' src=" + indiciaData.imagesPath + "nuvola/cancel-16px.png>\n";
-        if (indiciaData['includeSpeciesGridLinkPage-'+gridId]==true) {
-          deleteAndEditHtml += '<img class="species-grid-link-page-icon" title="'+indiciaData.speciesGridPageLinkTooltip+'" alt="Notes icon" src=' + linkPageIconSource + '>';
+            <img class='action-button action-button remove-row' src=" + indiciaData.imagesPath + 'nuvola/cancel-16px.png>\n';
+        if (indiciaData['includeSpeciesGridLinkPage-' + gridId] == true) {
+          deleteAndEditHtml += '<img class="species-grid-link-page-icon" title="' + indiciaData.speciesGridPageLinkTooltip+'" alt="Notes icon" src=' + linkPageIconSource + '>';
         }
-        deleteAndEditHtml += "</td>";
+        deleteAndEditHtml += '</td>';
       }
-      //Put the edit and delete icons just before the taxon name
+      // Put the edit and delete icons just before the taxon name
       $(taxonCell).before(deleteAndEditHtml);
       // Note case must be colSpan to work in IE!
       $(taxonCell).attr('colSpan',1);
-      row=taxonCell.parentNode;
-      //Only add this class if the user is adding new taxa, if they are editing existing taxa we don't add the class so that when the delete icon is used the
-      //row becomes greyed out instead of deleted.
-      if ($(row).hasClass('scClonableRow'))
+      row = taxonCell.parentNode;
+      // Only add this class if the user is adding new taxa, if they are editing existing taxa we don't add the class so
+      // that when the delete icon is used the row becomes greyed out instead of deleted.
+      if ($(row).hasClass('scClonableRow')) {
         $(taxonCell).parent().addClass('added-row');
+      }
       $(taxonCell).parent().removeClass('scClonableRow');
       $(taxonCell).parent().find('input,select,textarea').removeClass('inactive');
-      // Do we use a JavaScript fn, or a standard template, to format the species label?      
+      // Do we use a JavaScript fn, or a standard template, to format the species label?
       if ($.isFunction(formatter)) {
         $(taxonCell).html(formatter(data));
       } else {
         // Just a simple PHP template
         label = formatter;
         // replace each field in the label template
-        $.each(data, function(field, value) {
+        $.each(data, function (field, val) {
           regex = new RegExp('\\{' + field + '\\}', 'g');
-          label = label.replace(regex, value === null ? '' : value);
+          label = label.replace(regex, val === null ? '' : val);
         });
         $(taxonCell).html(label);
       }
@@ -237,12 +268,12 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
       $(row).find('.species-checklist-select-species').hide();
       $(row).find('.add-media-link').show();
       // auto-check the row
-      checkbox=$(row).find('.scPresenceCell input.scPresence');
+      checkbox = $(row).find('.scPresenceCell input.scPresence');
       checkbox.attr('checked', 'checked');
-      // store the ttlId 
+      // store the ttlId
       checkbox.val(data.id);
-      if (indiciaData['subSpeciesColumn-'+gridId]==true) {
-        // Setup a subspecies picker if this option is enabled. Since we don't know for sure if this is matching the 
+      if (indiciaData['subSpeciesColumn-' + gridId] == true) {
+        // Setup a subspecies picker if this option is enabled. Since we don't know for sure if this is matching the
         // last row in the grid (as the user might be typing ahead), use the presence checkbox to extract the row unique ID.
         rowId = checkbox[0].id.match(/sc:([a-z0-9\-]+)/)[1];
         subSpeciesCellId = 'sc:' + rowId + '::occurrence:subspecies';
@@ -250,8 +281,8 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
       }
       // Finally, a blank row is added for the next record
       makeSpareRow(gridId, readAuth, lookupListId, url, null, true);
-      //When user selects a taxon then the new row is created, we want to copy data into that new row from previous row automatically.
-      //when the option to do so is set.
+      // When user selects a taxon then the new row is created, we want to copy data into that new row from previous row
+      // automatically. when the option to do so is set.
       if (indiciaData['copyDataFromPreviousRow-'+gridId] == true) {
         species_checklist_add_another_row(gridId);
       }
@@ -260,26 +291,27 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
         fn(data, row);
       });
     };
-    //If the user chooses to edit a species on the grid, then immediately 'clicks off'
-    //the cell, then we have code that puts the label back to the way it was
+    // If the user chooses to edit a species on the grid, then immediately 'clicks off'
+    // the cell, then we have code that puts the label back to the way it was
     resetSpeciesText = function(event) {
-      //only do reset if the autocomplete drop down isn't showing, else we assume the user is still working with the cell
+      // Only do reset if the autocomplete drop down isn't showing, else we assume the user is still working with
+      // the cell
       if ($('.ac_over').length===0) {
         var row = $($(event.target).parents('tr:first')),
             taxonCell=$(row).children('.scTaxonCell'),
             gridId = $(taxonCell).closest('table').attr('id'),
             selectorId = gridId + '-' + indiciaData['gridCounter-'+gridId];
         // remove the current contents of the taxon cell
-        $('#'+selectorId).remove();
+        $('#' + selectorId).remove();
         // replace with the previous plain text species name
-        $(taxonCell).html(taxonNameBeforeUserEdit); 
+        $(taxonCell).html(taxonNameBeforeUserEdit);
         var deleteAndEditHtml = "<td class='row-buttons'>\n\
             <img class='action-button remove-row' src=" + indiciaData.imagesPath + "nuvola/cancel-16px.png>\n\
             <img class='edit-taxon-name' src=" + indiciaData.imagesPath + "nuvola/package_editors-16px.png>\n";
         if (indiciaData['includeSpeciesGridLinkPage-'+gridId]==true) {
           var linkPageIconSource = indiciaData.imagesPath + "nuvola/find-22px.png";
           deleteAndEditHtml += '<img class="species-grid-link-page-icon" title="'+indiciaData.speciesGridPageLinkTooltip+'" alt="Notes icon" src=' + linkPageIconSource + '>\n';
-        }       
+        }
         deleteAndEditHtml += "</td\n";
         $(taxonCell).attr('colSpan',1);
         //Put the edit and delete icons just before the taxon name
@@ -292,7 +324,7 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
         resetSpeciesText(event);
       }
     }
-    
+
     if (typeof formatter==="undefined" || !$.isFunction(formatter)) {
       // provide a default format function
       formatter = function(item) {
@@ -304,7 +336,7 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
       return;
     }
     // get a copy of the new row template
-    var extraParams, newRow = $('tr#'+gridId + '-scClonableRow').clone(true), selectorId, speciesSelector, 
+    var extraParams, newRow = $('tr#'+gridId + '-scClonableRow').clone(true), selectorId, speciesSelector,
         attrVal, ctrl;
     // build an auto-complete control for selecting the species to add to the bottom of the grid.
     // The next line gets a unique id for the autocomplete.
@@ -376,7 +408,7 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
     indiciaData['gridCounter-'+gridId]++;
     return ctrl;
   };
-  
+
   addRowToGrid = function(url, gridId, lookupListId, readAuth, formatter) {
     var cacheLookup = indiciaData.speciesGrid[gridId].cacheLookup;
     makeSpareRow(gridId, readAuth, lookupListId, url, null, false);
@@ -426,7 +458,7 @@ var addRowToGrid, keyHandler, ConvertControlsToPopup, hook_species_checklist_new
       ctrl.bind('result', handleSelectedTaxon);
       ctrl.bind('return', returnPressedInAutocomplete);
       //bind function so that when user loses focus on the taxon cell immediately after clicking edit, we can reset the cell
-      //back to read-only label 
+      //back to read-only label
       ctrl.bind('blur', resetSpeciesText);
       ctrl.bind('keydown', resetSpeciesTextOnEscape);
     });
@@ -589,7 +621,7 @@ function createSubSpeciesList(url, selectedItemPrefId, selectedItemPrefName, loo
     'simplified': 'f'
   }, ctrl=jQuery("#"+subSpeciesCtrlId.replace(/:/g,'\\:'));
   if (ctrl.length>0) {
-    jQuery.getJSON(url+'/cache_taxon_searchterm?callback=?', subSpeciesData, 
+    jQuery.getJSON(url+'/cache_taxon_searchterm?callback=?', subSpeciesData,
       function(data) {
         var sspRegexString, epithet, nameRegex;
         //clear the sub-species cell ready for new data
@@ -609,7 +641,7 @@ function createSubSpeciesList(url, selectedItemPrefId, selectedItemPrefName, loo
             ctrl.append(jQuery('<option selected="selected"></option>').val(item.taxa_taxon_list_id).html(epithet));
           } else {
             //If we don't want this sub-species to be selected by default then we don't set the 'selected' attribute on html the option tag
-            ctrl.append(jQuery("<option></option>").val(item.taxa_taxon_list_id).html(epithet));          
+            ctrl.append(jQuery("<option></option>").val(item.taxa_taxon_list_id).html(epithet));
           }
         });
         //If we don't find any sub-species then hide the control
@@ -624,7 +656,7 @@ function createSubSpeciesList(url, selectedItemPrefId, selectedItemPrefName, loo
           }
           ctrl.show();
         }
-        
+
       }
     );
   }
@@ -658,7 +690,7 @@ function getScClassForColumnCellInput(input) {
   //get the class for the cell
   var classesArray = jQuery(input).attr('class').split(/\s+/);
     //for our purposes we are only interested in the classes beginning sc
-  var theInputClass = new Array();  
+  var theInputClass = new Array();
   jQuery.each(classesArray, function(index, value){
     if (value.substr(0,2) === 'sc') {
       theInputClass.push(value);
@@ -666,7 +698,7 @@ function getScClassForColumnCellInput(input) {
     });
   if (theInputClass.length > 0) {
     return theInputClass[0];
-  } 
+  }
   else {
     return false;
   }
@@ -682,13 +714,13 @@ function changeIn2ndToLastRow(input) {
   for (i=0; i<columnsToInclude.length;i++) {
     columnsToInclude[i] = 'sc'+columnsToInclude[i].replace(/ /g,'').toLowerCase();
   }
-  
+
   var classToUse = getScClassForColumnCellInput(input),
       $newRow = jQuery('table#'+gridId + ' tr.scClonableRow'),
       //The '.added-row:first' check is there
       //as the user might of added an image-row which we need to ignore
       $previousRow = $newRow.prevAll(".added-row:first");
-  //Copy data from the 2nd last row into the new row only if the column 
+  //Copy data from the 2nd last row into the new row only if the column
   //is in the user's options
   if (classToUse && (jQuery.inArray(classToUse.toLowerCase(), columnsToInclude)>-1)) {
     $newRow.find('.'+classToUse).val($previousRow.find('.'+classToUse).val());
@@ -709,11 +741,11 @@ function species_checklist_add_another_row(gridId) {
   for (i=0; i<columnsToInclude.length;i++) {
     columnsToInclude[i] = 'sc'+columnsToInclude[i].replace(/ /g,'').toLowerCase();
   }
-  
+
   var $newRow = jQuery('table#'+gridId + ' tr.scClonableRow');
   //Get the previous row to the new row
   $previousRow = $newRow.prevAll(".added-row:first");
-    
+
   //cycle through each input element on the new row
   $newRow.find(':input').each(function(){
     //Get a clean class to work with for the column
@@ -730,9 +762,9 @@ function species_checklist_add_another_row(gridId) {
       //We need to unbind the 3rd last row as we no longer what changes for that cell to affect the last row.
       $previousRow.prevAll(".added-row:first").find('.'+classToUse).unbind('change', changeIn2ndToLastRowProxy);
     }
-    
+
   });
-  
+
 }
 
 //function to get settings to setup for an autocomplete cell
@@ -748,7 +780,7 @@ function getAutocompleteSettings(extraParams, gridId) {
     item.id = item.taxa_taxon_list_id;
     return item;
   };
-  
+
   var autocompleterSettingsToReturn = {
     extraParams : extraParams,
     continueOnBlur: true,
