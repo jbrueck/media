@@ -196,12 +196,12 @@ var resetSpeciesTextOnEscape;
         setTimeout(function () { $(ctrl).focus(); });
       } else {
         // focus the next row
-        $(rows[rowIndex+1]).find('td.scTaxonCell input').focus();
+        $(rows[rowIndex + 1]).find('td.scTaxonCell input').focus();
         e.preventDefault();
       }
     };
 
-    handleSelectedTaxon = function(e, data, value) {
+    handleSelectedTaxon = function (e, data, value) {
       var taxonCell;
       var checkbox;
       var rowId;
@@ -242,7 +242,7 @@ var resetSpeciesTextOnEscape;
       // Put the edit and delete icons just before the taxon name
       $(taxonCell).before(deleteAndEditHtml);
       // Note case must be colSpan to work in IE!
-      $(taxonCell).attr('colSpan',1);
+      $(taxonCell).attr('colSpan', 1);
       row = taxonCell.parentNode;
       // Only add this class if the user is adding new taxa, if they are editing existing taxa we don't add the class so
       // that when the delete icon is used the row becomes greyed out instead of deleted.
@@ -283,56 +283,63 @@ var resetSpeciesTextOnEscape;
       makeSpareRow(gridId, readAuth, lookupListId, url, null, true);
       // When user selects a taxon then the new row is created, we want to copy data into that new row from previous row
       // automatically. when the option to do so is set.
-      if (indiciaData['copyDataFromPreviousRow-'+gridId] == true) {
+      if (indiciaData['copyDataFromPreviousRow-' + gridId] == true) {
         species_checklist_add_another_row(gridId);
       }
       // Allow forms to hook into the event of a new row being added
-      $.each(hook_species_checklist_new_row, function(idx, fn) {
+      $.each(hook_species_checklist_new_row, function (idx, fn) {
         fn(data, row);
       });
     };
     // If the user chooses to edit a species on the grid, then immediately 'clicks off'
     // the cell, then we have code that puts the label back to the way it was
     resetSpeciesText = function(event) {
+      var row;
+      var deleteAndEditHtml;
+      var taxonCell;
+      var gridId;
+      var selectorId;
+      var linkPageIconSource;
       // Only do reset if the autocomplete drop down isn't showing, else we assume the user is still working with
       // the cell
-      if ($('.ac_over').length===0) {
-        var row = $($(event.target).parents('tr:first')),
-            taxonCell=$(row).children('.scTaxonCell'),
-            gridId = $(taxonCell).closest('table').attr('id'),
-            selectorId = gridId + '-' + indiciaData['gridCounter-'+gridId];
+      if ($('.ac_over').length === 0) {
+        row = $($(event.target).parents('tr:first'));
+        taxonCell = $(row).children('.scTaxonCell');
+        gridId = $(taxonCell).closest('table').attr('id');
+        selectorId = gridId + '-' + indiciaData['gridCounter-' + gridId];
         // remove the current contents of the taxon cell
         $('#' + selectorId).remove();
         // replace with the previous plain text species name
         $(taxonCell).html(taxonNameBeforeUserEdit);
-        var deleteAndEditHtml = "<td class='row-buttons'>\n\
-            <img class='action-button remove-row' src=" + indiciaData.imagesPath + "nuvola/cancel-16px.png>\n\
-            <img class='edit-taxon-name' src=" + indiciaData.imagesPath + "nuvola/package_editors-16px.png>\n";
-        if (indiciaData['includeSpeciesGridLinkPage-'+gridId]==true) {
-          var linkPageIconSource = indiciaData.imagesPath + "nuvola/find-22px.png";
-          deleteAndEditHtml += '<img class="species-grid-link-page-icon" title="'+indiciaData.speciesGridPageLinkTooltip+'" alt="Notes icon" src=' + linkPageIconSource + '>\n';
+        deleteAndEditHtml = '<td class="row-buttons">\n' +
+            '<img class="action-button remove-row" src="' + indiciaData.imagesPath + 'nuvola/cancel-16px.png">\n' +
+            '<img class="edit-taxon-name" src="' + indiciaData.imagesPath + 'nuvola/package_editors-16px.png">\n';
+        if (indiciaData['includeSpeciesGridLinkPage-' + gridId] == true) {
+          linkPageIconSource = indiciaData.imagesPath + 'nuvola/find-22px.png';
+          deleteAndEditHtml += '<img class="species-grid-link-page-icon" title="' +
+            indiciaData.speciesGridPageLinkTooltip + '" alt="Notes icon" src=' + linkPageIconSource + '>\n';
         }
-        deleteAndEditHtml += "</td\n";
-        $(taxonCell).attr('colSpan',1);
-        //Put the edit and delete icons just before the taxon name
+        deleteAndEditHtml += '</td>\n';
+        $(taxonCell).attr('colSpan', 1);
+        // Put the edit and delete icons just before the taxon name
         $(taxonCell).before(deleteAndEditHtml);
       }
     }
-    //If the user presses escape after choosing to edit a taxon name then set it back to a read-only label
-    resetSpeciesTextOnEscape = function(event) {
-      if (event.which===27) {
+    // If the user presses escape after choosing to edit a taxon name then set it back to a read-only label
+    resetSpeciesTextOnEscape = function (event) {
+      if (event.which === 27) {
         resetSpeciesText(event);
       }
     }
 
-    if (typeof formatter==="undefined" || !$.isFunction(formatter)) {
+    if (typeof formatter === 'undefined' || !$.isFunction(formatter)) {
       // provide a default format function
-      formatter = function(item) {
+      formatter = function (item) {
         return item.taxon;
       };
     }
     // only add a spare row if none already exist, or forced to do so
-    if ($('table#'+gridId + ' tr.scClonableRow').length>=1 && !force) {
+    if ($('table#' + gridId + ' tr.scClonableRow').length >= 1 && !force) {
       return;
     }
     // get a copy of the new row template
@@ -348,50 +355,50 @@ var resetSpeciesTextOnEscape;
     $.each($(newRow).children(), function(i, cell) {
       $.each($(cell).find('*'), function(idx, child) {
         attrVal = $(child).attr('name');
-        if (typeof attrVal !== "undefined" && attrVal.indexOf('-idx-') !== -1) {
+        if (typeof attrVal !== 'undefined' && attrVal.indexOf('-idx-') !== -1) {
           $(child).attr('name', $(child).attr('name').replace(/-idx-/g, indiciaData['gridCounter-'+gridId]));
         }
         attrVal = $(child).attr('id');
-        if (typeof attrVal !== "undefined" && attrVal.indexOf('-idx-') !== -1) {
+        if (typeof attrVal !== 'undefined' && attrVal.indexOf('-idx-') !== -1) {
           $(child).attr('id', $(child).attr('id').replace(/-idx-/g, indiciaData['gridCounter-'+gridId]));
         }
         attrVal = $(child).attr('for');
-        if (typeof attrVal !== "undefined" && attrVal.indexOf('-idx-') !== -1) {
-          $(child).attr('for', $(child).attr('for').replace(/-idx-/g, indiciaData['gridCounter-'+gridId]));
+        if (typeof attrVal !== 'undefined' && attrVal.indexOf('-idx-') !== -1) {
+          $(child).attr('for', $(child).attr('for').replace(/-idx-/g, indiciaData['gridCounter-' + gridId]));
         }
       });
     });
     $(newRow).find("[name$='\:sampleIDX']").each(function(idx, field) {
-      if (indiciaData['subSamplePerRow-'+gridId]) {
-        //Allows a sample to be generated for each occurrence in the grid if required.
-        var rowNumber=$(field).attr('name').replace('sc:'+gridId+'-','');
-        rowNumber = rowNumber.substring(0,1);
+      if (indiciaData['subSamplePerRow-' + gridId]) {
+        // Allows a sample to be generated for each occurrence in the grid if required.
+        var rowNumber = $(field).attr('name').replace('sc:' + gridId + '-', '');
+        rowNumber = rowNumber.substring(0, 1);
         $(field).val(rowNumber);
       } else {
-        $(field).val(typeof indiciaData.control_speciesmap_existing_feature==="undefined" || indiciaData.control_speciesmap_existing_feature===null ?
-            indiciaData['gridSampleCounter-'+gridId] : indiciaData.control_speciesmap_existing_feature.attributes.subSampleIndex);
+        $(field).val(typeof indiciaData.control_speciesmap_existing_feature === 'undefined' || indiciaData.control_speciesmap_existing_feature===null ?
+            indiciaData['gridSampleCounter-' + gridId] : indiciaData.control_speciesmap_existing_feature.attributes.subSampleIndex);
       }
     });
     // add the row to the bottom of the grid
-    newRow.appendTo('table#' + gridId +' > tbody').removeAttr('id');
+    newRow.appendTo('table#' + gridId + ' > tbody').removeAttr('id');
     extraParams = {
-      mode : 'json',
-      qfield : indiciaData.speciesGrid[gridId].cacheLookup ? 'searchterm' : 'taxon',
+      mode: 'json',
+      qfield: indiciaData.speciesGrid[gridId].cacheLookup ? 'searchterm' : 'taxon',
       auth_token: readAuth.auth_token,
       nonce: readAuth.nonce,
       taxon_list_id: lookupListId
     };
     extraParams.orderby = indiciaData.speciesGrid[gridId].cacheLookup ? 'original,preferred_taxon' : 'taxon';
-    if (typeof indiciaData['taxonExtraParams-'+gridId]!=="undefined") {
-      $.extend(extraParams, indiciaData['taxonExtraParams-'+gridId]);
+    if (typeof indiciaData['taxonExtraParams-' + gridId]!=='undefined') {
+      $.extend(extraParams, indiciaData['taxonExtraParams-' + gridId]);
       // a custom query on the list id overrides the standard filter..
-      if (typeof extraParams.query!=="undefined" && extraParams.query.indexOf('taxon_list_id')!==-1) {
+      if (typeof extraParams.query!=='undefined' && extraParams.query.indexOf('taxon_list_id')!==-1) {
         delete extraParams.taxon_list_id;
       }
     }
     $(newRow).find('input,select').keydown(keyHandler);
     var autocompleteSettings = getAutocompleteSettings(extraParams, gridId);
-    if ($('#' + selectorId).width()<200) {
+    if ($('#' + selectorId).width() < 200) {
       autocompleteSettings.width = 200;
     }
     // Attach auto-complete code to the input
@@ -402,17 +409,17 @@ var resetSpeciesTextOnEscape;
     if (scroll && ctrl.offset().top > $(window).scrollTop() + $(window).height() - 180) {
       var newTop = ctrl.offset().top - $(window).height() + 180;
       // slide the body upwards so the grid entry box remains in view, as does the drop down content on the autocomplete for taxa
-      $('html,body').animate({scrollTop: newTop}, 500);
+      $('html,body').animate({ scrollTop: newTop }, 500);
     }
     // increment the count so it is unique next time and we can generate unique IDs
-    indiciaData['gridCounter-'+gridId]++;
+    indiciaData['gridCounter-' + gridId]++;
     return ctrl;
   };
 
-  addRowToGrid = function(url, gridId, lookupListId, readAuth, formatter) {
+  addRowToGrid = function (url, gridId, lookupListId, readAuth, formatter) {
     var cacheLookup = indiciaData.speciesGrid[gridId].cacheLookup;
     makeSpareRow(gridId, readAuth, lookupListId, url, null, false);
-    //Deal with user clicking on edit taxon icon
+    // Deal with user clicking on edit taxon icon
     indiciaFns.on('click', '.edit-taxon-name', {}, function(e) {
       if ($('.ac_results:visible').length>0 || !$(e.target).is(':visible')) {
         // don't go into edit mode if they are picking a species name already
@@ -423,19 +430,19 @@ var resetSpeciesTextOnEscape;
           gridId = $(taxonCell).closest('table').attr('id'),
           selectorId = gridId + '-' + indiciaData['gridCounter-'+gridId],
           taxonTextBeforeUserEdit;
-      //When moving into edit mode we need to create an autocomplete box for the user to fill in
+      // When moving into edit mode we need to create an autocomplete box for the user to fill in
       var speciesAutocomplete = '<input type="text" id="' + selectorId + '" class="grid-required ac_input {speciesMustBeFilled:true}" autocomplete="off"/>';
-      //remove the edit and delete icons.
+      // Remove the edit and delete icons.
       $(e.target).parent().remove();
       taxonNameBeforeUserEdit = $(taxonCell).html();
       // first span should contain the name as it was entered
       taxonTextBeforeUserEdit = $(taxonCell).find('.taxon-name').text();
-      //add the autocomplete cell
+      // Add the autocomplete cell
       $(taxonCell).append(speciesAutocomplete);
-      //Adjust the size of the taxon cell to take up its full allocation of space
+      // Adjust the size of the taxon cell to take up its full allocation of space
       $(taxonCell).attr('colSpan',2);
-      //Moving into edit mode, we need to clear the static taxon label otherwise
-      //the name is shown twice (it is also shown in the autocomplete)
+      // Moving into edit mode, we need to clear the static taxon label otherwise
+      // the name is shown twice (it is also shown in the autocomplete)
       $(taxonCell).text('');
       $(taxonCell).append(speciesAutocomplete);
       var extraParams = {
@@ -448,27 +455,27 @@ var resetSpeciesTextOnEscape;
       };
       var autocompleteSettings = getAutocompleteSettings(extraParams, gridId);
       var ctrl = $(taxonCell).children(':input').autocomplete(url+'/'+(cacheLookup ? 'cache_taxon_searchterm' : 'taxa_taxon_list'), autocompleteSettings);
-      //put the taxon name into the autocomplete ready for editing
-      $('#'+selectorId).val(taxonTextBeforeUserEdit);
-      $('#'+selectorId).focus();
-      //Set the focus to the end of the string, this isn't elegant, but seems to be quickest way to do this.
-      //After we set focus, we add a space to the end of the string to force focus to end, then remove the space
-      $('#'+selectorId).val($('#'+selectorId).val() + ' ');
-      $('#'+selectorId).val($('#'+selectorId).val().slice(0, -1));
+      // Put the taxon name into the autocomplete ready for editing
+      $('#' + selectorId).val(taxonTextBeforeUserEdit);
+      $('#' + selectorId).focus();
+      // Set the focus to the end of the string, this isn't elegant, but seems to be quickest way to do this.
+      // After we set focus, we add a space to the end of the string to force focus to end, then remove the space
+      $('#' + selectorId).val($('#'+selectorId).val() + ' ');
+      $('#' + selectorId).val($('#'+selectorId).val().slice(0, -1));
       ctrl.bind('result', handleSelectedTaxon);
       ctrl.bind('return', returnPressedInAutocomplete);
-      //bind function so that when user loses focus on the taxon cell immediately after clicking edit, we can reset the cell
-      //back to read-only label
+      // Bind function so that when user loses focus on the taxon cell immediately after clicking edit, we can reset
+      // the cell back to read-only label
       ctrl.bind('blur', resetSpeciesText);
       ctrl.bind('keydown', resetSpeciesTextOnEscape);
     });
   };
 
-  indiciaFns.on('click', '.remove-row', {}, function(e) {
+  indiciaFns.on('click', '.remove-row', {}, function (e) {
     e.preventDefault();
     // Allow forms to hook into the event of a row being deleted, most likely use would be to have a confirmation dialog
-    if (typeof hook_species_checklist_pre_delete_row !== "undefined") {
-      if(!hook_species_checklist_pre_delete_row(e)) {
+    if (typeof hook_species_checklist_pre_delete_row !== 'undefined') {
+      if (!hook_species_checklist_pre_delete_row(e)) {
         return;
       }
     }
@@ -492,7 +499,7 @@ var resetSpeciesTextOnEscape;
       row.find('a').remove();
     }
     // Allow forms to hook into the event of a row being deleted
-    if (typeof hook_species_checklist_delete_row !== "undefined") {
+    if (typeof hook_species_checklist_delete_row !== 'undefined') {
       hook_species_checklist_delete_row();
     }
   });
@@ -544,14 +551,14 @@ var resetSpeciesTextOnEscape;
           autopick: true,
           mediaTypes: mediaTypes
         };
-        if (typeof indiciaData.uploadSettings.resizeWidth!=="undefined") { opts.resizeWidth=indiciaData.uploadSettings.resizeWidth; }
-        if (typeof indiciaData.uploadSettings.resizeHeight!=="undefined") { opts.resizeHeight=indiciaData.uploadSettings.resizeHeight; }
-        if (typeof indiciaData.uploadSettings.resizeQuality!=="undefined") { opts.resizeQuality=indiciaData.uploadSettings.resizeQuality; }
-        if (typeof indiciaData.uploadSettings.maxFileCount!=="undefined") { opts.maxFileCount=indiciaData.uploadSettings.maxFileCount; }
-        if (typeof buttonTemplate!=="undefined") { opts.buttonTemplate=buttonTemplate; }
-        if (typeof file_boxTemplate!=="undefined") { opts.file_boxTemplate=file_boxTemplate; }
-        if (typeof file_box_initial_file_infoTemplate!=="undefined") { opts.file_box_initial_file_infoTemplate=file_box_initial_file_infoTemplate; }
-        if (typeof file_box_uploaded_imageTemplate!=="undefined") { opts.file_box_uploaded_imageTemplate=file_box_uploaded_imageTemplate; }
+        if (typeof indiciaData.uploadSettings.resizeWidth!=='undefined') { opts.resizeWidth=indiciaData.uploadSettings.resizeWidth; }
+        if (typeof indiciaData.uploadSettings.resizeHeight!=='undefined') { opts.resizeHeight=indiciaData.uploadSettings.resizeHeight; }
+        if (typeof indiciaData.uploadSettings.resizeQuality!=='undefined') { opts.resizeQuality=indiciaData.uploadSettings.resizeQuality; }
+        if (typeof indiciaData.uploadSettings.maxFileCount!=='undefined') { opts.maxFileCount=indiciaData.uploadSettings.maxFileCount; }
+        if (typeof buttonTemplate!=='undefined') { opts.buttonTemplate=buttonTemplate; }
+        if (typeof file_boxTemplate!=='undefined') { opts.file_boxTemplate=file_boxTemplate; }
+        if (typeof file_box_initial_file_infoTemplate!=='undefined') { opts.file_box_initial_file_infoTemplate=file_box_initial_file_infoTemplate; }
+        if (typeof file_box_uploaded_imageTemplate!=='undefined') { opts.file_box_uploaded_imageTemplate=file_box_uploaded_imageTemplate; }
     imageRow.find('div').uploader(opts);
     $(evt.target).hide();
   });
@@ -629,7 +636,7 @@ function createSubSpeciesList(url, selectedItemPrefId, selectedItemPrefName, loo
         // build a regex that can remove the species binomial (plus optionally the subsp rank) from the name, so
         // Adelia decempunctata forma bimaculata can be shown as just bimaculata.
         sspRegexString=RegExp.escape(selectedItemPrefName);
-        if (typeof indiciaData.subspeciesRanksToStrip!=="undefined") {
+        if (typeof indiciaData.subspeciesRanksToStrip !== 'undefined') {
           sspRegexString += "[ ]+" + indiciaData.subspeciesRanksToStrip;
         }
         nameRegex=new RegExp('^'+sspRegexString);
@@ -801,11 +808,11 @@ function getAutocompleteSettings(extraParams, gridId) {
         if (!done.hasOwnProperty(item.taxon_meaning_id + '_' + item.display)) {
           results[results.length] =
           {
-            'data' : item,
-            'result' : item.searchterm,
-            'value' : item.id
+            data: item,
+            result: item.searchterm,
+            value: item.id
           };
-          done[item.taxon_meaning_id + '_' + item.display]=true;
+          done[item.taxon_meaning_id + '_' + item.display] = true;
         }
       });
       return results;
