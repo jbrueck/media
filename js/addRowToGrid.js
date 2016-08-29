@@ -636,6 +636,8 @@ var resetSpeciesTextOnEscape;
           $(e.currentTarget).removeClass('ui-state-error');
           parser = new OpenLayers.Format.WKT();
           feature = parser.read(data.mapwkt);
+          feature.attributes.type = 'subsample-' + e.currentTarget.id;
+          indiciaData.mapdiv.removeAllFeatures(indiciaData.mapdiv.map.editLayer, 'subsample-' + e.currentTarget.id);
           indiciaData.mapdiv.map.editLayer.addFeatures([feature]);
         }
       }
