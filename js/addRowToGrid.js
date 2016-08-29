@@ -616,6 +616,8 @@ var resetSpeciesTextOnEscape;
 
   /* Validator for spatial reference column in the species checklist grid */
   indiciaFns.on('change', '.scSpatialRef', {}, function (e) {
+    var parser;
+    var feature;
     $.ajax({
       dataType: 'jsonp',
       url: indiciaData.warehouseUrl + 'index.php/services/spatial/sref_to_wkt',
@@ -632,6 +634,9 @@ var resetSpeciesTextOnEscape;
           $(e.currentTarget).addClass('ui-state-error');
         } else {
           $(e.currentTarget).removeClass('ui-state-error');
+          parser = new OpenLayers.Format.WKT();
+          feature = parser.read(data.mapwkt);
+          indiciaData.mapdiv.map.editLayer.addFeatures([feature]);
         }
       }
     });
