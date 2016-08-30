@@ -4,13 +4,17 @@
   border: 1px solid #D3D3D3;
 }
 
-scTaxonCell p.inline-error {
+.scTaxonCell p.inline-error {
   /* hide the error in the species input as it messes layout */
   display: none;
 }
 
 .scTaxonCell .ui-effects-wrapper {
   width: 100% !important;
+}
+
+table.species-grid .warning {
+  background: url(../images/warning.png) center right no-repeat;
 }
 
 /* ensure a shake effect on failed autocompletes stays put */

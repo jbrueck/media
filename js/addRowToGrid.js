@@ -655,6 +655,16 @@ var resetSpeciesTextOnEscape;
           parser = new OpenLayers.Format.WKT();
           feature = parser.read(data.mapwkt);
           feature.attributes.type = 'subsample-' + e.currentTarget.id;
+
+          // if the feature not in the main sample grid square, show a warning icon
+          $(e.currentTarget).removeClass('warning');
+          $(e.currentTarget).attr('title', '');
+          $.each(indiciaData.mapdiv.map.editLayer.features, function () {
+            if (this.attributes.type === 'clickPoint' && !this.geometry.intersects(feature.geometry)) {
+              $(e.currentTarget).addClass('warning');
+              $(e.currentTarget).attr('title', 'Outside the boundary of the main grid square');
+            }
+          });
           indiciaData.mapdiv.map.editLayer.addFeatures([feature]);
         }
       }
