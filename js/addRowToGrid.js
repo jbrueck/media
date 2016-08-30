@@ -43,9 +43,26 @@ var resetSpeciesTextOnEscape;
 
   var resetSpeciesText;
 
+  function showExistingSubsamplesOnMap() {
+    var samples;
+    var parser;
+    var feature;
+    parser = new OpenLayers.Format.WKT();
+    samples = JSON.parse($('#existingSampleGeomsBySref').val());
+    $.each($('.scSpatialRef:not([value=""])'), function () {
+      feature = parser.read(samples[$(this).val().toUpperCase()]);
+      feature.attributes.type = 'subsample-' + this.id;
+      indiciaData.mapdiv.map.editLayer.addFeatures([feature]);
+    });
+  }
+
   $(document).ready(function () {
     // prevent validation of the clonable row
     $('.scClonableRow :input').addClass('inactive');
+    if ($('#existingSampleGeomsBySref')) {
+      mapInitialisationHooks.push(showExistingSubsamplesOnMap);
+    }
+
   });
 
   hook_species_checklist_new_row = [];
@@ -618,6 +635,7 @@ var resetSpeciesTextOnEscape;
   indiciaFns.on('change', '.scSpatialRef', {}, function (e) {
     var parser;
     var feature;
+    indiciaData.mapdiv.removeAllFeatures(indiciaData.mapdiv.map.editLayer, 'subsample-' + e.currentTarget.id);
     $.ajax({
       dataType: 'jsonp',
       url: indiciaData.warehouseUrl + 'index.php/services/spatial/sref_to_wkt',
@@ -637,12 +655,12 @@ var resetSpeciesTextOnEscape;
           parser = new OpenLayers.Format.WKT();
           feature = parser.read(data.mapwkt);
           feature.attributes.type = 'subsample-' + e.currentTarget.id;
-          indiciaData.mapdiv.removeAllFeatures(indiciaData.mapdiv.map.editLayer, 'subsample-' + e.currentTarget.id);
           indiciaData.mapdiv.map.editLayer.addFeatures([feature]);
         }
       }
     });
   });
+
 })(jQuery);
 
 
