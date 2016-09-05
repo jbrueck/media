@@ -47,13 +47,15 @@ var resetSpeciesTextOnEscape;
     var samples;
     var parser;
     var feature;
-    parser = new OpenLayers.Format.WKT();
-    samples = JSON.parse($('#existingSampleGeomsBySref').val());
-    $.each($('.scSpatialRef:not([value=""])'), function () {
-      feature = parser.read(samples[$(this).val().toUpperCase()]);
-      feature.attributes.type = 'subsample-' + this.id;
-      indiciaData.mapdiv.map.editLayer.addFeatures([feature]);
-    });
+    if ($('#existingSampleGeomsBySref').length) {
+      parser = new OpenLayers.Format.WKT();
+      samples = JSON.parse($('#existingSampleGeomsBySref').val());
+      $.each($('.scSpatialRef:not([value=""])'), function () {
+        feature = parser.read(samples[$(this).val().toUpperCase()]);
+        feature.attributes.type = 'subsample-' + this.id;
+        indiciaData.mapdiv.map.editLayer.addFeatures([feature]);
+      });
+    }
   }
 
   $(document).ready(function () {
