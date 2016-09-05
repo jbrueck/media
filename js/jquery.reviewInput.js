@@ -67,21 +67,23 @@
       div.settings = $.extend({}, $.fn.reviewInput.defaults, options);
 
       // Trap new rows in species checklists so they can be reflected in output
-      window.hook_species_checklist_new_row.push(function (data, row) {
-        var $table = $(row).closest('table');
-        var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
-        var rowTemplate;
-        var value;
-        if (!$(reviewTableBody).find('tr:nth-child(' + ($(row).index() + 1) + ')').length) {
-          $.each($table.find('thead tr:first-child th:visible'), function (idx) {
-            value = idx === 0 ?
-              $(row).find('.scTaxonCell').html() :
-              getValue($(row).find('td[headers="' + this.id + '"] input'));
-            rowTemplate += '<td headers="review-' + this.id + '">' + value + '</td>';
-          });
-          $(reviewTableBody).append('<tr>' + rowTemplate + '</tr>');
-        }
-      });
+      if (typeof window.hook_species_checklist_new_row !== 'undefined') {
+        window.hook_species_checklist_new_row.push(function (data, row) {
+          var $table = $(row).closest('table');
+          var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
+          var rowTemplate;
+          var value;
+          if (!$(reviewTableBody).find('tr:nth-child(' + ($(row).index() + 1) + ')').length) {
+            $.each($table.find('thead tr:first-child th:visible'), function (idx) {
+              value = idx === 0 ?
+                $(row).find('.scTaxonCell').html() :
+                getValue($(row).find('td[headers="' + this.id + '"] input'));
+              rowTemplate += '<td headers="review-' + this.id + '">' + value + '</td>';
+            });
+            $(reviewTableBody).append('<tr>' + rowTemplate + '</tr>');
+          }
+        });
+      }
 
       // Trap changes to inputs to update the review
       indiciaFns.on('change', '.ctrl-wrap :input:visible:not(.ac_input)', {}, handleInputChange);
@@ -90,9 +92,13 @@
 
       // Initial population of basic inputs
       $.each($('.ctrl-wrap :input:visible'), function () {
-        var label = $(this).parent('.ctrl-wrap').find('label').text()
+        var label;
+        if ($.inArray(this.id, div.settings.exclude) === -1 &&
+            $.inArray($(this).attr('name'), div.settings.exclude) === -1) {
+          label = $(this).parent('.ctrl-wrap').find('label').text()
             .replace(/:$/, '');
-        content += '<tr id="review-' + this.id + '"><th>' + label + '</th><td>' + getValue(this) + '</td></tr>\n';
+          content += '<tr id="review-' + this.id + '"><th>' + label + '</th><td>' + getValue(this) + '</td></tr>\n';
+        }
       });
       $(container).append('<table><tbody>' + content + '</tbody></table>');
 
@@ -114,5 +120,7 @@
     return this;
   };
 
-  jQuery.fn.reviewInput.defaults = {};
+  jQuery.fn.reviewInput.defaults = {
+    exclude: ['sample:entered_sref_system']
+  };
 }(jQuery));
