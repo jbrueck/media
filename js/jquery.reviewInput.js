@@ -43,6 +43,15 @@
       $('#review-' + this.id.replace(/:/g, '\\:') + ' td').html(getValue(this));
     }
 
+    function handleGridInputChange() {
+      var $table = $(this).closest('table');
+      var $row = $(this).closest('tr');
+      var $td = $(this).closest('td');
+      var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
+      $(reviewTableBody).find('tr:nth-child(' + ($row.index() + 1) + ') ' +
+          'td[headers="review-' + $td.attr('headers') + '"]').html(getValue(this));
+    }
+
     $.each(this, function () {
       var div = this;
       var container = $(div).find('#' + this.id + '-content');
@@ -50,17 +59,47 @@
 
       div.settings = $.extend({}, $.fn.reviewInput.defaults, options);
 
+      hook_species_checklist_new_row.push(function (data, row) {
+        var $table = $(row).closest('table');
+        var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
+        var rowTemplate;
+        var value;
+        if (!$(reviewTableBody).find('tr:nth-child(' + ($(row).index() + 1) + ')').length) {
+          $.each($table.find('thead tr:first-child th:visible'), function (idx) {
+            value = idx === 0 ?
+              $(row).find('.scTaxonCell').html() :
+              getValue($(row).find('td[headers="' + this.id + '"] input'));
+            rowTemplate += '<td headers="review-' + this.id + '">' + value + '</td>';
+          });
+          $(reviewTableBody).append('<tr>' + rowTemplate + '</tr>');
+        }
+      });
+
       indiciaFns.on('change', '.ctrl-wrap :input:visible:not(.ac_input)', {}, handleInputChange);
       // autocompletes don't fire when picking from the list, so use blur instead.
       indiciaFns.on('blur', '.ctrl-wrap input.ac_input:visible', {}, handleInputChange);
 
-      // Initial population
+      // Initial population of basic inputs
       $.each($('.ctrl-wrap :input:visible'), function () {
-        var label = $(this).parent('.ctrl-wrap').find('label').html()
+        var label = $(this).parent('.ctrl-wrap').find('label').text()
             .replace(/:$/, '');
         content += '<tr id="review-' + this.id + '"><th>' + label + '</th><td>' + getValue(this) + '</td></tr>\n';
       });
       $(container).append('<table><tbody>' + content + '</tbody></table>');
+
+      // Initial population of species checklists
+      $.each($('table.species-grid'), function () {
+        var head = '';
+        $.each($(this).find('thead tr:first-child th:visible'), function () {
+          head += '<th id="review-' + this.id + '">' + $(this).text() + '</th>';
+        });
+        $(container).append('<table id="review-' + this.id + '"><thead><tr>' + head + '</tr></thead>' +
+            '<tbody></tbody></table>');
+      });
+
+      indiciaFns.on('change', 'table.species-grid :input:visible:not(.ac_input)', {}, handleGridInputChange);
+      // autocompletes don't fire when picking from the list, so use blur instead.
+      indiciaFns.on('blur', 'table.species-grid input.ac_input:visible', {}, handleGridInputChange);
     });
     return this;
   };
