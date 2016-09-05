@@ -22,7 +22,6 @@
   'use strict';
 
   jQuery.fn.reviewInput = function (options) {
-
     /**
      * General purpose code to retrieve the display value from a variety of form inputs.
      * @param el Form element
@@ -68,7 +67,7 @@
       div.settings = $.extend({}, $.fn.reviewInput.defaults, options);
 
       // Trap new rows in species checklists so they can be reflected in output
-      hook_species_checklist_new_row.push(function (data, row) {
+      window.hook_species_checklist_new_row.push(function (data, row) {
         var $table = $(row).closest('table');
         var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
         var rowTemplate;
