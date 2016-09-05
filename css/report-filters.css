@@ -159,6 +159,20 @@
   display: none;
 }
 
+#controls-filter_where #location_list\:box > div > div, #controls-filter_where #location_list\:box > div > ul {
+  display:-moz-inline-stack;
+  display:inline-block;
+  zoom:1;
+  *display:inline;
+  margin: 2px 0.5% 2px 0;
+  vertical-align: top;
+  width: auto;
+}
+
+#controls-filter_what #what-tabs {
+  min-height: 165px;
+}
+
 #filter-done {
   float: right;
   margin: 0;
