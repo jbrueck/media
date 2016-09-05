@@ -23,6 +23,11 @@
 
   jQuery.fn.reviewInput = function (options) {
 
+    /**
+     * General purpose code to retrieve the display value from a variety of form inputs.
+     * @param el Form element
+     * @returns string
+     */
     function getValue(el) {
       if ($(el).is(':checkbox:checked')) {
         return '&#10004';
@@ -43,6 +48,9 @@
       $('#review-' + this.id.replace(/:/g, '\\:') + ' td').html(getValue(this));
     }
 
+    /**
+     * Repopulate the value in the review summary when an input is changed in a species checklist grid row.
+     */
     function handleGridInputChange() {
       var $table = $(this).closest('table');
       var $row = $(this).closest('tr');
@@ -59,6 +67,7 @@
 
       div.settings = $.extend({}, $.fn.reviewInput.defaults, options);
 
+      // Trap new rows in species checklists so they can be reflected in output
       hook_species_checklist_new_row.push(function (data, row) {
         var $table = $(row).closest('table');
         var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
@@ -75,6 +84,7 @@
         }
       });
 
+      // Trap changes to inputs to update the review
       indiciaFns.on('change', '.ctrl-wrap :input:visible:not(.ac_input)', {}, handleInputChange);
       // autocompletes don't fire when picking from the list, so use blur instead.
       indiciaFns.on('blur', '.ctrl-wrap input.ac_input:visible', {}, handleInputChange);
@@ -97,6 +107,7 @@
             '<tbody></tbody></table>');
       });
 
+      // Trap changes to species checklist inputs to update the review
       indiciaFns.on('change', 'table.species-grid :input:visible:not(.ac_input)', {}, handleGridInputChange);
       // autocompletes don't fire when picking from the list, so use blur instead.
       indiciaFns.on('blur', 'table.species-grid input.ac_input:visible', {}, handleGridInputChange);
