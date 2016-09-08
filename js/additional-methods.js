@@ -57,11 +57,21 @@ jQuery.validator.addMethod("integer", function(value, element) {
 	return this.optional(element) || /^-?\d+$/.test(value);
 }, "A whole number please");
 
-// Requires a minimum figure grid reference
-jQuery.validator.addMethod("mingridref", function(value, element, params) {
+// Requires a minimum n figure grid reference
+jQuery.validator.addMethod('mingridref', function (value, element, params) {
   // note the 2nd part of this allows a non-grid ref through.
-	return this.optional(element) || !(/[a-zA-Z]([a-zA-Z])?[0-9 ]*$/.test(value)) || value.replace(/[^0-9]/g,"").length>=params;
-}, "Please supply at least a {0} figure grid reference");
+  return this.optional(element) ||
+    !(/[a-zA-Z]([a-zA-Z])?[0-9 ]*$/.test(value)) ||
+    value.replace(/[^0-9]/g, '').length >= params;
+}, 'Please supply at least a {0} figure grid reference precision');
+
+// Requires a maximum n figure grid reference
+jQuery.validator.addMethod('maxgridref', function (value, element, params) {
+	// note the 2nd part of this allows a non-grid ref through.
+  return this.optional(element) ||
+    !(/[a-zA-Z]([a-zA-Z])?[0-9 ]*$/.test(value)) ||
+    value.replace(/[^0-9]/g, '').length <= params;
+}, 'Please supply a {0} figure grid reference precision or less');
 
 // Make sure user cannot enter junk into the taxon cell and continue with submit
 jQuery.validator.addMethod('speciesMustBeFilled', function(value, element) {
