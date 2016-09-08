@@ -73,11 +73,17 @@
           var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
           var rowTemplate;
           var value;
+          var $td;
           if (!$(reviewTableBody).find('tr:nth-child(' + ($(row).index() + 1) + ')').length) {
             $.each($table.find('thead tr:first-child th:visible'), function (idx) {
-              value = idx === 0 ?
-                $(row).find('.scTaxonCell').html() :
-                getValue($(row).find('td[headers="' + this.id + '"] input'));
+              $td = $(row).find('td[headers="' + this.id + '"]');
+              if (idx === 0) {
+                value = $(row).find('.scTaxonCell').html();
+              } else if ($td.hasClass('scAddMediaCell')) {
+                value = 'photos';
+              } else {
+                value = getValue($td.find('input'));
+              }
               rowTemplate += '<td headers="review-' + this.id + '">' + value + '</td>';
             });
             $(reviewTableBody).append('<tr>' + rowTemplate + '</tr>');
@@ -91,10 +97,11 @@
       indiciaFns.on('blur', '.ctrl-wrap input.ac_input:visible', {}, handleInputChange);
 
       // Initial population of basic inputs
-      $.each($('.ctrl-wrap :input:visible'), function () {
+      $.each($('.ctrl-wrap :input:visible').not('button,#imp-georef-search'), function () {
         var label;
+        // skip buttons, place searches etc
         if ($.inArray(this.id, div.settings.exclude) === -1 &&
-            $.inArray($(this).attr('name'), div.settings.exclude) === -1) {
+          $.inArray($(this).attr('name'), div.settings.exclude) === -1) {
           label = $(this).parent('.ctrl-wrap').find('label').text()
             .replace(/:$/, '');
           content += '<tr id="review-' + this.id + '"><th>' + label + '</th><td>' + getValue(this) + '</td></tr>\n';
