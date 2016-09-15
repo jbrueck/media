@@ -291,7 +291,7 @@ control_speciesmap_addcontrols = function(options, translatedStrings) {
               .appendTo(subsampleBlock);
           $('<input type="hidden" name="sc:' + indiciaData['gridSampleCounter-' + indiciaData.control_speciesmap_opts.id] + '::sample:geom" value="' + $('#imp-geom').val() + '" />')
               .appendTo(subsampleBlock);
-          if(typeof options['subSampleSampleMethodID'] != undefined && options['subSampleSampleMethodID'] != '')
+          if(typeof options['subSampleSampleMethodID'] !== "undefined" && options['subSampleSampleMethodID'] != '')
               $('<input type="hidden" name="sc:' + indiciaData['gridSampleCounter-' + indiciaData.control_speciesmap_opts.id] + '::sample:sample_method_id" value="' + options['subSampleSampleMethodID'] + '" />')
                 .appendTo(subsampleBlock);
           // new rows have no deleted field
