@@ -217,8 +217,28 @@ if (typeof window.indiciaData==="undefined") {
       }
     }
     return vars;
-  }
+  };
 
+  /**
+   * Convert any projection representation to a system string.
+   * @param string|object proj An EPSG projection name recognised by OpenLayers or a projection object
+   * @return string
+   */
+  indiciaFns.projectionToSystem = function (proj, convertGoogle) {
+    var system;
+    if (typeof proj !== 'string') { // assume a OpenLayers Projection Object
+      system = proj.getCode();
+    } else {
+      system = proj;
+    }
+    if (system.substring(0, 5) === 'EPSG:') {
+      system = system.substring(5);
+    }
+    if (convertGoogle && system === '900913') {
+      system = '3857';
+    }
+    return system;
+  };
 }) (jQuery);
 
 jQuery(document).ready(function($) {

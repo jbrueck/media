@@ -129,7 +129,7 @@ var destroyAllFeatures;
      */
     function locationSelectedInInput(div, val) {
       if (div.map.editLayer) {
-        div.map.editLayer.destroyFeatures();
+        removeAllFeatures(div.map.editLayer, 'boundary');
       }
       var intValue = parseInt(val);
       if (!isNaN(intValue)) {
@@ -196,29 +196,10 @@ var destroyAllFeatures;
     }
 
     /**
-     * Convert any projection representation to a system string.
-     */
-    function _projToSystem(proj, convertGoogle) {
-      var system;
-      if(typeof proj != "string") { // assume a OpenLayers Projection Object
-          system = proj.getCode();
-      } else {
-          system = proj;
-      }
-      if(system.substring(0,5)=='EPSG:'){
-          system = system.substring(5);
-      }
-      if(convertGoogle && system=="900913"){
-          system="3857";
-      }
-      return system;
-    }
-
-    /**
      * Compare 2 projection representations.
      */
     function _diffProj(proj1, proj2) {
-      return (_projToSystem(proj1, true) != _projToSystem(proj2, true));
+      return (indiciaFns.projectionToSystem(proj1, true) != indiciaFns.projectionToSystem(proj2, true));
     }
 
     /**
@@ -363,67 +344,66 @@ var destroyAllFeatures;
      */
     function _bindControls(div) {
       var currentZoom;
-      if (opts.clickForSpatialRef) {
-        // If the spatial ref input control exists, bind it to the map, so entering a ref updates the map
-        $('#'+opts.srefId).change(function() {
-          _handleEnteredSref($(this).val(), div);
-        });
-        // If the spatial ref latitude or longitude input control exists, bind it to the map, so entering a ref updates the map
-        $('#'+opts.srefLatId).change(function() {
-          // Only do something if both the lat and long are populated
-          if ($.trim($(this).val())!=='' && $.trim($('#'+opts.srefLongId).val())!=='') {
-            // copy the complete sref into the sref field
-            $('#'+opts.srefId).val($.trim($(this).val()) + ', ' + $.trim($('#'+opts.srefLongId).val()));
-            _handleEnteredSref($('#'+opts.srefId).val(), div);
-          }
-        });
-        $('#'+opts.srefLongId).change(function() {
-          // Only do something if both the lat and long are populated
-          if ($.trim($('#'+opts.srefLatId).val())!=='' && $.trim($(this).val())!=='') {
-            // copy the complete sref into the sref field
-            $('#'+opts.srefId).val($.trim($('#'+opts.srefLatId).val()) + ', ' + $.trim($(this).val()));
-            _handleEnteredSref($('#'+opts.srefId).val(), div);
-          }
-        });
-        $('#'+opts.srefSystemId).change(function() {
-          //When Spatial reference system is changed then do the following....
-          //-If the spatial referece has already been changed by the user since the page was loaded
-          //then use that last position to provide the position to switch the spatial reference system for
-          //-If the spatial reference field is loaded onto the page (e.g. existing data) then get the position
-          //from the centre of the geometry rather than the last click point
-          ////TO DO
-          //-If the Spatial Reference is typed then currently it will only do a conversion if the clickForPlot option is used (which isn't very often)
-          //Only do the conversion if the spatial reference field is not blank
-          if ($('#' + opts.srefId).val()) {   
-            //indiciaData.no_conversion_on_sp_system_changed should not be needed, however the system doesn't not currently support the 
-            //conversion of spatial reference if clickForPlot is off and the sp reference is typed by hand, so we need to switch off this function
-            //in that scenario
-            if (!indiciaData.no_conversion_on_sp_system_changed||indiciaData.no_conversion_on_sp_system_changed==false) {
-              //When the user zooms out on the map, the spatial reference doesn't change until they click on the map,
-              //This means when we convert the spatial reference we need to remember the zoom state the map was in
-              //when it was last clicked (else the precision will suddenly change when switching sref system)
-              //However once the conversion is done, we need to set the zoom back to its proper state so that the zoombar
-              //continues to operate normally.
-              currentZoom=div.map.zoom;
-              //When switching spatial reference system, we don't want to suddenly zoom in without warning
-              indiciaData.skip_zoom=true;
-              //If user has already clicked on map, then use last click position for the conversion
-              if (lastClickedLatLonZoom.lat) {
-                div.map.zoom=lastClickedLatLonZoom.zoom;   
-                processLonLatPositionOnMap(lastClickedLatLonZoom,div);
-                //If user not yet clicked on map, we can use the centre of the spatial reference geom loaded from database to do a conversion
-              } else if ($('#'+opts.srefSystemId).val() && div.map.editLayer.features[0].geometry.getCentroid().y && div.map.editLayer.features[0].geometry.getCentroid().x) {
-                //Set the loaded spatial reference geom to be our last "click point"
-                lastClickedLatLonZoom.lat=div.map.editLayer.features[0].geometry.getCentroid().y;
-                lastClickedLatLonZoom.lon=div.map.editLayer.features[0].geometry.getCentroid().x;
-                lastClickedLatLonZoom.zoom=div.map.zoom;
-                processLonLatPositionOnMap(lastClickedLatLonZoom,div);
-              }
-              div.map.zoom=currentZoom;
+
+      // If the spatial ref input control exists, bind it to the map, so entering a ref updates the map
+      $('#'+opts.srefId).change(function() {
+        _handleEnteredSref($(this).val(), div);
+      });
+      // If the spatial ref latitude or longitude input control exists, bind it to the map, so entering a ref updates the map
+      $('#'+opts.srefLatId).change(function() {
+        // Only do something if both the lat and long are populated
+        if ($.trim($(this).val())!=='' && $.trim($('#'+opts.srefLongId).val())!=='') {
+          // copy the complete sref into the sref field
+          $('#'+opts.srefId).val($.trim($(this).val()) + ', ' + $.trim($('#'+opts.srefLongId).val()));
+          _handleEnteredSref($('#'+opts.srefId).val(), div);
+        }
+      });
+      $('#'+opts.srefLongId).change(function() {
+        // Only do something if both the lat and long are populated
+        if ($.trim($('#'+opts.srefLatId).val())!=='' && $.trim($(this).val())!=='') {
+          // copy the complete sref into the sref field
+          $('#'+opts.srefId).val($.trim($('#'+opts.srefLatId).val()) + ', ' + $.trim($(this).val()));
+          _handleEnteredSref($('#'+opts.srefId).val(), div);
+        }
+      });
+      $('#'+opts.srefSystemId).change(function() {
+        //When Spatial reference system is changed then do the following....
+        //-If the spatial referece has already been changed by the user since the page was loaded
+        //then use that last position to provide the position to switch the spatial reference system for
+        //-If the spatial reference field is loaded onto the page (e.g. existing data) then get the position
+        //from the centre of the geometry rather than the last click point
+        ////TO DO
+        //-If the Spatial Reference is typed then currently it will only do a conversion if the clickForPlot option is used (which isn't very often)
+        //Only do the conversion if the spatial reference field is not blank
+        if ($('#' + opts.srefId).val()) {
+          //indiciaData.no_conversion_on_sp_system_changed should not be needed, however the system doesn't not currently support the
+          //conversion of spatial reference if clickForPlot is off and the sp reference is typed by hand, so we need to switch off this function
+          //in that scenario
+          if (!indiciaData.no_conversion_on_sp_system_changed||indiciaData.no_conversion_on_sp_system_changed==false) {
+            //When the user zooms out on the map, the spatial reference doesn't change until they click on the map,
+            //This means when we convert the spatial reference we need to remember the zoom state the map was in
+            //when it was last clicked (else the precision will suddenly change when switching sref system)
+            //However once the conversion is done, we need to set the zoom back to its proper state so that the zoombar
+            //continues to operate normally.
+            currentZoom=div.map.zoom;
+            //When switching spatial reference system, we don't want to suddenly zoom in without warning
+            indiciaData.skip_zoom=true;
+            //If user has already clicked on map, then use last click position for the conversion
+            if (lastClickedLatLonZoom.lat) {
+              div.map.zoom=lastClickedLatLonZoom.zoom;
+              processLonLatPositionOnMap(lastClickedLatLonZoom,div);
+              //If user not yet clicked on map, we can use the centre of the spatial reference geom loaded from database to do a conversion
+            } else if ($('#'+opts.srefSystemId).val() && div.map.editLayer.features[0].geometry.getCentroid().y && div.map.editLayer.features[0].geometry.getCentroid().x) {
+              //Set the loaded spatial reference geom to be our last "click point"
+              lastClickedLatLonZoom.lat=div.map.editLayer.features[0].geometry.getCentroid().y;
+              lastClickedLatLonZoom.lon=div.map.editLayer.features[0].geometry.getCentroid().x;
+              lastClickedLatLonZoom.zoom=div.map.zoom;
+              processLonLatPositionOnMap(lastClickedLatLonZoom,div);
             }
+            div.map.zoom=currentZoom;
           }
-        });
-      }
+        }
+      });
 
       // If a place search (georeference) control exists, bind it to the map.
       $('#'+div.georefOpts.georefSearchId).keypress(function(e) {
@@ -508,7 +488,7 @@ var destroyAllFeatures;
           url: div.settings.indiciaSvc + "index.php/services/spatial/sref_to_wkt",
           data:"sref=" + value +
             "&system=" + _getSystem() +
-            "&mapsystem=" + _projToSystem(div.map.projection, false),
+            "&mapsystem=" + indiciaFns.projectionToSystem(div.map.projection, false),
           success: function(data) {
             // JSONP can't handle http status code errors. So error check in success response.
             if(typeof data.error !== 'undefined')
@@ -1311,7 +1291,7 @@ var destroyAllFeatures;
      */
     function pointToSref(div, point, system, callback, pointSystem, precision) {
       if (typeof pointSystem==="undefined") {
-        pointSystem=_projToSystem(div.map.projection, false);
+        pointSystem=indiciaFns.projectionToSystem(div.map.projection, false);
       }
       // get precision required dependent on map zoom
       var precisionInfo=getPrecisionInfo(div, precision);
@@ -1324,7 +1304,7 @@ var destroyAllFeatures;
                 "?wkt=" + point +
                 "&system=" + system +
                 "&wktsystem=" + pointSystem +
-                "&mapsystem=" + _projToSystem(div.map.projection, false) +
+                "&mapsystem=" + indiciaFns.projectionToSystem(div.map.projection, false) +
                 "&precision=" + precisionInfo.precision +
                 "&metresAccuracy=" + precisionInfo.metres +
                 "&output=" + div.settings.latLongFormat +

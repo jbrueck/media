@@ -4,13 +4,17 @@
   border: 1px solid #D3D3D3;
 }
 
-scTaxonCell p.inline-error {
+.scTaxonCell p.inline-error {
   /* hide the error in the species input as it messes layout */
   display: none;
 }
 
 .scTaxonCell .ui-effects-wrapper {
   width: 100% !important;
+}
+
+table.species-grid .warning {
+  background: url(../images/warning.png) center right no-repeat;
 }
 
 /* ensure a shake effect on failed autocompletes stays put */
@@ -842,7 +846,9 @@ span.ind-cancel-icon {
   background-image: url(../images/cancel.png);
   margin: 0.5em;
 }
-
+.filter-popup #location_list\:box {
+  vertical-align: top;
+}
 .popup-filter-options-container {
   overflow-y: scroll; 
   max-height: 400px; 
@@ -865,6 +871,25 @@ span.ind-cancel-icon {
 }
 .report-grid .filter-row th:first-child{
   padding-left: 16px;
+}
+
+.report-grid-container, .map-container {
+  position: relative;
+}
+
+.col-picker {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+}
+
+.col-picker-options-container li {
+  list-style-type: none;
+}
+
+.col-picker-options-container * {
+  vertical-align: middle;
+  margin: 0 0.5em;
 }
 
 .filter-row input {
@@ -974,6 +999,10 @@ div.note-fail, p.note-fail {
   opacity: 0.9;
   background: url(../images/ajax-loader2.gif) no-repeat center center #fff;
   z-index: 1000;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }
 
 .autocomplete-select {
