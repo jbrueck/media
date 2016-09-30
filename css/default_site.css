@@ -1080,7 +1080,7 @@ div.note-fail, p.note-fail {
   height: 16px;
   display: inline-block;
 }
-.status-icon.status-.substatus-.certainty-,.status-icon.status-C.substatus-.certainty- {
+.status-icon.status-.substatus-.certainty-,.status-icon.status-C.substatus-.certainty-.query- {
   background: none;
 }
 
@@ -1132,6 +1132,9 @@ div.note-fail, p.note-fail {
 }
 .status-icon.status-R.substatus-5.query-Q, .status-icon.status-R.substatus-5.query-A {
   background-position: -32px -112px;
+}
+.status-icon.status-C.substatus-.query-Q, .status-icon.status-C.substatus-.query-A {
+  background-position: -32px -128px;
 }
 .licence {
   background: url(../images/licences-sprite.png) no-repeat center left;
