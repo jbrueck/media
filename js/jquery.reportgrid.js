@@ -200,14 +200,15 @@ var simple_tooltip;
     }
 
     function loadColPickerSettingsFromCookie(div) {
+      var visibleCols;
       // the col picker only saves to cookie if grid id specified, otherwise you get grids overwriting each other's settings
-      if (!div.id.match(/^report-grid-\d+$/)) {
-        var visibleCols = $.cookie(div.id + '-visibleCols');
+      if (typeof $.cookie !== 'undefined' && !div.id.match(/^report-grid-\d+$/)) {
+        visibleCols = $.cookie(div.id + '-visibleCols');
         if (visibleCols) {
           visibleCols = visibleCols.split(',');
           $(div).find('thead th,tbody td').hide();
           $.each(visibleCols, function () {
-            $(div).find('.col-'+this).show();
+            $(div).find('.col-' + this).show();
           });
         }
       }
@@ -1128,17 +1129,18 @@ var simple_tooltip;
       });
 
       function saveColPickerToCookie() {
+        var visibleCols;
         // the col picker only saves to cookie if grid id specified, otherwise you get grids overwriting each other's settings
-        if (!div.id.match(/^report-grid-\d+$/)) {
-          var visibleCols = [];
+        if (typeof $.cookie !== 'undefined' && !div.id.match(/^report-grid-\d+$/)) {
+          visibleCols = [];
           $.each($(div).find('thead tr:first-child th:visible'), function () {
-            $.each(this.classList, function() {
+            $.each(this.classList, function () {
               if (this.match(/^col-/)) {
                 visibleCols.push(this.replace(/^col-/, ''));
               }
             });
           });
-          $.cookie(div.id + '-visibleCols', visibleCols, {expires: 7});
+          $.cookie(div.id + '-visibleCols', visibleCols, { expires: 7 });
         }
       }
 
