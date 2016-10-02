@@ -18,27 +18,33 @@
  * @link    http://code.google.com/p/indicia/
  */
 
-var loadFilter, loadFilterUser, refreshFilters, applyFilterToReports;
+var loadFilter;
+var loadFilterUser;
+var refreshFilters;
+var applyFilterToReports;
 
-jQuery(document).ready(function($) {
-  "use strict";
-  indiciaData.filter = {"def":{},"id":null,"title":null};
-  var saving=false, loadingSites=false, filterOverride={};
+jQuery(document).ready(function ($) {
+  'use strict';
+  var saving = false;
+  var loadingSites = false;
+  var filterOverride = {};
 
   // override append and remove so we can track addition of sublist locations and draw them on the map
-  var origAppend = $.fn.append, origRemove = $.fn.remove;
-
+  var origAppend = $.fn.append;
+  var origRemove = $.fn.remove;
   $.fn.append = function () {
-    return origAppend.apply(this, arguments).trigger("append");
+    return origAppend.apply(this, arguments).trigger('append');
+  };
+  $.fn.remove = function () {
+    return origRemove.apply(this, arguments).trigger('remove');
   };
 
-  $.fn.remove = function () {
-    return origRemove.apply(this, arguments).trigger("remove");
-  };
+  indiciaData.filter = { def: {}, id: null, title: null };
 
   function removeSite() {
-    var idToRemove = $(this).find('input[name="location_list\[\]"]').val(), toRemove = [],
-      layer = indiciaData.mapdiv.map.editLayer;
+    var idToRemove = $(this).find('input[name="location_list[]"]').val();
+    var toRemove = [];
+    var layer = indiciaData.mapdiv.map.editLayer;
     $.each(layer.features, function() {
       if (this.attributes.id == idToRemove) {
         toRemove.push(this);
@@ -47,13 +53,13 @@ jQuery(document).ready(function($) {
     layer.removeFeatures(toRemove, {});
   }
 
-  $("#location_list\\:sublist").bind("append", function() {
+  $('#location_list\\:sublist').bind('append', function() {
     if (!loadingSites) {
       loadSites($(this).find('li input[name="location_list[]"]').last().val(), false);
       // remove all non-site boundaries, i.e. grid squares
       indiciaData.mapdiv.removeAllFeatures(indiciaData.mapdiv.map.editLayer, 'boundary', true);
     }
-    $("#location_list\\:sublist li:last-child").bind("remove", removeSite);
+    $('#location_list\\:sublist li:last-child').bind('remove', removeSite);
   });
 
   /**
@@ -64,10 +70,10 @@ jQuery(document).ready(function($) {
    * @param ctrlIds
    */
   function disableIfPresent(context, fields, ctrlIds) {
-    var disable=false;
-    $.each(fields, function(idx, field) {
+    var disable = false;
+    $.each(fields, function (idx, field) {
       if (context && context[field]) {
-        disable=true;
+        disable = true;
       }
     });
     $.each(ctrlIds, function(idx, ctrlId) {
@@ -80,43 +86,24 @@ jQuery(document).ready(function($) {
   }
 
   function disableSourceControlsForContext(type, context) {
-    if (context && context[type+'_list_op'] && context[type+'_list']) {
-      $('#filter-'+type+'s-mode').attr('disabled', true);
-      if (context[type+'_list_op']==='not in') {
+    if (context && context[type + '_list_op'] && context[type + '_list']) {
+      $('#filter-' + type + 's-mode').attr('disabled', true);
+      if (context[type + '_list_op'] === 'not in') {
         // website, survey or form must not be in a list, so disable the list so that they can't be unchecked
-        $('#'+type+'-list-checklist input').removeAttr('disabled');
-        $.each(context[type+'_list'].split(','), function(idx, website_id) {
-          $('#check-'+type+'_id').attr('disabled', true);
+        $('#' + type + '-list-checklist input').removeAttr('disabled');
+        $.each(context[type + '_list'].split(','), function (idx, website_id) {
+          $('#check-' + type + '_id').attr('disabled', true);
         });
       } else {
         // website, survey or form must be in a list, so may as well disable the others
-        $('#'+type+'-list-checklist input').attr('disabled', true);
-        $.each(context[type+'_list'].split(','), function(idx, website_id) {
-          $('#check-'+type+'_id').removeAttr('disabled');
+        $('#' + type + '-list-checklist input').attr('disabled', true);
+        $.each(context[type + '_list'].split(','), function (idx, website_id) {
+          $('#check-' + type + '_id').removeAttr('disabled');
         });
       }
     } else {
-      $('#filter-'+type+'s-mode').removeAttr('disabled');
-      $('#'+type+'-list-checklist input').removeAttr('disabled');
-    }
-  }
-
-  function limitSourceToContext (type, filterDef, context) {
-    var context_idlist, idlist;
-    if (context[type + '_list']) {
-      if (!filterDef[type + '_list']) {
-        filterDef[type + '_list']=context[type + '_list'];
-      } else if (context[type + '_list_op']==='not in') {
-        // if excluding these websites, then we combine the selected filter list with the context list
-        filterDef[type + '_list']=filterDef[type + '_list'] + ',' + context[type + '_list'];
-      } else {
-        // including context websites, so we want an intersection
-        context_idlist=context[type + '_list'].split(',');
-        idlist=$.grep(filterDef[type + '_list'].split(','), function(elem) {
-          return $.inArray(elem, context_idlist)!==-1;
-        });
-        filterDef[type + '_list']=idlist.join(',');
-      }
+      $('#filter-' + type + 's-mode').removeAttr('disabled');
+      $('#' + type + '-list-checklist input').removeAttr('disabled');
     }
   }
 
@@ -125,23 +112,23 @@ jQuery(document).ready(function($) {
    * @returns boolean
    */
   function siteOrGridRefSelected() {
-    return $('input[name="location_list[]"]').length>0 || ($('#imp-sref').val()!=='' && $('#imp-sref').val()!==null);
+    return $('input[name="location_list[]"]').length > 0 || ($('#imp-sref').val() !== '' && $('#imp-sref').val() !== null);
   }
 
   // functions that drive each of the filter panes, e.g. to obtain the description from the controls.
   var paneObjList = {
-    what:{
-      loadFilter: function() {
+    what: {
+      loadFilter: function () {
         // if list of ids defined but not group names, this is a taxon group list loaded from the user profile.
         // Hijack the names from indiciaData.myGroups.
-        if (typeof indiciaData.filter.def.taxon_group_list!=="undefined" && typeof indiciaData.filter.def.taxon_group_names==="undefined") {
+        if (typeof indiciaData.filter.def.taxon_group_list !== 'undefined' && typeof indiciaData.filter.def.taxon_group_names === 'undefined') {
           indiciaData.filter.def.taxon_group_names = [];
           var foundIds = [], foundNames = [];
           // Loop the group IDs we are expected to load
           $.each(indiciaData.filter.def.taxon_group_list, function(idx, groupId) {
             // Use the myGroups list to look them up
             $.each(indiciaData.myGroups, function() {
-              if (this[0]===parseInt(groupId)) {
+              if (this[0] === parseInt(groupId)) {
                 foundIds.push(this[0]);
                 foundNames.push(this[1]);
               }
@@ -151,20 +138,24 @@ jQuery(document).ready(function($) {
           indiciaData.filter.def.taxon_group_list = foundIds;
         }
       },
-      getDescription:function() {
-        var groups=[], taxa=[], designations=[], r=[], filterDef=indiciaData.filter.def;
+      getDescription: function () {
+        var groups = [];
+        var taxa = [];
+        var designations = [];
+        var r = [];
+        var filterDef = indiciaData.filter.def;
         if (filterDef.taxon_group_list && filterDef.taxon_group_names) {
-          $.each(filterDef.taxon_group_names, function(idx, group) {
+          $.each(filterDef.taxon_group_names, function (idx, group) {
             groups.push(group);
           });
         }
         if (filterDef.higher_taxa_taxon_list_list && filterDef.higher_taxa_taxon_list_names) {
-          $.each(filterDef.higher_taxa_taxon_list_names, function(idx, taxon) {
+          $.each(filterDef.higher_taxa_taxon_list_names, function (idx, taxon) {
             taxa.push(taxon);
           });
         }
         if (filterDef.taxa_taxon_list_list && filterDef.taxa_taxon_list_names) {
-          $.each(filterDef.taxa_taxon_list_names, function(idx, taxon) {
+          $.each(filterDef.taxa_taxon_list_names, function (idx, taxon) {
             taxa.push(taxon);
           });
         }
@@ -183,11 +174,11 @@ jQuery(document).ready(function($) {
           r.push(designations.join(', '));
         }
         if (filterDef.taxon_rank_sort_order_combined) {
-          r.push($("#level-label").text() + ' ' + $("#taxon_rank_sort_order_op").find("option:selected").text() + ' ' +
-              $("#taxon_rank_sort_order_combined").find("option:selected").text());
+          r.push($('#level-label').text() + ' ' + $('#taxon_rank_sort_order_op').find('option:selected').text() + ' ' +
+              $('#taxon_rank_sort_order_combined').find('option:selected').text());
         }
-        if (filterDef.marine_flag && indiciaData.filter.def.marine_flag!=="all") {
-          r.push($("#marine_flag").find("option[value="+filterDef.marine_flag+"]").text());
+        if (filterDef.marine_flag && indiciaData.filter.def.marine_flag!=='all') {
+          r.push($('#marine_flag').find('option[value='+filterDef.marine_flag+']').text());
         }
         return r.join('<br/>');
       },
@@ -240,7 +231,7 @@ jQuery(document).ready(function($) {
           });
         }
         // because the rank sort order key includes both the sort order and rank ID, clean this up for the actual filter
-        if (typeof indiciaData.filter.def.taxon_rank_sort_order_combined!=="undefined") {
+        if (typeof indiciaData.filter.def.taxon_rank_sort_order_combined!=='undefined') {
           indiciaData.filter.def.taxon_rank_sort_order = indiciaData.filter.def.taxon_rank_sort_order_combined.split(':')[0];
         }
       },
@@ -268,10 +259,10 @@ jQuery(document).ready(function($) {
           $('#marine_flag').removeAttr('disabled');
           $('#flags-tab .context-instruct').hide();
         }
-        $("#what-tabs").tabs("option", "disabled", disabled);
-        indiciaFns.activeTab($( "#what-tabs" ), firstTab);
+        $('#what-tabs').tabs('option', 'disabled', disabled);
+        indiciaFns.activeTab($( '#what-tabs' ), firstTab);
         if (context && context.taxon_group_list) {
-          $('input#taxon_group_list\\:search\\:q').setExtraParams({"idlist":context.taxon_group_list});
+          $('input#taxon_group_list\\:search\\:q').setExtraParams({'idlist':context.taxon_group_list});
           $('#species-group-tab .context-instruct').show();
         }
         else if($('input#taxon_group_list\\:search\\:q').length > 0) {
@@ -279,28 +270,28 @@ jQuery(document).ready(function($) {
         }
         // need to load the sub list control for taxon groups.
         $('#taxon_group_list\\:sublist').children().remove();
-        if (typeof indiciaData.filter.def.taxon_group_names!=="undefined") {
+        if (typeof indiciaData.filter.def.taxon_group_names!=='undefined') {
           $.each(indiciaData.filter.def.taxon_group_names, function(id, name) {
             $('#taxon_group_list\\:sublist').append('<li class="ui-widget-content ui-corner-all"><span class="ind-delete-icon"> </span>' + name +
                 '<input type="hidden" value="' + id + '" name="taxon_group_list[]"/></li>');
           });
         }
         $('#higher_taxa_taxon_list_list\\:sublist').children().remove();
-        if (typeof indiciaData.filter.def.higher_taxa_taxon_list_names!=="undefined") {
+        if (typeof indiciaData.filter.def.higher_taxa_taxon_list_names!=='undefined') {
           $.each(indiciaData.filter.def.higher_taxa_taxon_list_names, function(id, name) {
             $('#higher_taxa_taxon_list_list\\:sublist').append('<li class="ui-widget-content ui-corner-all"><span class="ind-delete-icon"> </span>' + name +
                 '<input type="hidden" value="' + id + '" name="higher_taxa_taxon_list_list[]"/></li>');
           });
         }
         $('#taxa_taxon_list_list\\:sublist').children().remove();
-        if (typeof indiciaData.filter.def.taxa_taxon_list_names!=="undefined") {
+        if (typeof indiciaData.filter.def.taxa_taxon_list_names!=='undefined') {
           $.each(indiciaData.filter.def.taxa_taxon_list_names, function(id, name) {
             $('#taxa_taxon_list_list\\:sublist').append('<li class="ui-widget-content ui-corner-all"><span class="ind-delete-icon"> </span>' + name +
                 '<input type="hidden" value="' + id + '" name="taxa_taxon_list_list[]"/></li>');
           });
         }
         $('#taxon_designation_list\\:sublist').children().remove();
-        if (typeof indiciaData.filter.def.taxon_designation_list_names!=="undefined") {
+        if (typeof indiciaData.filter.def.taxon_designation_list_names!=='undefined') {
           $.each(indiciaData.filter.def.taxon_designation_list_names, function(id, name) {
             $('#taxon_designation_list\\:sublist').append('<li class="ui-widget-content ui-corner-all"><span class="ind-delete-icon"> </span>' + name +
               '<input type="hidden" value="' + id + '" name="taxon_designation_list[]"/></li>');
@@ -313,7 +304,7 @@ jQuery(document).ready(function($) {
     when:{
       getDescription:function() {
         var r=[], dateType='recorded', dateFromField='date_from', dateToField='date_to', dateAgeField='date_age';
-        if (typeof indiciaData.filter.def.date_type!=="undefined") {
+        if (typeof indiciaData.filter.def.date_type!=='undefined') {
           dateType = indiciaData.filter.def.date_type;
           if (dateType!=='recorded') {
             dateFromField = dateType + '_date_from';
@@ -335,7 +326,7 @@ jQuery(document).ready(function($) {
       },
       loadForm:function(context) {
         var dateTypePrefix='';
-        if (typeof indiciaData.filter.def.date_type!=="undefined" && indiciaData.filter.def.date_type!=="recorded") {
+        if (typeof indiciaData.filter.def.date_type!=='undefined' && indiciaData.filter.def.date_type!=='recorded') {
           dateTypePrefix = indiciaData.filter.def.date_type + '_';
         }
         if (context && (context.date_from || context.date_to || context.date_age ||
@@ -346,13 +337,13 @@ jQuery(document).ready(function($) {
         }
         if (dateTypePrefix) {
           // We need to load the default values for each control, as if prefixed then they won't autoload
-          if (typeof indiciaData.filter.def[dateTypePrefix + 'date_from']!=="undefined") {
+          if (typeof indiciaData.filter.def[dateTypePrefix + 'date_from']!=='undefined') {
             $('#date_from').val(indiciaData.filter.def[dateTypePrefix + 'date_from']);
           }
-          if (typeof indiciaData.filter.def[dateTypePrefix + 'date_age']!=="undefined") {
+          if (typeof indiciaData.filter.def[dateTypePrefix + 'date_age']!=='undefined') {
             $('#date_to').val(indiciaData.filter.def[dateTypePrefix + 'date_to']);
           }
-          if (typeof indiciaData.filter.def[dateTypePrefix + 'date_age']!=="undefined") {
+          if (typeof indiciaData.filter.def[dateTypePrefix + 'date_age']!=='undefined') {
             $('#date_age').val(indiciaData.filter.def[dateTypePrefix + 'date_age']);
           }
         }
@@ -493,7 +484,7 @@ jQuery(document).ready(function($) {
           $('#site-type').val('loc:'+indiciaData.filter.def.indexed_location_list);
         } else if (indiciaData.filter.def.indexed_location_list || indiciaData.filter.def.location_list) {
           var locationsToLoad=indiciaData.filter.def.indexed_location_list ?
-            indiciaData.filter.def.indexed_location_list : indiciaData.filter.def.location_list, siteType
+            indiciaData.filter.def.indexed_location_list : indiciaData.filter.def.location_list, siteType;
           if (indiciaData.filter.def['site-type']) {
             siteType = indiciaData.filter.def['site-type'];
           } else {
@@ -957,7 +948,7 @@ jQuery(document).ready(function($) {
         obj.refreshFilter();
       }
     });
-  }
+  };
 
   applyFilterToReports = function(reload) {
     if (typeof reload==="undefined") {
@@ -1171,7 +1162,7 @@ jQuery(document).ready(function($) {
     return code;
   }
 
-  loadFilterUser = function(fu, getParams) {
+  loadFilterUser = function (fu, getParams) {
     indiciaData.filter.def = $.extend(JSON.parse(fu.filter_definition), getParams);
     indiciaData.filter.id = fu.filter_id;
     indiciaData.filter.filters_user_id = fu.id;
