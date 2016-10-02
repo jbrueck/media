@@ -301,32 +301,37 @@ jQuery(document).ready(function ($) {
         	hook_reportfilter_loadForm('what');
       }
     },
-    when:{
-      getDescription:function() {
-        var r=[], dateType='recorded', dateFromField='date_from', dateToField='date_to', dateAgeField='date_age';
-        if (typeof indiciaData.filter.def.date_type!=='undefined') {
+    when: {
+      getDescription: function () {
+        var r = [];
+        var dateType = 'recorded';
+        var dateFromField = 'date_from';
+        var dateToField = 'date_to';
+        var dateAgeField = 'date_age';
+        if (typeof indiciaData.filter.def.date_type !== 'undefined') {
           dateType = indiciaData.filter.def.date_type;
-          if (dateType!=='recorded') {
+          if (dateType !== 'recorded') {
             dateFromField = dateType + '_date_from';
             dateToField = dateType + '_date_to';
             dateAgeField = dateType + '_date_age';
           }
         }
         if (indiciaData.filter.def[dateFromField] && indiciaData.filter.def[dateToField]) {
-          r.push('Records '+dateType + ' between ' + indiciaData.filter.def[dateFromField] + ' and ' + indiciaData.filter.def[dateToField]);
+          r.push('Records ' + dateType + ' between ' + indiciaData.filter.def[dateFromField] + ' and ' +
+              indiciaData.filter.def[dateToField]);
         } else if (indiciaData.filter.def[dateFromField]) {
-          r.push('Records '+dateType + ' on or after ' + indiciaData.filter.def[dateFromField]);
+          r.push('Records ' + dateType + ' on or after ' + indiciaData.filter.def[dateFromField]);
         } else if (indiciaData.filter.def[dateToField]) {
-          r.push('Records '+dateType + ' on or before ' + indiciaData.filter[dateToField]);
+          r.push('Records ' + dateType + ' on or before ' + indiciaData.filter[dateToField]);
         }
         if (indiciaData.filter.def[dateAgeField]) {
-          r.push('Records '+dateType + ' in last ' + indiciaData.filter.def[dateAgeField]);
+          r.push('Records ' + dateType + ' in last ' + indiciaData.filter.def[dateAgeField]);
         }
         return r.join('<br/>');
       },
-      loadForm:function(context) {
-        var dateTypePrefix='';
-        if (typeof indiciaData.filter.def.date_type!=='undefined' && indiciaData.filter.def.date_type!=='recorded') {
+      loadForm: function (context) {
+        var dateTypePrefix = '';
+        if (typeof indiciaData.filter.def.date_type !== 'undefined' && indiciaData.filter.def.date_type !== 'recorded') {
           dateTypePrefix = indiciaData.filter.def.date_type + '_';
         }
         if (context && (context.date_from || context.date_to || context.date_age ||
@@ -337,20 +342,20 @@ jQuery(document).ready(function ($) {
         }
         if (dateTypePrefix) {
           // We need to load the default values for each control, as if prefixed then they won't autoload
-          if (typeof indiciaData.filter.def[dateTypePrefix + 'date_from']!=='undefined') {
+          if (typeof indiciaData.filter.def[dateTypePrefix + 'date_from'] !== 'undefined') {
             $('#date_from').val(indiciaData.filter.def[dateTypePrefix + 'date_from']);
           }
-          if (typeof indiciaData.filter.def[dateTypePrefix + 'date_age']!=='undefined') {
+          if (typeof indiciaData.filter.def[dateTypePrefix + 'date_age'] !== 'undefined') {
             $('#date_to').val(indiciaData.filter.def[dateTypePrefix + 'date_to']);
           }
-          if (typeof indiciaData.filter.def[dateTypePrefix + 'date_age']!=='undefined') {
+          if (typeof indiciaData.filter.def[dateTypePrefix + 'date_age'] !== 'undefined') {
             $('#date_age').val(indiciaData.filter.def[dateTypePrefix + 'date_age']);
           }
         }
       },
-      applyFormToDefinition:function() {
-        var dateTypePrefix='';
-        if (typeof indiciaData.filter.def.date_type!=="undefined" && indiciaData.filter.def.date_type!=="recorded") {
+      applyFormToDefinition: function () {
+        var dateTypePrefix = '';
+        if (typeof indiciaData.filter.def.date_type !== 'undefined' && indiciaData.filter.def.date_type !== 'recorded') {
           dateTypePrefix = indiciaData.filter.def.date_type + '_';
         }
         // make sure we clean up, especially if switching date filter type
