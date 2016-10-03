@@ -44,7 +44,13 @@
      * Repopulate the value in the review summary when an input is changed.
      */
     function handleInputChange() {
-      $('#review-' + this.id.replace(/:/g, '\\:') + ' td').html(getValue(this));
+      var value = getValue(this);
+      $('#review-' + this.id.replace(/:/g, '\\:') + ' td').html(value);
+      if (value) {
+        $('#review-' + this.id.replace(/:/g, '\\:')).show();
+      } else {
+        $('#review-' + this.id.replace(/:/g, '\\:')).hide();
+      }
     }
 
     /**
@@ -96,15 +102,18 @@
       // autocompletes don't fire when picking from the list, so use blur instead.
       indiciaFns.on('blur', '.ctrl-wrap input.ac_input:visible', {}, handleInputChange);
 
-      // Initial population of basic inputs
+      // Initial population of basic inputs, skip buttons, place searches etc
       $.each($('.ctrl-wrap :input:visible').not('button,#imp-georef-search'), function () {
         var label;
-        // skip buttons, place searches etc
+        var value;
+        var hide;
         if ($.inArray(this.id, div.settings.exclude) === -1 &&
           $.inArray($(this).attr('name'), div.settings.exclude) === -1) {
           label = $(this).parent('.ctrl-wrap').find('label').text()
             .replace(/:$/, '');
-          content += '<tr id="review-' + this.id + '"><th>' + label + '</th><td>' + getValue(this) + '</td></tr>\n';
+          value = getValue(this);
+          hide = value ? '' : ' style="display: none"';
+          content += '<tr id="review-' + this.id + '"' + hide + '><th>' + label + '</th><td>' + value + '</td></tr>\n';
         }
       });
       $(container).append('<table><tbody>' + content + '</tbody></table>');
