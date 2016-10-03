@@ -85,25 +85,35 @@ jQuery(document).ready(function ($) {
     });
   }
 
-  function disableSourceControlsForContext(type, context) {
+  function disableSourceControlsForContext(type, context, childTypes) {
+    var allRelevantCheckboxes;
+    var allCheckboxesMatchingIds = [];
+    var typeIds;
     if (context && context[type + '_list_op'] && context[type + '_list']) {
+      typeIds = context[type + '_list'].split(',');
       $('#filter-' + type + 's-mode').attr('disabled', true);
+      // Get all the checkboxes relevant to this level (e.g. for surveys, it includes surveys and input forms.
+      allRelevantCheckboxes = $('#' + type + '-list-checklist input');
+      $.each(childTypes, function () {
+        allRelevantCheckboxes = $.merge(allRelevantCheckboxes, $('#' + this + '-list-checklist input'));
+      });
+      // Now get just the checkboxes that are linked to the ID of the items in the context. E.g. for a website, the
+      // website checkbox, plus linked survey and form checkboxes.
+      $.each(typeIds, function () {
+        allCheckboxesMatchingIds = $.merge(allCheckboxesMatchingIds,
+            $('#check-' + type + '-' + this + ',.vis-' + type + '-' + this + ' input'));
+      });
       if (context[type + '_list_op'] === 'not in') {
-        // website, survey or form must not be in a list, so disable the list so that they can't be unchecked
-        $('#' + type + '-list-checklist input').removeAttr('disabled');
-        $.each(context[type + '_list'].split(','), function (idx, website_id) {
-          $('#check-' + type + '_id').attr('disabled', true);
-        });
+        $(allRelevantCheckboxes).removeAttr('disabled');
+        $(allCheckboxesMatchingIds).attr('disabled', true);
       } else {
-        // website, survey or form must be in a list, so may as well disable the others
-        $('#' + type + '-list-checklist input').attr('disabled', true);
-        $.each(context[type + '_list'].split(','), function (idx, website_id) {
-          $('#check-' + type + '_id').removeAttr('disabled');
-        });
+        $(allRelevantCheckboxes).attr('disabled', true);
+        $(allCheckboxesMatchingIds).removeAttr('disabled');
       }
+      // Force uncheck the websites you can't access
+      $('#' + type + '-list-checklist input:disabled').removeAttr('checked');
     } else {
       $('#filter-' + type + 's-mode').removeAttr('disabled');
-      $('#' + type + '-list-checklist input').removeAttr('disabled');
     }
   }
 
@@ -686,28 +696,32 @@ jQuery(document).ready(function ($) {
             $('#check-form-'+indiciaData.formsList[form]).attr('checked', true);
           });
         }
-        disableSourceControlsForContext('website', context);
-        disableSourceControlsForContext('survey', context);
-        disableSourceControlsForContext('input_form', context);
+        $('#website-list-checklist,#survey-list-checklist,#input_form-list-checklist')
+            .find('input').removeAttr('disabled');
+        disableSourceControlsForContext('website', context, ['survey', 'input_form']);
+        disableSourceControlsForContext('survey', context, ['input_form']);
+        disableSourceControlsForContext('input_form', context, []);
       },
       applyFormToDefinition:function() {
-        var website_ids = [], survey_ids=[], input_forms=[];
-        $.each($('#filter-websites input:checked').filter(":visible"), function(idx, ctrl) {
+        var website_ids = [];
+        var survey_ids=[];
+        var input_forms=[];
+        $.each($('#filter-websites input:checked').filter(':visible'), function (idx, ctrl) {
           website_ids.push($(ctrl).val());
         });
         indiciaData.filter.def.website_list = website_ids.join(',');
-        $.each($('#filter-surveys input:checked').filter(":visible"), function(idx, ctrl) {
+        $.each($('#filter-surveys input:checked').filter(':visible'), function (idx, ctrl) {
           survey_ids.push($(ctrl).val());
         });
         indiciaData.filter.def.survey_list = survey_ids.join(',');
-        $.each($('#filter-input_forms input:checked').filter(":visible"), function(idx, ctrl) {
+        $.each($('#filter-input_forms input:checked').filter(':visible'), function (idx, ctrl) {
           input_forms.push("'" + $(ctrl).val() + "'");
         });
         indiciaData.filter.def.input_form_list = input_forms.join(',');
       }
     }
   };
-  if(typeof hook_reportFilters_alter_paneObj != 'undefined')
+  if (typeof hook_reportFilters_alter_paneObj != 'undefined')
 	  paneObjList = hook_reportFilters_alter_paneObj(paneObjList);
 
   // Event handler for a draw tool boundary being added which clears the other controls on the map pane.
@@ -859,15 +873,15 @@ jQuery(document).ready(function ($) {
   });
 
   function updateSurveySelection() {
-    var surveys=[];
-    $.each($('#filter-surveys input:checked'), function(idx, checkbox) {
+    var surveys = [];
+    $.each($('#filter-surveys input:checked'), function (idx, checkbox) {
       surveys.push('.vis-survey-' + $(checkbox).val());
     });
-    if (surveys.length===0) {
+    if (surveys.length === 0) {
       // no websites picked, so can pick any survey
       $('#filter-input_forms li').show();
     }
-    else if ($('#filter-surveys-mode').val()==='in') {
+    else if ($('#filter-surveys-mode').val() === 'in') {
       // list only the forms that can be picked
       $('#filter-input_forms li').filter(surveys.join(',')).removeClass('survey-hide');
       $('#filter-input_forms li').not(surveys.join(',')).addClass('survey-hide');
@@ -881,12 +895,13 @@ jQuery(document).ready(function ($) {
   }
 
   function updateWebsiteSelection() {
-    var websites=[], lis=$('#filter-surveys li, #filter-input_forms li');
-    $.each($('#filter-websites input:checked'), function(idx, checkbox) {
+    var websites = [];
+    var lis = $('#filter-surveys li, #filter-input_forms li');
+    $.each($('#filter-websites input:checked'), function (idx, checkbox) {
       websites.push('.vis-website-' + $(checkbox).val());
     });
 
-    if (websites.length===0) {
+    if (websites.length === 0) {
       // no websites picked, so can pick any survey
       lis.removeClass('website-hide');
     }
@@ -1047,24 +1062,25 @@ jQuery(document).ready(function ($) {
   }
 
   function updateFilterDescriptions() {
-    var description, name;
-    $.each($('#filter-panes .pane'), function(idx, pane) {
-      name=pane.id.replace(/^pane-filter_/,'');
+    var description;
+    var name;
+    $.each($('#filter-panes .pane'), function (idx, pane) {
+      name = pane.id.replace(/^pane-filter_/, '');
       description = paneObjList[name].getDescription();
-      if (description==='') {
-        description=indiciaData.lang['NoDescription' + name];
+      if (description === '') {
+        description = indiciaData.lang['NoDescription' + name];
       }
       $(pane).find('span.filter-desc').html(description);
     });
   }
 
   function loadFilterOntoForms() {
-    var description, name,
-      context = $('#context-filter').length ? indiciaData.filterContextDefs[$('#context-filter').val()] : null;
-    $.each($('#filter-panes .pane'), function(idx, pane) {
+    var name;
+    var context = $('#context-filter').length ? indiciaData.filterContextDefs[$('#context-filter').val()] : null;
+    $.each($('#filter-panes .pane'), function (idx, pane) {
       name = pane.id.replace(/^pane-filter_/, '');
       // Does the pane have any special code for loading the definition into the form?
-      if (typeof paneObjList[name].loadForm !== "undefined") {
+      if (typeof paneObjList[name].loadForm !== 'undefined') {
         paneObjList[name].loadForm(context);
       }
     });
@@ -1091,7 +1107,7 @@ jQuery(document).ready(function ($) {
     $('#filter-build').html(indiciaData.lang.ModifyFilter);
     $('#standard-params .header span.changed').hide();
     // can't delete a filter you didn't create.
-    if (data[0].created_by_id===indiciaData.user_id) {
+    if (data[0].created_by_id === indiciaData.user_id) {
       $('#filter-delete').show();
     } else {
       $('#filter-delete').hide();
