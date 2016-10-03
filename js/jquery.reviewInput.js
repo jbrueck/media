@@ -109,8 +109,8 @@
         var hide;
         if ($.inArray(this.id, div.settings.exclude) === -1 &&
           $.inArray($(this).attr('name'), div.settings.exclude) === -1) {
-          label = $(this).parent('.ctrl-wrap').find('label').text()
-            .replace(/:$/, '');
+          label = $(this).closest('.ctrl-wrap').find('label').text()
+              .replace(/:$/, '');
           value = getValue(this);
           hide = value ? '' : ' style="display: none"';
           content += '<tr id="review-' + this.id + '"' + hide + '><th>' + label + '</th><td>' + value + '</td></tr>\n';
