@@ -88,7 +88,7 @@
               } else if ($td.hasClass('scAddMediaCell')) {
                 value = 'photos';
               } else {
-                value = getValue($td.find('input'));
+                value = getValue($td.find(':input'));
               }
               rowTemplate += '<td headers="review-' + this.id + '">' + value + '</td>';
             });
@@ -103,7 +103,7 @@
       indiciaFns.on('blur', '.ctrl-wrap input.ac_input:visible', {}, handleInputChange);
 
       // Initial population of basic inputs, skip buttons, place searches etc
-      $.each($('.ctrl-wrap :input:visible').not('button,#imp-georef-search'), function () {
+      $.each($('.ctrl-wrap :input:visible').not('button,#imp-georef-search,.scSensitivity'), function () {
         var label;
         var value;
         var hide;
