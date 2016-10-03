@@ -1215,13 +1215,23 @@ jQuery(document).ready(function ($) {
 
   // Applies the current loaded filter to the controls within the pane.
   function updateControlValuesToReflectCurrentFilter(pane) {
+    var attrName;
     // regexp extracts the pane ID from the href. Loop through the controls in the pane
-    $.each(pane.find(':input').not('#imp-sref-system,:checkbox,[type=button],[name="location_list\[\]"]'), function(idx, ctrl) {
-      // set control value to the stored filter setting
-      $(ctrl).val(indiciaData.filter.def[$(ctrl).attr('name')]);
-    });
-    $.each(pane.find(':checkbox'), function(idx, ctrl) {
-      $(ctrl).attr('checked', typeof indiciaData.filter.def[$(ctrl).attr('name')]!=="undefined" && indiciaData.filter.def[$(ctrl).attr('name')]==$(ctrl).val());
+    $.each(pane.find(':input').not('#imp-sref-system,:checkbox,[type=button],[name="location_list[]"]'),
+      function (idx, ctrl) {
+        // set control value to the stored filter setting
+        attrName = $(ctrl).attr('name');
+        // Special case for dates where the filter value name is prefixed with the date type.
+        if (attrName && attrName.substring(0, 5) === 'date_' && attrName !== 'date_type'
+            && typeof indiciaData.filter.def.date_type !== 'undefined' && indiciaData.filter.def.date_type !== 'recorded') {
+          attrName = indiciaData.filter.def.date_type + '_' + attrName;
+        }
+        $(ctrl).val(indiciaData.filter.def[attrName]);
+      }
+    );
+    $.each(pane.find(':checkbox'), function (idx, ctrl) {
+      $(ctrl).attr('checked', typeof indiciaData.filter.def[$(ctrl).attr('name')] !== 'undefined'
+        && indiciaData.filter.def[$(ctrl).attr('name')] === $(ctrl).val());
     });
   }
   $('.fb-filter-link').fancybox({
