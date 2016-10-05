@@ -1027,15 +1027,6 @@ jQuery(document).ready(function($) {
       });
     });
     applyFilterToReports();
-    $.each(indiciaData.reports, function(i, group) {
-      $.each(group, function(j, grid) {
-        // reload the report grid
-        grid.ajaxload();
-        if (grid[0].settings.linkFilterToMap) {
-          grid.mapRecords(grid[0].settings.mapDataSource);
-        }
-      });
-    });
     // clear map edit layer
     clearSites();
     $('#site-type').val('');
