@@ -61,8 +61,16 @@
       var $row = $(this).closest('tr');
       var $td = $(this).closest('td');
       var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
-      $(reviewTableBody).find('tr:nth-child(' + ($row.index() + 1) + ') ' +
-          'td[headers="review-' + $td.attr('headers') + '"]').html(getValue(this));
+      var outputTd = $(reviewTableBody).find('tr:nth-child(' + ($row.index() + 1) + ') ' +
+          'td[headers="review-' + $td.attr('headers') + '"]');
+      outputTd.html(getValue(this));
+      outputTd.attr('title', '');
+      if ($(this).hasClass('warning')) {
+        outputTd.addClass('warning');
+        if ($(this).attr('title')) {
+          outputTd.attr('title', $(this).attr('title'));
+        }
+      }
     }
 
     $.each(this, function () {

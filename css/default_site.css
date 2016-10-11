@@ -13,7 +13,7 @@
   width: 100% !important;
 }
 
-table.species-grid .warning {
+table.species-grid .warning, #review-input-content .warning {
   background: url(../images/warning.png) center right no-repeat;
 }
 

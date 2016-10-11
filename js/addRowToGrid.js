@@ -665,6 +665,7 @@ var resetSpeciesTextOnEscape;
             if (this.attributes.type === 'clickPoint' && !this.geometry.intersects(feature.geometry)) {
               $(e.currentTarget).addClass('warning');
               $(e.currentTarget).attr('title', 'Outside the boundary of the main grid square');
+              $(e.currentTarget).trigger('change');
             }
           });
           indiciaData.mapdiv.map.editLayer.addFeatures([feature]);
