@@ -89,6 +89,7 @@
           var value;
           var $td;
           if (!$(reviewTableBody).find('tr:nth-child(' + ($(row).index() + 1) + ')').length) {
+            rowTemplate = '';
             $.each($table.find('thead tr:first-child th:visible'), function (idx) {
               $td = $(row).find('td[headers="' + this.id + '"]');
               if (idx === 0) {
@@ -140,6 +141,24 @@
       indiciaFns.on('change', 'table.species-grid :input:visible:not(.ac_input)', {}, handleGridInputChange);
       // autocompletes don't fire when picking from the list, so use blur instead.
       indiciaFns.on('blur', 'table.species-grid input.ac_input:visible', {}, handleGridInputChange);
+
+      indiciaFns.bindTabsActivate($('#controls'), function (event, ui) {
+        var element = $(indiciaData.mapdiv);
+        if ($(div).closest('.ui-tabs-panel')[0] === ui.newPanel[0]) {
+          indiciaData.origMapParent = element.parent();
+          indiciaData.origMapWidth = $(indiciaData.mapdiv).css('width')
+          $(indiciaData.mapdiv).css('width', '100%');
+          $('#review-map-container').append(element);
+          indiciaData.mapdiv.map.updateSize();
+          indiciaData.mapdiv.map.zoomToExtent(indiciaData.mapdiv.map.editLayer.getDataExtent());
+        } else if (typeof indiciaData.origMapParent !== 'undefined') {
+          $(indiciaData.mapdiv).css('width', indiciaData.origMapWidth);
+          $(indiciaData.origMapParent).append(element);
+          indiciaData.mapdiv.map.updateSize();
+          delete indiciaData.origMapParent;
+        }
+      });
+
     });
     return this;
   };
