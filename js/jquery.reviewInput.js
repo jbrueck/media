@@ -44,7 +44,13 @@
      * Repopulate the value in the review summary when an input is changed.
      */
     function handleInputChange() {
-      $('#review-' + this.id.replace(/:/g, '\\:') + ' td').html(getValue(this));
+      var value = getValue(this);
+      $('#review-' + this.id.replace(/:/g, '\\:') + ' td').html(value);
+      if (value) {
+        $('#review-' + this.id.replace(/:/g, '\\:')).show();
+      } else {
+        $('#review-' + this.id.replace(/:/g, '\\:')).hide();
+      }
     }
 
     /**
@@ -55,8 +61,16 @@
       var $row = $(this).closest('tr');
       var $td = $(this).closest('td');
       var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
-      $(reviewTableBody).find('tr:nth-child(' + ($row.index() + 1) + ') ' +
-          'td[headers="review-' + $td.attr('headers') + '"]').html(getValue(this));
+      var outputTd = $(reviewTableBody).find('tr:nth-child(' + ($row.index() + 1) + ') ' +
+          'td[headers="review-' + $td.attr('headers') + '"]');
+      outputTd.html(getValue(this));
+      outputTd.attr('title', '');
+      if ($(this).hasClass('warning')) {
+        outputTd.addClass('warning');
+        if ($(this).attr('title')) {
+          outputTd.attr('title', $(this).attr('title'));
+        }
+      }
     }
 
     $.each(this, function () {
@@ -75,6 +89,7 @@
           var value;
           var $td;
           if (!$(reviewTableBody).find('tr:nth-child(' + ($(row).index() + 1) + ')').length) {
+            rowTemplate = '';
             $.each($table.find('thead tr:first-child th:visible'), function (idx) {
               $td = $(row).find('td[headers="' + this.id + '"]');
               if (idx === 0) {
@@ -82,7 +97,7 @@
               } else if ($td.hasClass('scAddMediaCell')) {
                 value = 'photos';
               } else {
-                value = getValue($td.find('input'));
+                value = getValue($td.find(':input'));
               }
               rowTemplate += '<td headers="review-' + this.id + '">' + value + '</td>';
             });
@@ -96,15 +111,18 @@
       // autocompletes don't fire when picking from the list, so use blur instead.
       indiciaFns.on('blur', '.ctrl-wrap input.ac_input:visible', {}, handleInputChange);
 
-      // Initial population of basic inputs
-      $.each($('.ctrl-wrap :input:visible').not('button,#imp-georef-search'), function () {
+      // Initial population of basic inputs, skip buttons, place searches etc
+      $.each($('.ctrl-wrap :input:visible').not('button,#imp-georef-search,.scSensitivity'), function () {
         var label;
-        // skip buttons, place searches etc
+        var value;
+        var hide;
         if ($.inArray(this.id, div.settings.exclude) === -1 &&
           $.inArray($(this).attr('name'), div.settings.exclude) === -1) {
-          label = $(this).parent('.ctrl-wrap').find('label').text()
-            .replace(/:$/, '');
-          content += '<tr id="review-' + this.id + '"><th>' + label + '</th><td>' + getValue(this) + '</td></tr>\n';
+          label = $(this).closest('.ctrl-wrap').find('label').text()
+              .replace(/:$/, '');
+          value = getValue(this);
+          hide = value ? '' : ' style="display: none"';
+          content += '<tr id="review-' + this.id + '"' + hide + '><th>' + label + '</th><td>' + value + '</td></tr>\n';
         }
       });
       $(container).append('<table><tbody>' + content + '</tbody></table>');
@@ -123,6 +141,24 @@
       indiciaFns.on('change', 'table.species-grid :input:visible:not(.ac_input)', {}, handleGridInputChange);
       // autocompletes don't fire when picking from the list, so use blur instead.
       indiciaFns.on('blur', 'table.species-grid input.ac_input:visible', {}, handleGridInputChange);
+
+      indiciaFns.bindTabsActivate($('#controls'), function (event, ui) {
+        var element = $(indiciaData.mapdiv);
+        if ($(div).closest('.ui-tabs-panel')[0] === ui.newPanel[0]) {
+          indiciaData.origMapParent = element.parent();
+          indiciaData.origMapWidth = $(indiciaData.mapdiv).css('width')
+          $(indiciaData.mapdiv).css('width', '100%');
+          $('#review-map-container').append(element);
+          indiciaData.mapdiv.map.updateSize();
+          indiciaData.mapdiv.map.zoomToExtent(indiciaData.mapdiv.map.editLayer.getDataExtent());
+        } else if (typeof indiciaData.origMapParent !== 'undefined') {
+          $(indiciaData.mapdiv).css('width', indiciaData.origMapWidth);
+          $(indiciaData.origMapParent).append(element);
+          indiciaData.mapdiv.map.updateSize();
+          delete indiciaData.origMapParent;
+        }
+      });
+
     });
     return this;
   };
