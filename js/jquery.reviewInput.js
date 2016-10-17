@@ -54,21 +54,59 @@
     }
 
     /**
+     * Ensures the layout of rows in the input table and review table matchup. Especially important when footable rows
+     * get in the mix.
+     * @param inputTable
+     * @param reviewTableBody
+     */
+    function matchupRows(inputTableBody, reviewTableBody, colspan) {
+      var rowAtSamePosInReview;
+      var newRow;
+      $.each(inputTableBody.find('tr').not('scClonableRow'), function (idx) {
+        if ($(this).hasClass('footable-row-detail')) {
+          rowAtSamePosInReview = reviewTableBody.find('tr:nth-child(' + (idx + 1) + ')');
+          // if row in output table is missing, or of the wrong type then insert it.
+          if (rowAtSamePosInReview.length === 0 || !rowAtSamePosInReview.hasClass('footable-row-detail')) {
+            newRow = '<tr class="footable-row-detail"><td colspan="' + colspan + '"></td></tr>';
+            if (rowAtSamePosInReview.length === 0) {
+              reviewTableBody.append(newRow);
+            } else {
+              $(rowAtSamePosInReview).before(newRow);
+            }
+          }
+        }
+      });
+    }
+
+    /**
      * Repopulate the value in the review summary when an input is changed in a species checklist grid row.
      */
     function handleGridInputChange() {
-      var $table = $(this).closest('table');
-      var $row = $(this).closest('tr');
-      var $td = $(this).closest('td');
-      var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
-      var outputTd = $(reviewTableBody).find('tr:nth-child(' + ($row.index() + 1) + ') ' +
-          'td[headers="review-' + $td.attr('headers') + '"]');
-      outputTd.html(getValue(this));
-      outputTd.attr('title', '');
-      if ($(this).hasClass('warning')) {
-        outputTd.addClass('warning');
-        if ($(this).attr('title')) {
-          outputTd.attr('title', $(this).attr('title'));
+      var inputTable = $(this).closest('table');
+      var row = $(this).closest('tr');
+      var td = $(this).closest('td');
+      var reviewTableBody = $('#review-' + inputTable.attr('id') + ' tbody');
+      var outputTd;
+      var outputRowIndex = row.index() + 1;
+      var footableReviewHtml = '';
+      matchupRows(inputTable.find('tbody'), reviewTableBody, td.attr('colspan'));
+      if (td.hasClass('footable-row-detail-cell')) {
+        outputTd = $(reviewTableBody).find('tr:nth-child(' + outputRowIndex + ') td');
+        $.each(td.find('.footable-row-detail-row:visible'), function () {
+          footableReviewHtml += '<div><span>' + $(this).find('.footable-row-detail-name').html() + '</span> ' +
+            getValue($(this).find('.footable-row-detail-value :input')) + '</div>';
+        });
+        outputTd.html(footableReviewHtml);
+      } else {
+        outputTd = $(reviewTableBody).find('tr:nth-child(' + outputRowIndex + ') ' +
+          'td[headers="review-' + td.attr('headers') + '"]');
+        outputTd.html(getValue(this));
+        outputTd.removeAttr('title');
+        if ($(this).hasClass('warning')) {
+          outputTd.addClass('warning');
+          if ($(this).attr('title')) {
+            outputTd.attr('title', $(this).attr('title'));
+          }
         }
       }
     }
@@ -88,11 +126,18 @@
           var rowTemplate;
           var value;
           var $td;
-          if (!$(reviewTableBody).find('tr:nth-child(' + ($(row).index() + 1) + ')').length) {
+          var existingRow = $(reviewTableBody).find('tr:nth-child(' + ($(row).index() + 1) + ')');
+          if (existingRow.length) {
+            // Hook called after species name edit on existing row, so just update the species cell.
+            $(existingRow).find('td:first-child').html($(row).find('.scTaxonCell').html());
+          } else {
             rowTemplate = '';
-            $.each($table.find('thead tr:first-child th:visible'), function (idx) {
+            $.each($table.find('thead tr:first-child th:visible').not('.row-buttons,.footable-toggle-col'), function () {
+              if (this.id.match(/images-0$/)) {
+                return;
+              }
               $td = $(row).find('td[headers="' + this.id + '"]');
-              if (idx === 0) {
+              if ($td.hasClass('scTaxonCell')) {
                 value = $(row).find('.scTaxonCell').html();
               } else if ($td.hasClass('scAddMediaCell')) {
                 value = 'photos';
@@ -127,26 +172,28 @@
       });
       $(container).append('<table><tbody>' + content + '</tbody></table>');
 
-      // Initial population of species checklists
+      // Initial setup of species checklists review table
       $.each($('table.species-grid'), function () {
         var head = '';
-        $.each($(this).find('thead tr:first-child th:visible'), function () {
+        $.each($(this).find('thead tr:first-child th:visible').not('.row-buttons,.footable-toggle-col'), function () {
+          if (this.id.match(/images-0$/)) {
+            return;
+          }
           head += '<th id="review-' + this.id + '">' + $(this).text() + '</th>';
         });
         $(container).append('<table id="review-' + this.id + '"><thead><tr>' + head + '</tr></thead>' +
             '<tbody></tbody></table>');
       });
 
-      // Trap changes to species checklist inputs to update the review
+      // Trap changes to species checklist inputs to update the review. Don't bother with the species autocomplete,
+      // we'll use the new row hook to trap that
       indiciaFns.on('change', 'table.species-grid :input:visible:not(.ac_input)', {}, handleGridInputChange);
-      // autocompletes don't fire when picking from the list, so use blur instead.
-      indiciaFns.on('blur', 'table.species-grid input.ac_input:visible', {}, handleGridInputChange);
 
       indiciaFns.bindTabsActivate($('#controls'), function (event, ui) {
         var element = $(indiciaData.mapdiv);
         if ($(div).closest('.ui-tabs-panel')[0] === ui.newPanel[0]) {
           indiciaData.origMapParent = element.parent();
-          indiciaData.origMapWidth = $(indiciaData.mapdiv).css('width')
+          indiciaData.origMapWidth = $(indiciaData.mapdiv).css('width');
           $(indiciaData.mapdiv).css('width', '100%');
           $('#review-map-container').append(element);
           indiciaData.mapdiv.map.updateSize();
@@ -158,7 +205,6 @@
           delete indiciaData.origMapParent;
         }
       });
-
     });
     return this;
   };
