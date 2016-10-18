@@ -653,17 +653,22 @@ var resetSpeciesTextOnEscape;
           $(e.currentTarget).addClass('ui-state-error');
         } else {
           $(e.currentTarget).removeClass('ui-state-error');
+          $(e.currentTarget).removeClass('warning');
           parser = new OpenLayers.Format.WKT();
           feature = parser.read(data.mapwkt);
           feature.attributes.type = 'subsample-' + e.currentTarget.id;
-
-          // if the feature not in the main sample grid square, show a warning icon
-          $(e.currentTarget).removeClass('warning');
           $(e.currentTarget).attr('title', '');
           $.each(indiciaData.mapdiv.map.editLayer.features, function () {
+            var reviewControl;
             if (this.attributes.type === 'clickPoint' && !this.geometry.intersects(feature.geometry)) {
               $(e.currentTarget).addClass('warning');
               $(e.currentTarget).attr('title', 'Outside the boundary of the main grid square');
+              // Show warning icon on the review_input control if present.
+              reviewControl = $('#review-' + e.currentTarget.id.replace(/:/g, '\\:'));
+              if (reviewControl.length) {
+                $(reviewControl).addClass('warning');
+                $(reviewControl).attr('title', 'Outside the boundary of the main grid square');
+              }
             }
           });
           indiciaData.mapdiv.map.editLayer.addFeatures([feature]);

@@ -101,13 +101,7 @@
         outputTd = $(reviewTableBody).find('tr:nth-child(' + outputRowIndex + ') ' +
           'td[headers="review-' + td.attr('headers') + '"]');
         outputTd.html(getValue(this));
-        outputTd.removeAttr('title');
-        if ($(this).hasClass('warning')) {
-          outputTd.addClass('warning');
-          if ($(this).attr('title')) {
-            outputTd.attr('title', $(this).attr('title'));
-          }
-        }
+        outputTd.removeClass('warning');
       }
     }
 
