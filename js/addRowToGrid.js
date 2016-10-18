@@ -582,15 +582,15 @@ var resetSpeciesTextOnEscape;
     $(evt.target).hide();
   });
 
-  indiciaFns.on('click', '.hide-image-link', {}, function(evt) {
+  indiciaFns.on('click', '.hide-image-link', {}, function (evt) {
+    var ctrlId = (evt.target.id.replace(/^hide\-images/, 'container-sc') + ':occurrence_medium').replace(/:/g, '\\:');
     evt.preventDefault();
-    var ctrlId=(evt.target.id.replace(/^hide\-images/, 'container-sc') + ':occurrence_medium').replace(/:/g, '\\:');
     if ($(evt.target).hasClass('images-hidden')) {
-      $('#'+ctrlId).show();
+      $('#' + ctrlId).show();
       $(evt.target).removeClass('images-hidden');
       $(evt.target).html('hide images');
     } else {
-      $('#'+ctrlId).hide();
+      $('#' + ctrlId).hide();
       $(evt.target).addClass('images-hidden');
       $(evt.target).html('show images');
     }
@@ -608,25 +608,24 @@ var resetSpeciesTextOnEscape;
    *   ConvertControlsToPopup($(id), 'Comment', indiciaData.imagesPath + 'nuvola/package_editors-22px.png');
    * }
   */
-   ConvertControlsToPopup = function (controls, label, icon) {
+  ConvertControlsToPopup = function (controls, label, icon) {
     var identifier;
-    $.each(controls, function(i, input) {
-      if ($(input).parents('.scClonableRow').length===0) {
+    $.each(controls, function (i, input) {
+      if ($(input).parents('.scClonableRow').length === 0) {
         // make a unique id for the item which is jQuery safe.
         identifier = input.id.replace(/:/g, '-');
         $(input).after('<div style="display: none;" id="hide-' + identifier + '"><div id="anchor-' + identifier + '"></div></div>');
         $(input).after('<a href="#anchor-' + identifier + '" id="click-' + identifier + '">' +
             '<img src="' + icon + '" width="22" height="22" alt="Show ' + label + '" /></a>');
-        $('#anchor-' + identifier).append('<label>'+label+':</label><br/>');
+        $('#anchor-' + identifier).append('<label>' + label + ':</label><br/>');
         $('#anchor-' + identifier).append(input);
         $('#anchor-' + identifier).append('<br/><input type="button" value="Close" onclick="$.fancybox.close();" class="ui-state-default ui-corner-all" />');
         // make sure the input shows, though at this stage it is in a hidden div. @todo This is a bit of a nasty hack,
         // would rather obay CSS precedence rules but !important is getting in the way.
         $(input).css('cssText', 'display: inline !important');
-        $('#click-' + identifier).fancybox({helpers : {title : null}, closeBtn: false});
+        $('#click-' + identifier).fancybox({ helpers: { title: null }, closeBtn: false });
       }
     });
-
   };
 
   RegExp.escape = function (s) {
@@ -654,17 +653,22 @@ var resetSpeciesTextOnEscape;
           $(e.currentTarget).addClass('ui-state-error');
         } else {
           $(e.currentTarget).removeClass('ui-state-error');
+          $(e.currentTarget).removeClass('warning');
           parser = new OpenLayers.Format.WKT();
           feature = parser.read(data.mapwkt);
           feature.attributes.type = 'subsample-' + e.currentTarget.id;
-
-          // if the feature not in the main sample grid square, show a warning icon
-          $(e.currentTarget).removeClass('warning');
           $(e.currentTarget).attr('title', '');
           $.each(indiciaData.mapdiv.map.editLayer.features, function () {
+            var reviewControl;
             if (this.attributes.type === 'clickPoint' && !this.geometry.intersects(feature.geometry)) {
               $(e.currentTarget).addClass('warning');
               $(e.currentTarget).attr('title', 'Outside the boundary of the main grid square');
+              // Show warning icon on the review_input control if present.
+              reviewControl = $('#review-' + e.currentTarget.id.replace(/:/g, '\\:'));
+              if (reviewControl.length) {
+                $(reviewControl).addClass('warning');
+                $(reviewControl).attr('title', 'Outside the boundary of the main grid square');
+              }
             }
           });
           indiciaData.mapdiv.map.editLayer.addFeatures([feature]);
@@ -672,53 +676,55 @@ var resetSpeciesTextOnEscape;
       }
     });
   });
-
 })(jQuery);
 
 
 function createSubSpeciesList(url, selectedItemPrefId, selectedItemPrefName, lookupListId, subSpeciesCtrlId, readAuth, selectedChild) {
-  "use strict";
-  var subSpeciesData={
-    'mode': 'json',
-    'nonce': readAuth.nonce,
-    'auth_token': readAuth.auth_token,
-    'parent_id': selectedItemPrefId,
-    'taxon_list_id': lookupListId,
-    'name_type': 'L',
-    'simplified': 'f'
-  }, ctrl=jQuery("#"+subSpeciesCtrlId.replace(/:/g,'\\:'));
-  if (ctrl.length>0) {
-    jQuery.getJSON(url+'/cache_taxon_searchterm?callback=?', subSpeciesData,
-      function(data) {
-        var sspRegexString, epithet, nameRegex;
-        //clear the sub-species cell ready for new data
+  'use strict';
+  var subSpeciesData = {
+    mode: 'json',
+    nonce: readAuth.nonce,
+    auth_token: readAuth.auth_token,
+    parent_id: selectedItemPrefId,
+    taxon_list_id: lookupListId,
+    name_type: 'L',
+    simplified: 'f'
+  };
+  var ctrl = jQuery('#' + subSpeciesCtrlId.replace(/:/g, '\\:'));
+  if (ctrl.length > 0) {
+    jQuery.getJSON(url + '/cache_taxon_searchterm?callback=?', subSpeciesData,
+      function (data) {
+        var sspRegexString;
+        var epithet;
+        var nameRegex;
+        // Clear the sub-species cell ready for new data
         ctrl.empty();
-        // build a regex that can remove the species binomial (plus optionally the subsp rank) from the name, so
+        // Build a regex that can remove the species binomial (plus optionally the subsp rank) from the name, so
         // Adelia decempunctata forma bimaculata can be shown as just bimaculata.
-        sspRegexString=RegExp.escape(selectedItemPrefName);
+        sspRegexString = RegExp.escape(selectedItemPrefName);
         if (typeof indiciaData.subspeciesRanksToStrip !== 'undefined') {
-          sspRegexString += "[ ]+" + indiciaData.subspeciesRanksToStrip;
+          sspRegexString += '[ ]+' + indiciaData.subspeciesRanksToStrip;
         }
-        nameRegex=new RegExp('^'+sspRegexString);
-        //Work our way through the sub-species data returned from data services
-        jQuery.each(data, function(i, item) {
+        nameRegex = new RegExp('^' + sspRegexString);
+        // Work our way through the sub-species data returned from data services
+        jQuery.each(data, function (i, item) {
           epithet = item.preferred_taxon.replace(nameRegex, '');
-          if (selectedChild===item.taxa_taxon_list_id) {
-            //If we find the sub-species we want to be selected by default then we set the 'selected' attribute on html the option tag
+          if (selectedChild === item.taxa_taxon_list_id) {
+            // If we find the sub-species we want to be selected by default then we set the 'selected' attribute on html the option tag
             ctrl.append(jQuery('<option selected="selected"></option>').val(item.taxa_taxon_list_id).html(epithet));
           } else {
-            //If we don't want this sub-species to be selected by default then we don't set the 'selected' attribute on html the option tag
-            ctrl.append(jQuery("<option></option>").val(item.taxa_taxon_list_id).html(epithet));
+            // If we don't want this sub-species to be selected by default then we don't set the 'selected' attribute on html the option tag
+            ctrl.append(jQuery('<option></option>').val(item.taxa_taxon_list_id).html(epithet));
           }
         });
-        //If we don't find any sub-species then hide the control
-        if (data.length===0) {
+        // If we don't find any sub-species then hide the control
+        if (data.length === 0) {
           ctrl.hide();
         } else {
-          //The selected sub-species might be the first (blank) option if there are sub-species present but
-          //we don't know yet which one the user wants.
-          //This would occur if the user manually fills in the species and the parent has sub-species
-          if (selectedChild===0) {
+          // The selected sub-species might be the first (blank) option if there are sub-species present but
+          // we don't know yet which one the user wants.
+          // This would occur if the user manually fills in the species and the parent has sub-species
+          if (selectedChild === 0) {
             ctrl.prepend("<option value='' selected='selected'></option>");
           }
           ctrl.show();
