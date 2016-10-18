@@ -101,13 +101,7 @@
         outputTd = $(reviewTableBody).find('tr:nth-child(' + outputRowIndex + ') ' +
           'td[headers="review-' + td.attr('headers') + '"]');
         outputTd.html(getValue(this));
-        outputTd.removeAttr('title');
-        if ($(this).hasClass('warning')) {
-          outputTd.addClass('warning');
-          if ($(this).attr('title')) {
-            outputTd.attr('title', $(this).attr('title'));
-          }
-        }
+        outputTd.removeClass('warning');
       }
     }
 
@@ -127,6 +121,8 @@
           var value;
           var $td;
           var existingRow = $(reviewTableBody).find('tr:nth-child(' + ($(row).index() + 1) + ')');
+          var idAttr;
+          var input;
           if (existingRow.length) {
             // Hook called after species name edit on existing row, so just update the species cell.
             $(existingRow).find('td:first-child').html($(row).find('.scTaxonCell').html());
@@ -137,14 +133,17 @@
                 return;
               }
               $td = $(row).find('td[headers="' + this.id + '"]');
+              idAttr = '';
               if ($td.hasClass('scTaxonCell')) {
                 value = $(row).find('.scTaxonCell').html();
               } else if ($td.hasClass('scAddMediaCell')) {
                 value = 'photos';
               } else {
-                value = getValue($td.find(':input'));
+                input = $td.find(':input');
+                value = getValue(input);
+                idAttr = input.attr('id') ? ' id="review-' + input.attr('id') + '"' : '';
               }
-              rowTemplate += '<td headers="review-' + this.id + '">' + value + '</td>';
+              rowTemplate += '<td headers="review-' + this.id + '"' + idAttr + '>' + value + '</td>';
             });
             $(reviewTableBody).append('<tr>' + rowTemplate + '</tr>');
           }
