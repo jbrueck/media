@@ -27,7 +27,7 @@ var simple_tooltip;
  */
 
 (function ($) {
-  "use strict";
+  'use strict';
   /**
    *Function to enable tooltips for the filter inputs
    */
@@ -803,7 +803,7 @@ var simple_tooltip;
      * The request is handled in chunks of 1000 records. Optionally supply an id to map just 1 record.
      */
     function mapRecords(div, zooming, id, callback) {
-      if (typeof indiciaData.mapdiv==="undefined" || typeof indiciaData.reportlayer==="undefined") {
+      if (typeof indiciaData.mapdiv === 'undefined' || typeof indiciaData.reportlayer === 'undefined') {
         return false;
       }
       var layerInfo = {bounds: null}, map=indiciaData.mapdiv.map, currentBounds=null;
@@ -889,13 +889,56 @@ var simple_tooltip;
       });
     };
 
-    return this.each(function() {
+    function highlightFeatureById(featureId, zoomIn, div) {
+      var featureArr;
+      var map;
+      var extent;
+      var zoom;
+      var zoomToFeature;
+      if (typeof div === 'undefined') {
+        div = this[0];
+      }
+      if (typeof indiciaData.reportlayer !== 'undefined') {
+        map = indiciaData.reportlayer.map;
+        featureArr = map.div.getFeaturesByVal(indiciaData.reportlayer, featureId, div.settings.rowId);
+        zoomToFeature = function () {
+          var i;
+          if (featureArr.length !== 0) {
+            extent = featureArr[0].geometry.getBounds().clone();
+            for (i = 1; i < featureArr.length; i++) {
+              extent.extend(featureArr[i].geometry.getBounds());
+            }
+            if (zoomIn) {
+              zoom = Math.min(
+                indiciaData.reportlayer.map.getZoomForExtent(extent) - 2, indiciaData.mapdiv.settings.maxZoom);
+              indiciaData.reportlayer.map.setCenter(extent.getCenterLonLat(), zoom);
+            } else {
+              indiciaData.reportlayer.map.setCenter(extent.getCenterLonLat());
+            }
+            indiciaData.mapdiv.map.events.triggerEvent('moveend');
+          }
+        };
+        if (featureArr.length === 0) {
+          // feature not available on the map, probably because we are loading just the viewport and
+          // and the point is not visible. So try to load it with a callback to zoom in.
+          mapRecords(this[0], false, featureId, function () {
+            featureArr = map.div.getFeaturesByVal(indiciaData.reportlayer, featureId, div.settings.rowId);
+            zoomToFeature();
+          });
+        } else {
+          // feature available on the map, so we can pan and zoom to show it.
+          zoomToFeature();
+        }
+      }
+    };
+
+    this.highlightFeatureById = highlightFeatureById;
+
+    return this.each(function () {
       this.settings = opts;
 
-
-
       // Make this accessible inside functions
-      var div=this;
+      var div = this;
 
       // Define clicks on column headers to apply sort
       $(div).find('th.sortable').click(function(e) {
@@ -1204,39 +1247,15 @@ var simple_tooltip;
             $(tr).addClass('selected');
           }
         });
-        $(div).find('tbody').dblclick(function(e) {
-          if (typeof indiciaData.reportlayer!=="undefined") {
-            var tr=$(e.target).parents('tr')[0], featureId=tr.id.substr(3),
-                featureArr, map=indiciaData.reportlayer.map, extent, zoom;
-            featureArr=map.div.getFeaturesByVal(indiciaData.reportlayer, featureId, div.settings.rowId);
-            var zoomToFeature=function() {
-              if (featureArr.length!==0) {
-                extent = featureArr[0].geometry.getBounds().clone();
-                for(var i=1;i<featureArr.length;i++) {
-                    extent.extend(featureArr[i].geometry.getBounds());
-                }
-                zoom = Math.min(indiciaData.reportlayer.map.getZoomForExtent(extent)-2, indiciaData.mapdiv.settings.maxZoom);
-                indiciaData.reportlayer.map.setCenter(extent.getCenterLonLat(), zoom);
-                indiciaData.mapdiv.map.events.triggerEvent('moveend');
-              }
-            };
-            if (featureArr.length===0) {
-              // feature not available on the map, probably because we are loading just the viewport and
-              // and the point is not visible. So try to load it with a callback to zoom in.
-              mapRecords(div, false, featureId, function() {
-                featureArr=map.div.getFeaturesByVal(indiciaData.reportlayer, featureId, div.settings.rowId);
-                zoomToFeature();
-              });
-            } else {
-              // feature available on the map, so we can pan and zoom to show it.
-              zoomToFeature();
-            }
-          }
+        $(div).find('tbody').dblclick(function (e) {
+          var tr = $(e.target).parents('tr')[0];
+          var featureId = tr.id.substr(3);
+          highlightFeatureById(featureId, true, div);
         });
       }
 
       // execute callback it there is one
-      if (div.settings.callback !== "") {
+      if (div.settings.callback !== '') {
         window[div.settings.callback]();
       }
 
