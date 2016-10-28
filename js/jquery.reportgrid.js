@@ -40,26 +40,19 @@
 
       if ($(this).attr('title') !== '' && typeof $(this).attr('title') !== 'undefined') {
         $(this).removeAttr('title').mouseover(function () {
-          myTooltip.css({ opacity: 0.8, display: 'none' }).fadeIn(400);
-        })
-        .mousemove(function (kmouse) {
-          var borderTop = $(window).scrollTop();
-          var borderRight = $(window).width();
-          var leftPos;
-          var topPos;
-          var offset = 20;
-          if (borderRight - (offset * 2) >= myTooltip.width() + kmouse.pageX) {
-            leftPos = kmouse.pageX + offset;
-          } else {
-            leftPos = borderRight - myTooltip.width() - offset;
+          var inputRect = this.getBoundingClientRect();
+          var tooltipRect = myTooltip[0].getBoundingClientRect();
+          var leftPos = Math.min(inputRect.left, $(window).width() - tooltipRect.width);
+          var topPos = inputRect.bottom + 4;
+          if (topPos + tooltipRect.height > $(window).height()) {
+            topPos = inputRect.top - (tooltipRect.height + 4);
           }
-
-          if (borderTop + (offset * 2) >= kmouse.pageY - myTooltip.height()) {
-            topPos = borderTop + offset;
-          } else {
-            topPos = kmouse.pageY - offset;
+          topPos += $(window).scrollTop();
+          myTooltip.css({ left: leftPos, top: topPos, opacity: 0.8, display: 'none' }).fadeIn(400);
+          if ($(this).closest('tr').length) {
+            // we don't want the row title tooltip muddling with this one
+            $(this).closest('tr').removeAttr('title');
           }
-          myTooltip.css({ left: leftPos, top: topPos });
         })
         .mouseout(function () {
           myTooltip.css({ left: '-9999px' });
