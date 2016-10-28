@@ -18,8 +18,6 @@
  * @link    http://code.google.com/p/indicia/
  */
 
-var simple_tooltip;
-
 /**
  * JQuery report grid widget for Indicia. Note that this is designed to attach to an already
  * loaded HTML grid (loaded using PHP on page load), and provides AJAX pagination and sorting without
@@ -31,60 +29,61 @@ var simple_tooltip;
   /**
    *Function to enable tooltips for the filter inputs
    */
-  simple_tooltip = function (target_items, name){
-    $(target_items).each(function(i){
-      $("body").append("<div class='"+name+"' id='"+name+i+"'><p>"+$(this).attr('title')+"</p></div>");
-      var my_tooltip = $("#"+name+i);
-      if (my_tooltip.width() > 450) {
-        my_tooltip.css({width:"450px"});
+  indiciaFns.simpleTooltip = function (targetItems, name) {
+    $(targetItems).each(function (i) {
+      var myTooltip;
+      $('body').append('<div class="' + name + '" id="' + name + i + '"><p>' + $(this).attr('title') + '</p></div>');
+      myTooltip = $('#' + name + i);
+      if (myTooltip.width() > 450) {
+        myTooltip.css({ width: '450px' });
       }
 
-      if ($(this).attr("title") !== "" && $(this).attr("title") !== "undefined") {
-
-        $(this).removeAttr("title").mouseover(function(){
-          my_tooltip.css({opacity:0.8, display:"none"}).fadeIn(400);
-        }).mousemove(function(kmouse){
-          var border_top = $(window).scrollTop();
-          var border_right = $(window).width();
-          var left_pos;
-          var top_pos;
+      if ($(this).attr('title') !== '' && typeof $(this).attr('title') !== 'undefined') {
+        $(this).removeAttr('title').mouseover(function () {
+          myTooltip.css({ opacity: 0.8, display: 'none' }).fadeIn(400);
+        })
+        .mousemove(function (kmouse) {
+          var borderTop = $(window).scrollTop();
+          var borderRight = $(window).width();
+          var leftPos;
+          var topPos;
           var offset = 20;
-          if(border_right - (offset *2) >= my_tooltip.width() + kmouse.pageX){
-            left_pos = kmouse.pageX+offset;
+          if (borderRight - (offset * 2) >= myTooltip.width() + kmouse.pageX) {
+            leftPos = kmouse.pageX + offset;
           } else {
-            left_pos = border_right-my_tooltip.width()-offset;
+            leftPos = borderRight - myTooltip.width() - offset;
           }
 
-          if(border_top + (offset *2)>= kmouse.pageY - my_tooltip.height()){
-            top_pos = border_top +offset;
+          if (borderTop + (offset * 2) >= kmouse.pageY - myTooltip.height()) {
+            topPos = borderTop + offset;
           } else {
-            top_pos = kmouse.pageY-offset;
+            topPos = kmouse.pageY - offset;
           }
-          my_tooltip.css({left:left_pos, top:top_pos});
-        }).mouseout(function(){
-          my_tooltip.css({left:"-9999px"});
+          myTooltip.css({ left: leftPos, top: topPos });
+        })
+        .mouseout(function () {
+          myTooltip.css({ left: '-9999px' });
         });
-
       }
-
     });
   };
 
   $.fn.reportgrid = function (options) {
     // Extend our default options with those provided, basing this on an empty object
     // so the defaults don't get changed.
-    var opts = $.extend({}, $.fn.reportgrid.defaults, options),
-        // flag to prevent double clicks
-        loading=false;
+    var opts = $.extend({}, $.fn.reportgrid.defaults, options);
+    // flag to prevent double clicks
+    var loading = false;
 
     function getRequest(div) {
-      var serviceCall, request;
-      if (div.settings.mode==='report') {
-        serviceCall = 'report/requestReport?report='+div.settings.dataSource+'.xml&reportSource=local&';
-      } else if (div.settings.mode==='direct') {
+      var serviceCall;
+      var request;
+      if (div.settings.mode === 'report') {
+        serviceCall = 'report/requestReport?report='+div.settings.dataSource + '.xml&reportSource=local&';
+      } else if (div.settings.mode === 'direct') {
         serviceCall = 'data/' + div.settings.dataSource + '?';
       }
-      request = div.settings.url+'index.php/services/' +
+      request = div.settings.url + 'index.php/services/' +
           serviceCall +
           'mode=json&nonce=' + div.settings.nonce +
           '&auth_token=' + div.settings.auth_token +
@@ -94,19 +93,20 @@ var simple_tooltip;
     }
 
     function getUrlParamsForAllRecords(div) {
-      var request = {}, paramName;
+      var request = {};
+      var paramName;
       // Extract any parameters from the attached form as long as they are report parameters
-      $('form#'+div.settings.reportGroup+'-params input, form#'+div.settings.reportGroup+'-params select').each(function(idx, input) {
-        if (input.type!=='submit' && $(input).attr('name').indexOf(div.settings.reportGroup+'-')===0
-            && (input.type!=="checkbox" || $(input).attr('checked'))) {
-          paramName = $(input).attr('name').replace(div.settings.reportGroup+'-', '');
+      $('form#' + div.settings.reportGroup + '-params input, form#' + div.settings.reportGroup + '-params select').each(function (idx, input) {
+        if (input.type !== 'submit' && $(input).attr('name').indexOf(div.settings.reportGroup+'-') === 0
+            && (input.type !== 'checkbox' || $(input).attr('checked'))) {
+          paramName = $(input).attr('name').replace(div.settings.reportGroup + '-', '');
           request[paramName] = $(input).attr('value');
         }
       });
-      if (typeof div.settings.extraParams !== "undefined") {
-        $.each(div.settings.extraParams, function(key, value) {
+      if (typeof div.settings.extraParams !== 'undefined') {
+        $.each(div.settings.extraParams, function (key, value) {
           // skip sorting params if the grid has its own sort applied by clicking a column title
-          if ((key!=='orderby' && key!=='sortdir') || div.settings.orderby === null) {
+          if ((key !== 'orderby' && key !== 'sortdir') || div.settings.orderby === null) {
             request[key] = value;
           }
         });
