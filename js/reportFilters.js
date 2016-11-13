@@ -583,15 +583,16 @@ jQuery(document).ready(function ($) {
     },
     occurrence_id: {
       getDescription: function () {
+        var op;
         if (indiciaData.filter.def.occurrence_id) {
-          var op = typeof indiciaData.filter.def.occurrence_id_op === "undefined" ? '=' : indiciaData.filter.def.occurrence_id_op.replace(/[<=>]/g, "\\$&");
-          return $('#occurrence_id_op option[value=' + op + ']').html()
+          op = typeof indiciaData.filter.def.occurrence_id_op === 'undefined' ?
+            '=' : indiciaData.filter.def.occurrence_id_op.replace(/[<=>]/g, '\\$&');
+          return $('#occurrence_id_op').find("option[value='" + op + "']").html()
             + ' ' + indiciaData.filter.def.occurrence_id;
-        } else {
-          return '';
         }
+        return '';
       },
-      loadForm: function (context) {
+      loadForm: function () {
       }
     },
     sample_id: {
@@ -610,6 +611,7 @@ jQuery(document).ready(function ($) {
     quality: {
       getDescription: function () {
         var r = [];
+        var op;
         if (indiciaData.filter.def.quality !== 'all') {
           r.push($('#quality-filter option[value=' + indiciaData.filter.def.quality.replace('!', '\\!') + ']').html());
         }
@@ -617,6 +619,13 @@ jQuery(document).ready(function ($) {
           r.push(indiciaData.lang.AutochecksFailed);
         } else if (indiciaData.filter.def.autochecks === 'P') {
           r.push(indiciaData.lang.AutochecksPassed);
+        }
+        if (indiciaData.filter.def.identification_difficulty) {
+          op = typeof indiciaData.filter.def.identification_difficulty_op === 'undefined' ?
+            '=' : indiciaData.filter.def.identification_difficulty_op.replace(/[<=>]/g, '\\$&');
+          r.push(indiciaData.lang.IdentificationDifficulty + ' ' +
+            $('#identification_difficulty_op').find("option[value='" + op + "']").html() +
+            ' ' + indiciaData.filter.def.identification_difficulty);
         }
         if (indiciaData.filter.def.has_photos) {
           r.push(indiciaData.lang.HasPhotos);
@@ -639,12 +648,20 @@ jQuery(document).ready(function ($) {
         } else {
           $('#autochecks').removeAttr('disabled');
         }
+        if (context && context.identification_difficulty) {
+          $('#identification_difficulty').attr('disabled', true);
+          $('#identification_difficulty_op').attr('disabled', true);
+        } else {
+          $('#identification_difficulty').removeAttr('disabled');
+          $('#identification_difficulty_op').removeAttr('disabled');
+        }
         if (context && context.has_photos) {
           $('#has_photos').attr('disabled', true);
         } else {
           $('#has_photos').removeAttr('disabled');
         }
-        if (context && ((context.quality && context.quality !== 'all') || context.autochecks || context.has_photos)) {
+        if (context && ((context.quality && context.quality !== 'all') ||
+            context.autochecks || context.identification_difficulty || context.has_photos)) {
           $('#controls-filter_quality .context-instruct').show();
         }
       }
