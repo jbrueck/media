@@ -357,123 +357,132 @@
       return rowsToDisplay;
     }
 
-    function loadGridFrom (div, request, clearExistingRows) {
-      // overlay on the body, unless no records yet loaded as body is empty
-      var elem = div.settings.recordCount ? $(div).find('tbody') :  $(div).find('table'),
-          offset = div.settings.recordCount ? [0,0,-1,0] : [0,1,-2,-2],
-          rowTitle;
-      $(div).find(".loading-overlay").show();
+    function loadGridFrom(div, request, clearExistingRows) {
+      var rowTitle;
+      $(div).find('.loading-overlay').show();
       $.ajax({
-        dataType: "json",
+        dataType: 'json',
         url: request,
         data: null,
         success: function(response) {
-          var tbody = $(div).find('tbody'), rows, rowclass, rowclasses, tdclasses, classes, hasMore=false,
-              value, rowInProgress=false, rowOutput='', rowId, features=[],
-              feature, geom, map, valueData;
+          var tbody = $(div).find('tbody');
+          var rows;
+          var rowclass;
+          var rowclasses;
+          var tdclasses;
+          var classes;
+          var hasMore = false;
+          var rowInProgress = false;
+          var rowOutput = '';
+          var rowId;
+          var features = [];
+          var feature;
+          var geom;
+          var map;
+          var valueData;
           // if we get a count back, then update the stored count
-          if (typeof response.count !== "undefined") {
+          if (typeof response.count !== 'undefined') {
             rows = response.records;
           } else {
             rows = response;
           }
-          //Get the rows on the grid as they first appear on the page, before any filtering is applied.
+          // Get the rows on the grid as they first appear on the page, before any filtering is applied.
           if (!indiciaData.initialReportGridRecords) {
-            indiciaData.initialReportGridRecords=rows;
+            indiciaData.initialReportGridRecords = rows;
           }
-          //The report grid can be configured with a popup that allows the user to remove rows containing particular
-          //data from the grid e.g. if there is a location column, then the user can select not to show rows containing the data East Sussex.
-          if (indiciaData.includePopupFilter) {   
-            rows=applyPopupFilterExclusionsToRows(rows,div);
-            if (typeof response.count !== "undefined") {
-              response.records=rows;
-              //response.count can be included in the response data, however as we applied a filter we 
-              //need to override this.
-              response.count=response.count-indiciaData.popupFilteRemovedRowsCount;
+          // The report grid can be configured with a popup that allows the user to remove rows containing particular
+          // data from the grid e.g. if there is a location column, then the user can select not to show rows containing the data East Sussex.
+          if (indiciaData.includePopupFilter) {
+            rows = applyPopupFilterExclusionsToRows(rows, div);
+            if (typeof response.count !== 'undefined') {
+              response.records = rows;
+              // response.count can be included in the response data, however as we applied a filter we
+              // need to override this.
+              response.count = response.count - indiciaData.popupFilteRemovedRowsCount;
             } else {
-              response=rows;
-            }     
-          } 
-          if (typeof response.count !== "undefined") {
-            div.settings.recordCount = parseInt(response.count);
+              response = rows;
+            }
+          }
+          if (typeof response.count !== 'undefined') {
+            div.settings.recordCount = parseInt(response.count, 10);
           }
           div.settings.currentPageCount = Math.min(rows.length, div.settings.itemsPerPage);
           // clear current grid rows
           if (clearExistingRows) {
             tbody.children().remove();
           }
-          if (typeof rows.error!=="undefined") {
-            div.loading=false;
-            $(div).find(".loading-overlay").hide();
+          if (typeof rows.error !== 'undefined') {
+            div.loading = false;
+            $(div).find('.loading-overlay').hide();
             alert('The report did not load correctly.');
             return;
           }
-          if (div.settings.sendOutputToMap && typeof indiciaData.reportlayer!=="undefined") {
+          if (div.settings.sendOutputToMap && typeof indiciaData.reportlayer !== 'undefined') {
             indiciaData.mapdiv.removeAllFeatures(indiciaData.reportlayer, 'linked');
           }
-          rowTitle = (div.settings.rowId && typeof indiciaData.reportlayer!=="undefined") ?
-            ' title="'+div.settings.msgRowLinkedToMapHint+'"' : '';
-          if (rows.length===0) {
-            var viscols=0;
+          rowTitle = (div.settings.rowId && typeof indiciaData.reportlayer !== 'undefined') ?
+            ' title="' + div.settings.msgRowLinkedToMapHint+'"' : '';
+          if (rows.length === 0) {
+            var viscols = 0;
             $.each(div.settings.columns, function(idx, col) {
-              if (col.visible!==false && col.visible!=='false') {
+              if (col.visible !== false && col.visible!=='false') {
                 viscols++;
               }
             });
-            tbody.append('<tr class="empty-row"><td colcount="'+viscols+'">' + div.settings.msgNoInformation + '</td></tr>');
+            tbody.append('<tr class="empty-row"><td colcount="' + viscols + '">' + div.settings.msgNoInformation + '</td></tr>');
             $(div).find('tfoot .pager').hide();
           } else {
             $(div).find('tfoot .pager').show();
           }
           var queryParams = indiciaFns.getUrlVars();
-          $.each(rows, function(rowidx, row) {
-            if (div.settings.rowClass!=='') {
-              rowclasses=[mergeParamsIntoTemplate(div, row, div.settings.rowClass)];
+          $.each(rows, function (rowidx, row) {
+            if (div.settings.rowClass !== '') {
+              rowclasses = [mergeParamsIntoTemplate(div, row, div.settings.rowClass)];
             } else {
-              rowclasses=[];
+              rowclasses = [];
             }
-            if (div.settings.altRowClass!=='' && rowidx%2===0) {
+            if (div.settings.altRowClass !== '' && rowidx % 2 === 0) {
               rowclasses.push(div.settings.altRowClass);
             }
-            rowclass = (rowclasses.length>0) ? 'class="' + rowclasses.join(' ') + '" ' : '';
+            rowclass = (rowclasses.length > 0) ? 'class="' + rowclasses.join(' ') + '" ' : '';
             // We asked for one too many rows. If we got it, then we can add a next page button
-            if (div.settings.itemsPerPage !== null && rowidx>=div.settings.itemsPerPage) {
+            if (div.settings.itemsPerPage !== null && rowidx >= div.settings.itemsPerPage) {
               hasMore = true;
             } else {
-              rowId = (div.settings.rowId!=='') ? 'id="row'+row[div.settings.rowId]+'" ' : '';
+              rowId = (div.settings.rowId !== '') ? 'id="row' + row[div.settings.rowId]+'" ' : '';
               // Initialise a new row, unless this is a gallery with multi-columns and not starting a new line
-              if ((rowidx % div.settings.galleryColCount)===0) {
+              if ((rowidx % div.settings.galleryColCount) === 0) {
                 rowOutput = '<tr ' + rowId + rowclass + rowTitle + '>';
                 rowInProgress=true;
               }
               // decode any json columns
               $.each(div.settings.columns, function(idx, col) {
-                if (typeof col.json!=="undefined" && col.json && typeof row[col.fieldname]!=="undefined") {
+                if (typeof col.json !== "undefined" && col.json && typeof row[col.fieldname] !== 'undefined') {
                   valueData = JSON.parse(row[col.fieldname]);
                   $.extend(row, valueData);
                 }
               });
               $.each(div.settings.columns, function(idx, col) {
                 tdclasses=[];
-                if (div.settings.sendOutputToMap && typeof indiciaData.reportlayer!=="undefined" &&
-                    typeof col.mappable!=="undefined" && (col.mappable==="true" || col.mappable===true)) {
+                if (div.settings.sendOutputToMap && typeof indiciaData.reportlayer!=='undefined' &&
+                    typeof col.mappable !== 'undefined' && (col.mappable === 'true' || col.mappable === true)) {
                   map=indiciaData.mapdiv.map;
                   geom=OpenLayers.Geometry.fromWKT(row[col.fieldname]);
                   if (map.projection.getCode() != map.div.indiciaProjection.getCode()) {
                     geom.transform(map.div.indiciaProjection, map.projection);
                   }
                   feature = new OpenLayers.Feature.Vector(geom, {type: 'linked'});
-                  if (div.settings.rowId!=="") {
+                  if (div.settings.rowId !== "") {
                     feature.id = row[div.settings.rowId];
                     feature.attributes[div.settings.rowId] = row[div.settings.rowId];
                   }
                   features.push(feature);
                 }
-                if (col.visible!==false && col.visible!=='false') {
-                  if ((col.img === true || col.img==='true') && row[col.fieldname]!==null && row[col.fieldname]!=='' && typeof col.template === "undefined") {
+                if (col.visible!==false && col.visible !== 'false') {
+                  if ((col.img === true || col.img === 'true') && row[col.fieldname]!==null && row[col.fieldname]!=='' && typeof col.template === 'undefined') {
                     var imgs = row[col.fieldname].split(','), match, value='',
                       imgclass=imgs.length>1 ? 'multi' : 'single',
-                      group=imgs.length>1 && div.settings.rowId!=='' ? ' rel="group-' + row[div.settings.rowId] + '"' : '';
+                      group=imgs.length>1 && div.settings.rowId !== '' ? ' rel="group-' + row[div.settings.rowId] + '"' : '';
                     $.each(imgs, function(idx, img) {
                       match = img.match(/^http(s)?:\/\/(www\.)?([a-z]+)/);
                       if (match!==null) {
@@ -491,9 +500,9 @@
                     tdclasses.push('table-gallery');
                   }
                   // either template the output, or just use the content according to the fieldname
-                  if (typeof col.template !== "undefined") {
+                  if (typeof col.template !== 'undefined') {
                     value = mergeParamsIntoTemplate(div, row, col.template);
-                  } else if (typeof col.actions !== "undefined") {
+                  } else if (typeof col.actions !== 'undefined') {
                     value = getActions(div, row, col.actions, queryParams);
                     tdclasses.push('col-actions');
                   } else {
@@ -503,11 +512,11 @@
                   if (col.fieldname) {
                     tdclasses.push('col-' + col.fieldname);
                   }
-                  if (typeof col['class'] !== "undefined" && col['class']!=='') {
+                  if (typeof col['class'] !== 'undefined' && col['class']!=='') {
                     tdclasses.push(col['class']);
                   }
                   // clear null value cells
-                  value = (value===null || typeof value==="undefined") ? '' : value;
+                  value = (value===null || typeof value==='undefined') ? '' : value;
                   classes = (tdclasses.length===0) ? '' : ' class="' + tdclasses.join(' ') + '"';
                   rowOutput += '<td'+classes+'>' + value + '</td>';
                 }
@@ -575,20 +584,21 @@
     /**
      * Function to make a service call to load the grid data.
      */
-    function load (div, recount) {
+    function load(div, recount) {
       var request = getFullRequestPathWithoutPaging(div, true, true);
       if (recount) {
         request += '&wantCount=1';
       }
-      //If using the popup filter, we don't want to perform any offset until after records are returned and filtered.
-      if (!indiciaData.includePopupFilter)
+      // If using the popup filter, we don't want to perform any offset until after records are returned and filtered.
+      if (!indiciaData.includePopupFilter) {
         request += '&offset=' + div.settings.offset;
+      }
       // Ask for one more row than we need so we know if the next page link is available
       if (div.settings.itemsPerPage !== null && !indiciaData.includePopupFilter) {
-        //If using a popup filter, we need to return all items from the report so that we can populate the popup.
-        //Normally records are returned one page at a time. We load +1 records in case recordCount is not available so we
-        //know if there is a next page of records (not necessary when loading 0 records to get just column metadata etc).
-        request += '&limit=' + (div.settings.itemsPerPage === 0 ? 0 : div.settings.itemsPerPage+1);
+        // If using a popup filter, we need to return all items from the report so that we can populate the popup.
+        // Normally records are returned one page at a time. We load +1 records in case recordCount is not available so we
+        // know if there is a next page of records (not necessary when loading 0 records to get just column metadata etc).
+        request += '&limit=' + (div.settings.itemsPerPage === 0 ? 0 : div.settings.itemsPerPage + 1);
       }
       loadGridFrom(div, request, true);
     }
@@ -692,7 +702,7 @@
     };
 
     this.reload = function(recount) {
-      recount = (typeof recount==="undefined") ? false : recount;
+      recount = (typeof recount==='undefined') ? false : recount;
       $.each($(this), function(idx, div) {      
         load(div, recount);
       });
@@ -741,16 +751,16 @@
       // first call- get the record count
       $.ajax({
         dataType: "json",
-        url: request + '&offset=' + offset + (typeof recordCount==="undefined" ? '&wantCount=1' : ''),
+        url: request + '&offset=' + offset + (typeof recordCount==='undefined' ? '&wantCount=1' : ''),
         success: function(response) {
-          if (typeof recordCount==="undefined" && typeof response.count!=="undefined" && !isNaN(response.count)) {
+          if (typeof recordCount==='undefined' && typeof response.count!=='undefined' && !isNaN(response.count)) {
             recordCount = response.count;
             response = response.records;
           }
           //Need to apply popup filter to map records as well as the grid.
           if (indiciaData.includePopupFilter) {   
             response=applyPopupFilterExclusionsToRows(response,div, true);
-            if (typeof response.count !== "undefined") {
+            if (typeof response.count !== 'undefined') {
               //response.count can be included in the response data, however as we applied a filter we 
               //need to override this.
               response.count=response.count-indiciaData.popupFilteRemovedRowsCount;
@@ -768,10 +778,10 @@
             var features=[];
             $.each(response, function (idx, obj) {
               feature=indiciaData.mapdiv.addPt(features, obj, 'geom', {"type":"vector"}, obj[div.settings.rowId]);
-              if (typeof indiciaData.selectedRows!=="undefined" &&
-                  ((typeof obj[div.settings.rowId]!=="undefined" && $.inArray(div.settings.rowId, indiciaData.selectedRows)) ||
+              if (typeof indiciaData.selectedRows!=='undefined' &&
+                  ((typeof obj[div.settings.rowId]!=='undefined' && $.inArray(div.settings.rowId, indiciaData.selectedRows)) ||
                   // plural - report returns list of IDs
-                  (typeof obj[div.settings.rowId+'s']!=="undefined" && hasIntersection(obj[div.settings.rowId+'s'].split(','), indiciaData.selectedRows)))) {
+                  (typeof obj[div.settings.rowId+'s']!=='undefined' && hasIntersection(obj[div.settings.rowId+'s'].split(','), indiciaData.selectedRows)))) {
                 feature.renderIntent='select';
                 indiciaData.reportlayer.selectedFeatures.push(feature);
               }
@@ -780,7 +790,7 @@
             if (indiciaData.mapdiv.settings.zoomMapToOutput) {
               indiciaData.mapdiv.map.zoomToExtent(indiciaData.reportlayer.getDataExtent());
             }
-            if (typeof recordCount==="undefined" || offset+BATCH_SIZE>=recordCount) {
+            if (typeof recordCount==='undefined' || offset+BATCH_SIZE>=recordCount) {
               $('#map-loading').hide();
             }
           }
@@ -824,12 +834,12 @@
           layerInfo.zoomLayerIdx = 3;
         }
         layerInfo.report=div.settings.dataSource;
-        if (typeof id!=="undefined") {
+        if (typeof id!=='undefined') {
           request += '&' + div.settings.rowId + '=' + id;
         } else {
           // if zoomed in below a 10k map, use the map bounding box to limit the loaded features. Having an indexed site filter changes the threshold as it is less necessary.
           if (map.zoom<=600 && div.settings.mapDataSourceLoRes &&
-              (map.zoom<=30 || typeof div.settings.extraParams.indexed_location_id==="undefined" || div.settings.extraParams.indexed_location_id==='')) {
+              (map.zoom<=30 || typeof div.settings.extraParams.indexed_location_id==='undefined' || div.settings.extraParams.indexed_location_id==='')) {
             // get the current map bounds. If zoomed in close, get a larger bounds so that the map can be panned a bit without reload.
             layerInfo.bounds = map.calculateBounds(map.getCenter(), Math.max(39, map.getResolution()));
             // plus the current bounds to test if a reload is necessary
@@ -845,13 +855,13 @@
       finally {
         div.settings.dataSource=origReport;
       }
-      if (!zooming || typeof indiciaData.loadedReportLayerInfo==="undefined" || layerInfo.report!==indiciaData.loadedReportLayerInfo.report
+      if (!zooming || typeof indiciaData.loadedReportLayerInfo==='undefined' || layerInfo.report!==indiciaData.loadedReportLayerInfo.report
           || (indiciaData.loadedReportLayerInfo.bounds!==null && (currentBounds===null || !indiciaData.loadedReportLayerInfo.bounds.containsBounds(currentBounds)))
           || layerInfo.zoomLayerIdx!==indiciaData.loadedReportLayerInfo.zoomLayerIdx) {
         indiciaData.mapdiv.removeAllFeatures(indiciaData.reportlayer, 'linked', true);
         currentMapRequest = request;
-        _internalMapRecords(div, request, 0, typeof callback==="undefined" ? null : callback);
-        if (typeof id==="undefined") {
+        _internalMapRecords(div, request, 0, typeof callback==='undefined' ? null : callback);
+        if (typeof id==='undefined') {
           // remmeber the layer we just loaded, so we can only reload if really required. If loading a single record, this doesn't count.
           indiciaData.loadedReportLayerInfo=layerInfo;
         }
@@ -859,7 +869,7 @@
     }
 
     this.mapRecords = function(report, reportLoRes, zooming) {
-      if (typeof zooming==="undefined") {
+      if (typeof zooming==='undefined') {
         zooming=false;
       }
       $.each($(this), function(idx, div) {
@@ -990,7 +1000,7 @@
           }
           div.settings.offset=0;
           load(div, true);
-          if (div.settings.linkFilterToMap && typeof indiciaData.reportlayer!=="undefined") {
+          if (div.settings.linkFilterToMap && typeof indiciaData.reportlayer!=='undefined') {
             mapRecords(div);
           }
           e.target.hasChanged = false;
@@ -1127,7 +1137,7 @@
         $.fancybox.close();
         //Reload the grid once the filter is applied
         load(div, true);
-        if (div.settings.linkFilterToMap && typeof indiciaData.reportlayer!=="undefined") {
+        if (div.settings.linkFilterToMap && typeof indiciaData.reportlayer!=='undefined') {
           mapRecords(div);
         }
       };
@@ -1229,7 +1239,7 @@
             // clicked object might request no auto row selection
             return;
           }
-          if (typeof indiciaData.reportlayer!=="undefined") {
+          if (typeof indiciaData.reportlayer!=='undefined') {
             var tr=$(e.target).parents('tr')[0], featureId=tr.id.substr(3),
                 featureArr, map=indiciaData.reportlayer.map;
             featureArr=map.div.getFeaturesByVal(indiciaData.reportlayer, featureId, div.settings.rowId);
