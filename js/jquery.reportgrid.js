@@ -379,7 +379,7 @@
           var geom;
           var map;
           var valueData;
-          // if we get a count back, then update the stored count
+          // if we get a count back then the structure is slightly different
           if (typeof response.count !== 'undefined') {
             rows = response.records;
           } else {
@@ -404,6 +404,7 @@
           }
           if (typeof response.count !== 'undefined') {
             div.settings.recordCount = parseInt(response.count, 10);
+            div.settings.extraParams.knownCount = div.settings.recordCount;
           }
           div.settings.currentPageCount = Math.min(rows.length, div.settings.itemsPerPage);
           // clear current grid rows
@@ -584,7 +585,11 @@
      * Function to make a service call to load the grid data.
      */
     function load(div, recount) {
-      var request = getFullRequestPathWithoutPaging(div, true, true);
+      var request;
+      if (recount) {
+        delete div.settings.extraParams.knownCount;
+      }
+      request = getFullRequestPathWithoutPaging(div, true, true);
       if (recount) {
         request += '&wantCount=1';
       }
@@ -886,6 +891,7 @@
     this.removeRecordsFromPage = function (count) {
       $.each($(this), function (idx, div) {
         div.settings.recordCount -= count;
+        div.settings.extraParams.knownCount = div.settings.recordCount;
         updatePager(div, true);
         setupReloadLinks(div);
       });
