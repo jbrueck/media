@@ -139,8 +139,8 @@
       var result='', onclick, href, content, img;
       row = $.extend(queryParams, row);
       $.each(actions, function(idx, action) {
-        if (typeof action.visibility_field === "undefined" || row[action.visibility_field]!=='f') {
-          if (typeof action.javascript !== "undefined") {
+        if (typeof action.visibility_field === 'undefined' || row[action.visibility_field]!=='f') {
+          if (typeof action.javascript !== 'undefined') {
             var rowCopy = row;
             $.each(rowCopy, function(idx) {
               if (rowCopy[idx]!==null) {
@@ -151,7 +151,7 @@
           } else {
             onclick='';
           }
-          if (typeof action.url !== "undefined") {
+          if (typeof action.url !== 'undefined') {
             var link = action.url, linkParams=[];
             row.rootFolder = div.settings.rootFolder;
             if (div.settings.pathParam !== '' &&
@@ -180,12 +180,12 @@
           } else {
             href='';
           }
-          if (typeof action.img!=="undefined") {
+          if (typeof action.img!=='undefined') {
             img=action.img.replace(/\{rootFolder\}/g, div.settings.rootFolder.replace(/\?q=$/, ''));
             content = '<img src="'+img+'" title="'+action.caption+'" />';
           } else
             content = action.caption;
-          var classlist = "action-button" +(typeof action.class !== "undefined" ? ' '+action.class : '');
+          var classlist = "action-button" +(typeof action.class !== 'undefined' ? ' '+action.class : '');
           result += '<a class="' + classlist +'" '+onclick+href+'>'+content+'</a>';
         }
       });
@@ -269,7 +269,7 @@
     function updatePager (div, hasMore) {
       var pager=$(div).find('.pager');
       pager.empty();
-      if (typeof div.settings.recordCount==="undefined") {
+      if (typeof div.settings.recordCount === 'undefined') {
         simplePager(pager, div, hasMore);
       } else {
         advancedPager(pager, div, hasMore);
@@ -287,15 +287,15 @@
         needQuery = true;
       }
       // were any predefined parameter values supplied?
-      if (typeof div.settings.filters !== "undefined") {
-        $.each(div.settings.filters, function(name, value) {
+      if (typeof div.settings.filters !== 'undefined') {
+        $.each(div.settings.filters, function (name, value) {
           if ($.isArray(value)) {
-            if (typeof query['in']==="undefined") {
-              query['in'] = {};
+            if (typeof query.in === 'undefined') {
+              query.in = {};
             }
-            query['in'][name] = value;
+            query.in[name] = value;
           } else {
-            if (typeof query.where==="undefined") {
+            if (typeof query.where === 'undefined') {
               query.where = {};
             }
             query.where[name] = value;
@@ -304,12 +304,11 @@
         });
       }
       if (needQuery) {
-        return {query: JSON.stringify(query)};
-      } else {
-        return {};
+        return { query: JSON.stringify(query) };
       }
+      return {};
     }
-    
+
     /*
      * Function to remove items from a supplied set of rows based on the selections
      * the user has made on the popup filter page.
@@ -318,38 +317,38 @@
     function applyPopupFilterExclusionsToRows(rows,div) {
       indiciaData.popupFilteRemovedRowsCount=0;
       indiciaData.allReportGridRecords=[];
-      var rowsToDisplay=[];
+      var rowsToDisplay = [];
       var keepRow;
-      //Keep a count of each row we have worked on starting from 1.
-      var rowCount=1;
+      // Keep a count of each row we have worked on starting from 1.
+      var rowCount = 1;
       $.each(rows, function(rowIdx, theRow) {
-        //To start assume we are keeping the data
-        keepRow=true;
-        //Only need to exclude data if the user has set the option to do so
+        // To start assume we are keeping the data
+        keepRow = true;
+        // Only need to exclude data if the user has set the option to do so
         if (indiciaData.dataToExclude) {
           $.each(indiciaData.dataToExclude, function(exclusionIdx, exclusionData) {
-            //each dataToExclude item contains an array of the database field (such as occurrence_id) and 
-            //the data to exclude (such 6301). If we find for a row that the database field and the data for that field match an
-            //item in the dataToExclude array, then we know to exclude it.
+            // each dataToExclude item contains an array of the database field (such as occurrence_id) and
+            // the data to exclude (such 6301). If we find for a row that the database field and the data for that field match an
+            // item in the dataToExclude array, then we know to exclude it.
             if (theRow[exclusionData[0]]==exclusionData[1]) {
-              keepRow=false;
+              keepRow = false;
               indiciaData.popupFilteRemovedRowsCount++;
             }
           });
         }
-        //After testing each row, then if it hasn't been excluded, then keep it.
-        if (keepRow===true) {
-          //Only display the row itself if it is greater than the offset value. The offset number tells
-          //the system how many rows there are before the report grid page the user is actually viewing.
-          //So If there are 4 items per page, and the user is viewing page 3, then the offset is 8.
+        // After testing each row, then if it hasn't been excluded, then keep it.
+        if (keepRow === true) {
+          // Only display the row itself if it is greater than the offset value. The offset number tells
+          // the system how many rows there are before the report grid page the user is actually viewing.
+          // So If there are 4 items per page, and the user is viewing page 3, then the offset is 8.
           if (div.settings.offset<rowCount) {
             rowsToDisplay.push(theRow);
           }
-          //Note the difference between "rowsToDisplay" and "indiciaData.allReportGridRecords" is that indiciaData.allReportGridRecords includes more items, as "rowsToDisplay" doesn't include
-          //rows on pages on the grid previous to the one the user is currently viewing.
-          //indiciaData.allReportGridRecords is used to display the options on the popup filter, this needs all the items on the
-          //grid regardless of whether they are actually displayed on screen (e.g items on pages previous to the one being viewed).
-            indiciaData.allReportGridRecords.push(theRow);
+          // Note the difference between "rowsToDisplay" and "indiciaData.allReportGridRecords" is that indiciaData.allReportGridRecords includes more items, as "rowsToDisplay" doesn't include
+          // rows on pages on the grid previous to the one the user is currently viewing.
+          // indiciaData.allReportGridRecords is used to display the options on the popup filter, this needs all the items on the
+          // grid regardless of whether they are actually displayed on screen (e.g items on pages previous to the one being viewed).
+          indiciaData.allReportGridRecords.push(theRow);
           rowCount++;
         }
       });
@@ -457,7 +456,7 @@
               }
               // decode any json columns
               $.each(div.settings.columns, function(idx, col) {
-                if (typeof col.json !== "undefined" && col.json && typeof row[col.fieldname] !== 'undefined') {
+                if (typeof col.json !== 'undefined' && col.json && typeof row[col.fieldname] !== 'undefined') {
                   valueData = JSON.parse(row[col.fieldname]);
                   $.extend(row, valueData);
                 }
@@ -884,8 +883,8 @@
     /**
      * Public method to be called after deleting rows from the grid - to keep paginator updated
      */
-    this.removeRecordsFromPage = function(count) {
-      $.each($(this), function(idx, div) {
+    this.removeRecordsFromPage = function (count) {
+      $.each($(this), function (idx, div) {
         div.settings.recordCount -= count;
         updatePager(div, true);
         setupReloadLinks(div);
