@@ -632,7 +632,39 @@ var resetSpeciesTextOnEscape;
     return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
   };
 
-  /* Validator for spatial reference column in the species checklist grid */
+  /* Validators for spatial reference column in the species checklist grid */
+  indiciaFns.on('change', '#imp-geom', {}, function () {
+    var clickPoint;
+    // only if we have a spatial reference subcolumn do we need do do anything
+    if ($('.scSpatialRef').length > 0 && $('#review-input').length > 0) {
+      $('.review-value-spatialref').removeClass('warning').attr('title', '');
+      $('.scSpatialRef').removeClass('warning').attr('title', '');
+      $.each(indiciaData.mapdiv.map.editLayer.features, function () {
+        if (this.attributes.type === 'clickPoint') {
+          clickPoint = this;
+          return false;
+        }
+        return true;
+      });
+      $.each(indiciaData.mapdiv.map.editLayer.features, function () {
+        var ctrlId;
+        var reviewControl;
+        if (this.attributes.type.match('subsample-')) {
+          if (!this.geometry.intersects(clickPoint.geometry)) {
+            ctrlId = this.attributes.type.replace(/^subsample-/, '').replace(/:/g, '\\:');
+            reviewControl = $('#review-' + ctrlId);
+            if (reviewControl.length) {
+              $(reviewControl).addClass('warning');
+              $(reviewControl).attr('title', 'Outside the boundary of the main grid square');
+            }
+            $('#' + ctrlId).addClass('warning');
+            $('#' + ctrlId).attr('title', 'Outside the boundary of the main grid square');
+          }
+        }
+      });
+    }
+  });
+
   indiciaFns.on('change', '.scSpatialRef', {}, function (e) {
     var parser;
     var feature;
@@ -658,19 +690,21 @@ var resetSpeciesTextOnEscape;
           feature = parser.read(data.mapwkt);
           feature.attributes.type = 'subsample-' + e.currentTarget.id;
           $(e.currentTarget).attr('title', '');
-          $.each(indiciaData.mapdiv.map.editLayer.features, function () {
-            var reviewControl;
-            if (this.attributes.type === 'clickPoint' && !this.geometry.intersects(feature.geometry)) {
-              $(e.currentTarget).addClass('warning');
-              $(e.currentTarget).attr('title', 'Outside the boundary of the main grid square');
-              // Show warning icon on the review_input control if present.
-              reviewControl = $('#review-' + e.currentTarget.id.replace(/:/g, '\\:'));
-              if (reviewControl.length) {
-                $(reviewControl).addClass('warning');
-                $(reviewControl).attr('title', 'Outside the boundary of the main grid square');
+          if ($('#review-input').length > 0) {
+            $.each(indiciaData.mapdiv.map.editLayer.features, function () {
+              var reviewControl;
+              if (this.attributes.type === 'clickPoint' && !this.geometry.intersects(feature.geometry)) {
+                $(e.currentTarget).addClass('warning');
+                $(e.currentTarget).attr('title', 'Outside the boundary of the main grid square');
+                // Show warning icon on the review_input control if present.
+                reviewControl = $('#review-' + e.currentTarget.id.replace(/:/g, '\\:'));
+                if (reviewControl.length) {
+                  $(reviewControl).addClass('warning');
+                  $(reviewControl).attr('title', 'Outside the boundary of the main grid square');
+                }
               }
-            }
-          });
+            });
+          }
           indiciaData.mapdiv.map.editLayer.addFeatures([feature]);
         }
       }
