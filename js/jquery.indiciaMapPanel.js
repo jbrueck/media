@@ -547,7 +547,7 @@ var destroyAllFeatures;
                 }
                 _showWktFeature(div, data.mapwkt, div.map.editLayer, null, false, 'clickPoint');
               }
-              $('#' + opts.geomId).val(data.wkt);
+              $('#' + opts.geomId).val(data.wkt).change();
             }
           }
         });
