@@ -74,7 +74,7 @@ var destroyAllFeatures;
         geom.transform(this.indiciaProjection, this.map.projection);
       }
       delete record[wktCol];
-      if (typeof opts.type!=="undefined" && opts.type!=='vector') {
+      if (typeof opts.type!=='undefined' && opts.type!=='vector') {
         // render a point for symbols
         geom = geom.getCentroid();
       }
@@ -94,7 +94,7 @@ var destroyAllFeatures;
      */
     function removeAllFeatures(layer, type, inverse) {
       var toRemove = [];
-      if (typeof inverse==="undefined") {
+      if (typeof inverse==='undefined') {
         inverse=false;
       }
       $.each(layer.features, function() {
@@ -111,7 +111,7 @@ var destroyAllFeatures;
      */
     destroyAllFeatures = function (layer, type, inverse) {
       var toRemove = [];
-      if (typeof inverse==="undefined") {
+      if (typeof inverse==='undefined') {
         inverse=false;
       }
       $.each(layer.features, function() {
@@ -150,7 +150,7 @@ var destroyAllFeatures;
               }
               _showWktFeature(div, geomwkt, div.map.editLayer, null, true, 'boundary');
 
-              if (typeof indiciaData.searchUpdatesSref !== "undefined" && indiciaData.searchUpdatesSref) {
+              if (typeof indiciaData.searchUpdatesSref !== 'undefined' && indiciaData.searchUpdatesSref) {
                 // The location search box must fill in the sample sref box
                 $('#'+div.settings.srefId).val(data[0].centroid_sref);
                 $('#'+div.settings.srefSystemId).val(data[0].centroid_sref_system);
@@ -180,13 +180,13 @@ var destroyAllFeatures;
     function getFeaturesByVal(layer, value, field) {
       var features = [], ids, featureVal;
       for(var i=0, len=layer.features.length; i<len; ++i) {
-        if (typeof field!=="undefined" && typeof layer.features[i].attributes[field+'s']!=="undefined") {
+        if (typeof field!=='undefined' && typeof layer.features[i].attributes[field+'s']!=='undefined') {
           ids=layer.features[i].attributes[field+'s'].split(',');
           if ($.inArray(value, ids)>-1) {
             features.push(layer.features[i]);
           }
         } else {
-          featureVal=(typeof field==="undefined" ? layer.features[i].id : layer.features[i].attributes[field]);
+          featureVal=(typeof field==='undefined' ? layer.features[i].id : layer.features[i].attributes[field]);
           if (featureVal == value) {
             features.push(layer.features[i]);
           }
@@ -234,7 +234,7 @@ var destroyAllFeatures;
         }
         var styletype = (typeof type !== 'undefined') ? type : 'default';
         $.each(feature, function(){
-          if (typeof transform!=="undefined" && transform && div.map.projection.getCode() != div.indiciaProjection.getCode()) {
+          if (typeof transform!=='undefined' && transform && div.map.projection.getCode() != div.indiciaProjection.getCode()) {
             this.geometry.transform(div.indiciaProjection, div.map.projection);
           }
           this.style = new style(styletype);
@@ -272,7 +272,7 @@ var destroyAllFeatures;
         // extend the boundary to include a buffer, so the map does not zoom too tight.
         bounds = _extendBounds(bounds, div.settings.maxZoomBuffer);
       }
-      if (typeof panzoom==="undefined" || panzoom) {
+      if (typeof panzoom==='undefined' || panzoom) {
         if (div.map.getZoomForExtent(bounds) > div.settings.maxZoom) {
           // if showing something small, don't zoom in too far
           div.map.setCenter(bounds.getCenterLonLat(), div.settings.maxZoom);
@@ -457,8 +457,8 @@ var destroyAllFeatures;
 
     function _getPrecisionHelp(div, value) {
       var helptext = [], info, handler = indiciaData.srefHandlers[_getSystem().toLowerCase()];
-      if (div.settings.helpToPickPrecisionMin && typeof indiciaData.srefHandlers!=="undefined" &&
-          typeof indiciaData.srefHandlers[_getSystem().toLowerCase()]!=="undefined" &&
+      if (div.settings.helpToPickPrecisionMin && typeof indiciaData.srefHandlers !== 'undefined' &&
+          typeof indiciaData.srefHandlers[_getSystem().toLowerCase()] !== 'undefined' &&
           $.inArray('precisions', indiciaData.srefHandlers[_getSystem().toLowerCase()].returns) !== -1) {
         info = handler.getPrecisionInfo(handler.valueToAccuracy(value));
         if (info.metres > div.settings.helpToPickPrecisionMin) {
@@ -479,16 +479,16 @@ var destroyAllFeatures;
     }
 
     function _handleEnteredSref(value, div) {
-      indiciaData.invalidSrefDetected=false;
+      indiciaData.invalidSrefDetected = false;
       // old sref no longer valid so clear the geom
-      $('#'+opts.geomId).val('');
-      if (value!=='') {
+      $('#' + opts.geomId).val('');
+      if (value !== '') {
         $.ajax({
-          dataType: "jsonp",
-          url: div.settings.indiciaSvc + "index.php/services/spatial/sref_to_wkt",
-          data:"sref=" + value +
-            "&system=" + _getSystem() +
-            "&mapsystem=" + indiciaFns.projectionToSystem(div.map.projection, false),
+          dataType: 'jsonp',
+          url: div.settings.indiciaSvc + 'index.php/services/spatial/sref_to_wkt',
+          data: 'sref=' + value +
+            '&system=' + _getSystem() +
+            '&mapsystem=' + indiciaFns.projectionToSystem(div.map.projection, false),
           success: function(data) {
             // JSONP can't handle http status code errors. So error check in success response.
             if(typeof data.error !== 'undefined')
@@ -501,22 +501,22 @@ var destroyAllFeatures;
               // data should contain 2 wkts, one in indiciaProjection which is stored in the geom field,
               // and one in mapProjection which is used to draw the object.
               if (div.map.editLayer) {
-                //Code for drawing a plot if the user clicks on the map or changes a spatial reference.
+                // Code for drawing a plot if the user clicks on the map or changes a spatial reference.
                 if (div.settings.clickForPlot) {
                   data.sref = value;
-                  //Get front of the WKT to find out the spatial reference type the user used, a point would be a lat long, a polygon would be an OSGB square
+                  // Get front of the WKT to find out the spatial reference type the user used, a point would be a lat long, a polygon would be an OSGB square
                   var typeCheck = data.mapwkt.substr(0,6);
                   var wktPoints=[];
-                  //The plot is drawn from a lat long position, Just take the
-                  //first value to draw the plot from for lat/long. For OSGB, take an average of all the points to get a single point to draw the plot from as 
-                  //there are multiple points in that instance representing the OSGB square.
-                  //Note the OSGB value will be a small square such as 1m (we obviously need to draw a plot that is bigger than the OSGB square we draw from)
+                  // The plot is drawn from a lat long position, Just take the first value to draw the plot from for
+                  // lat/long. For OSGB, take an average of all the points to get a single point to draw the plot from
+                  // as there are multiple points in that instance representing the OSGB square. Note the OSGB value
+                  // will be a small square such as 1m (we obviously need to draw a plot that is bigger than the OSGB square we draw from)
                   var openlayersLatlong = new OpenLayers.LonLat();
                   var splitPointFromWkt;
-                  openlayersLatlong.lon=0;
-                  openlayersLatlong.lat=0;
-                  //Split the points making up the wkt into an array for working on
-                  if (typeCheck=="POINT(") {
+                  openlayersLatlong.lon = 0;
+                  openlayersLatlong.lat = 0;
+                  // Split the points making up the wkt into an array for working on
+                  if (typeCheck == 'POINT(') {
                     data.mapwkt = data.mapwkt.slice(6).split(')');
                     wktPoints[0] = data.mapwkt[0];
                   } else {
@@ -524,37 +524,36 @@ var destroyAllFeatures;
                     data.mapwkt = data.mapwkt.slice(0,-2);
                     wktPoints = data.mapwkt.split(',');
                   }
-                  //If there are multiple points representing the spatial reference (e.g. OSGB square)
-                  //then average all the points to get single point to draw from.
-                  for (var i=0; i<wktPoints.length;i++) {
-                    splitPointFromWkt = wktPoints[i].split(' '); 
-                    openlayersLatlong.lon = openlayersLatlong.lon + parseFloat(splitPointFromWkt[0]);
-                    openlayersLatlong.lat = openlayersLatlong.lat + parseFloat(splitPointFromWkt[1]);
-                  }  
-                  openlayersLatlong.lon=openlayersLatlong.lon/wktPoints.length;
-                  openlayersLatlong.lat=openlayersLatlong.lat/wktPoints.length;
-                   //TO DO - Get spatial reference conversion working when sp system is changed when clickForPlot is off
+                  // If there are multiple points representing the spatial reference (e.g. OSGB square)
+                  // then average all the points to get single point to draw from.
+                  for (var i = 0; i < wktPoints.length; i++) {
+                    splitPointFromWkt = wktPoints[i].split(' ');
+                    openlayersLatlong.lon += parseFloat(splitPointFromWkt[0]);
+                    openlayersLatlong.lat += parseFloat(splitPointFromWkt[1]);
+                  }
+                  openlayersLatlong.lon /= wktPoints.length;
+                  openlayersLatlong.lat /= wktPoints.length;
+                  // TO DO - Get spatial reference conversion working when sp system is changed when clickForPlot is off
                   if (!indiciaData.no_conversion_on_sp_system_changed || indiciaData.no_conversion_on_sp_system_changed==false) {
                     lastClickedLatLonZoom.lon=openlayersLatlong.lon;
                     lastClickedLatLonZoom.lat=openlayersLatlong.lat;
                     lastClickedLatLonZoom.zoom=div.map.zoom;
                   } else {
-                    //If clickForPlot is off, then typed spatial reference conversions are not currently supported
-                    indiciaData.no_conversion_on_sp_system_changed=true;
+                    // If clickForPlot is off, then typed spatial reference conversions are not currently supported
+                    indiciaData.no_conversion_on_sp_system_changed = true;
                   }
-                  //Run code that handles when a user has selected a position on the map (either a click or changing sref)
-                  processLonLatPositionOnMap(openlayersLatlong,div);
-                } 
-       
-                _showWktFeature(div, data.mapwkt, div.map.editLayer, null, false, "clickPoint");
+                  // Run code that handles when a user has selected a position on the map (either a click or changing sref)
+                  processLonLatPositionOnMap(openlayersLatlong, div);
+                }
+                _showWktFeature(div, data.mapwkt, div.map.editLayer, null, false, 'clickPoint');
               }
-              $('#'+opts.geomId).val(data.wkt);
+              $('#' + opts.geomId).val(data.wkt).change();
             }
           }
         });
       }
     }
-    
+
     function updatePlotAfterMapClick(data, div, feature) {
       if (div.settings.clickForPlot && !div.settings.noPlotRotation) {
         // if adding a plot, select it for modification
@@ -566,20 +565,21 @@ var destroyAllFeatures;
         div.map.editLayer.events.register('featuremodified', modifier, modifyPlot);
         modifier.activate();
         div.map.plotModifier = modifier;
-        //Needed check for undefined, as the ability to click for plot can now be altered on the fly once the screen
-        //has loaded. This function is still always called, but now there isn't always a plot when user clicks.
+        // Needed check for undefined, as the ability to click for plot can now be altered on the fly once the screen
+        // has loaded. This function is still always called, but now there isn't always a plot when user clicks.
         if (typeof feature !== 'undefined') {
           div.map.plotModifier.selectFeature(feature);
         }
       }
     }
-    
+
     /**
      * After clicking on the map, if the option is set, output encouragement and help text to get the
      * user to specify an accurate map reference. Also zooms the map in to assist this process.
      */
     function updateHelpAfterMapClick(data, div, feature) {
-      var helptext=[], helpitem;
+      var helptext = [];
+      var helpitem;
       // Output optional help and zoom in if more precision needed
       helpitem = _getPrecisionHelp(div, data.sref);
       if (helpitem !== '') {
@@ -587,23 +587,23 @@ var destroyAllFeatures;
       } else {
         helptext.push(div.settings.hlpClickAgainToCorrect);
         // Extra help for grid square precision, as long as the precision is not fixed.
-        if (feature.geometry.CLASS_NAME !== 'OpenLayers.Geometry.Point' && 
-            (div.settings.clickedSrefPrecisionMin==='' || div.settings.clickedSrefPrecisionMin !== div.settings.clickedSrefPrecisionMax)) {
+        if (feature.geometry.CLASS_NAME !== 'OpenLayers.Geometry.Point' &&
+            (div.settings.clickedSrefPrecisionMin === '' || div.settings.clickedSrefPrecisionMin !== div.settings.clickedSrefPrecisionMax)) {
           helptext.push(div.settings.hlpZoomChangesPrecision);
         }
         $('#' + div.settings.helpDiv).html(helptext.join(' '));
       }
       $('#' + div.settings.helpDiv).show();
-    } 
-    
+    }
+
     /**
      * After clicking on the map, if the option is set, zoom the map in to facilitate a more accurate setting
      * of the position subsequently.
      */
     function updateZoomAfterMapClick(data, div) {
-      //Skip zooming as a "one-off" even if click_zoom is on. This is currenty used when the spatial reference is set
-      //by a switch in the spatial reference system where we don't want it to suddenly zoom -in without warning.
-      if (!indiciaData.skip_zoom||indiciaData.skip_zoom===false) {
+      // Skip zooming as a "one-off" even if click_zoom is on. This is currenty used when the spatial reference is set
+      // by a switch in the spatial reference system where we don't want it to suddenly zoom -in without warning.
+      if (!indiciaData.skip_zoom || indiciaData.skip_zoom === false) {
         // Optional zoom in after clicking when helpDiv not in use.
         _zoomInToClickPoint(div);
         // Optional switch to satellite layer when using click_zoom
@@ -611,9 +611,9 @@ var destroyAllFeatures;
           switchToSatelliteBaseLayer(div.map);
         }
       } else {
-        //If we are skipping zoom on this occasion then set back to not skip it next time as skip_zoom is a used as a one_off
-        //rather than permanent setting
-        indiciaData.skip_zoom=false
+        // If we are skipping zoom on this occasion then set back to not skip it next time as skip_zoom is a used as a one_off
+        // rather than permanent setting
+        indiciaData.skip_zoom = false;
       }
     }
 
@@ -624,34 +624,35 @@ var destroyAllFeatures;
      */
     function _setClickPoint(data, div) {
       // data holds the sref in _getSystem format, wkt in indiciaProjection, optional mapwkt in mapProjection
-      var feature, parser = new OpenLayers.Format.WKT();
+      var feature;
+      var parser = new OpenLayers.Format.WKT();
       // Update the spatial reference control
       $('#' + opts.srefId).val(data.sref);
       // If the sref is in two parts, then we might need to split it across 2 input fields for lat and long
-      if (data.sref.indexOf(' ')!==-1) {
-        var parts=$.trim(data.sref).split(' ');
+      if (data.sref.indexOf(' ') !== -1) {
+        var parts = $.trim(data.sref).split(' ');
         // part 1 may have a comma at the end, so remove
         var part1 = parts.shift().split(',')[0];
         $('#' + opts.srefLatId).val(part1);
         $('#' + opts.srefLongId).val(parts.join(''));
       }
       if ($('#annotations-mode-on').length && $('#annotations-mode-on').val()==='yes') {
-        //When in annotations mode, if the user sets the centroid on the map, we only want the previous centroid point to be removed.
+        // When in annotations mode, if the user sets the centroid on the map, we only want the previous centroid point to be removed.
         removeAllFeatures(div.map.editLayer, 'clickPoint');
       } else {
         var toRemove = [];
         $.each(div.map.editLayer.features, function() {
-          //Annotations is a special seperate mode added after original code was written, so do not interfere with annotations even in inverse mode.
+          // Annotations is a special seperate mode added after original code was written, so do not interfere with annotations even in inverse mode.
           if (this.attributes.type!=='boundary' && this.attributes.type!=='zoomToBoundary' && this.attributes.type!=='annotation') {
             toRemove.push(this);
           }
         });
         div.map.editLayer.removeFeatures(toRemove, {});
       }
-      ghost=null;
-      $('#' + opts.geomId).val(data.wkt);
+      ghost = null;
+      $('#' + opts.geomId).val(data.wkt).change();
       // If mapwkt not provided, calculate it
-      if (typeof data.mapwkt === "undefined") {
+      if (typeof data.mapwkt === 'undefined') {
         if (div.indiciaProjection.getCode() === div.map.projection.getCode()) {
           data.mapwkt = data.wkt;
         } else {
@@ -720,7 +721,7 @@ var destroyAllFeatures;
           name=places[0].name;
           corner1=places[0].boundingBox.northEast.y + ', ' + places[0].boundingBox.northEast.x;
           corner2=places[0].boundingBox.southWest.y + ', ' + places[0].boundingBox.southWest.x;
-          obj = typeof places[0].obj==="undefined" ? {} : places[0].obj;
+          obj = typeof places[0].obj==='undefined' ? {} : places[0].obj;
           _displayLocation(div, ref, corner1, corner2, epsg, name, obj);
         } else if (places.length !== 0) {
           // one inexact match or multiple matches
@@ -733,7 +734,7 @@ var destroyAllFeatures;
             corner2=this.boundingBox.southWest.y + ', ' + this.boundingBox.southWest.x;
             placename= _getPlacename(this);
 
-            obj = typeof this.obj==="undefined" ? {} : this.obj;
+            obj = typeof this.obj==='undefined' ? {} : this.obj;
 
             ol.append($("<li>").append(
               $("<a href='#'>" + placename + "</a>")
@@ -859,7 +860,7 @@ var destroyAllFeatures;
       // To protect ourselves against exceptions because the Google script would not link up, we
       // only enable these layers if the Google constants are available. We separately check for google V2 and V3 layers
       // to maintain backwards compatibility
-      if (typeof G_PHYSICAL_MAP != "undefined") {
+      if (typeof G_PHYSICAL_MAP != 'undefined') {
         r.google_physical =
             function() {return new OpenLayers.Layer.Google('Google Physical', {type: G_PHYSICAL_MAP, 'sphericalMercator': true});};
         r.google_streets =
@@ -868,7 +869,7 @@ var destroyAllFeatures;
             function() {return new OpenLayers.Layer.Google('Google Hybrid', {type: G_HYBRID_MAP, numZoomLevels: 20, 'sphericalMercator': true});};
         r.google_satellite =
             function() {return new OpenLayers.Layer.Google('Google Satellite', {type: G_SATELLITE_MAP, numZoomLevels: 20, 'sphericalMercator': true});};
-      } else if (typeof google !== "undefined" && typeof google.maps !== "undefined") {
+      } else if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
         r.google_physical =
             function() {return new OpenLayers.Layer.Google('Google Physical', {type: google.maps.MapTypeId.TERRAIN, 'sphericalMercator': true});};
         r.google_streets =
@@ -927,7 +928,7 @@ var destroyAllFeatures;
           // click does not have to be exact. At this stage, we just look for the layer default
           // pointRadius and strokeWidth, so we can calculate the geom size to test.
           if (testGeom.CLASS_NAME==='OpenLayers.Geometry.Point') {
-            if (typeof layer.styleMap.styles['default'].defaultStyle.pointRadius!=="undefined") {
+            if (typeof layer.styleMap.styles['default'].defaultStyle.pointRadius!=='undefined') {
               radius = layer.styleMap.styles['default'].defaultStyle.pointRadius;
               if (typeof radius === "string") {
                 // A setting {n} means we use n to get the pointRadius per feature (either a field or a context func)
@@ -941,7 +942,7 @@ var destroyAllFeatures;
                 }
               }
             }
-            if (typeof layer.styleMap.styles['default'].defaultStyle.strokeWidth!=="undefined") {
+            if (typeof layer.styleMap.styles['default'].defaultStyle.strokeWidth!=='undefined') {
               strokeWidth=layer.styleMap.styles['default'].defaultStyle.strokeWidth;
               if (typeof strokeWidth === "string") {
                 // A setting {n} means we use n to get the strokeWidth per feature (either a field or a context func)
@@ -982,7 +983,7 @@ var destroyAllFeatures;
             tolerance = div.map.getResolution() * (radius + (strokeWidth/2));
             tolerance=Math.round(tolerance);
             // keep geoms we create so we don't keep rebuilding them
-            if (typeof testGeoms['geom-'+Math.round(tolerance/100)]!=="undefined") {
+            if (typeof testGeoms['geom-'+Math.round(tolerance/100)]!=='undefined') {
               tolerantGeom = testGeoms['geom-'+Math.round(tolerance/100)];
             } else {
               tolerantGeom = OpenLayers.Geometry.Polygon.createRegularPolygon(testGeom, tolerance, 8, 0);
@@ -1080,7 +1081,7 @@ var destroyAllFeatures;
               this.lastclick.y = (position.bottom + position.top) / 2;
             } else {
               // create a bounds from the click point. It may have xy if from WMS click, or not from Vector click
-              if (typeof position.xy!=="undefined") {
+              if (typeof position.xy!=='undefined') {
                 this.lastclick = position.xy;
               } else {
                 this.lastclick = position;
@@ -1148,7 +1149,7 @@ var destroyAllFeatures;
               });
               // now filter the report, highlight rows, or display output in a popup or div depending on settings.
               if (div.settings.clickableLayersOutputMode==='report' && div.settings.reportGroup!==null && 
-                  typeof indiciaData.reports!=="undefined") {
+                  typeof indiciaData.reports!=='undefined') {
                 // grab the feature ids
                 var ids = [], len=0;
                 $.each(features, function() {
@@ -1156,10 +1157,10 @@ var destroyAllFeatures;
                     alert('Too many records have been selected to show them all in the grid. Trying zooming in and selecting fewer records.');
                     return false;
                   }
-                  if (typeof this.attributes[div.settings.featureIdField]!=="undefined") {
+                  if (typeof this.attributes[div.settings.featureIdField]!=='undefined') {
                     ids.push(this.attributes[div.settings.featureIdField]);
                     len += this.attributes[div.settings.featureIdField].length;
-                  } else if (typeof this.attributes[div.settings.featureIdField+'s']!=="undefined") {
+                  } else if (typeof this.attributes[div.settings.featureIdField+'s']!=='undefined') {
                     // allow for plural, list fields
                     ids.push(this.attributes[div.settings.featureIdField+'s']);
                     len += this.attributes[div.settings.featureIdField+'s'].length;
@@ -1180,7 +1181,7 @@ var destroyAllFeatures;
                     $('table.report-grid tr#row'+this).addClass('selected');
                   });
                 }
-              } else if (div.settings.clickableLayersOutputMode==='reportHighlight' && typeof indiciaData.reports!=="undefined") {
+              } else if (div.settings.clickableLayersOutputMode==='reportHighlight' && typeof indiciaData.reports!=='undefined') {
                 // deselect existing selection in grid as well as on feature layer
                 $('table.report-grid tr').removeClass('selected');
                 // grab the features which should have an id corresponding to the rows to select
@@ -1245,12 +1246,12 @@ var destroyAllFeatures;
      * Therefore 0 = 100km precision, 2 = 10km precision, 4=1km precision etc.
      */
     function getPrecisionInfo(div, precision, accountForModifierKey) {
-      if (typeof accountForModifierKey==="undefined") {
+      if (typeof accountForModifierKey==='undefined') {
         accountForModifierKey=true;
       }
       // get approx metres accuracy we can expect from the mouse click - about 5mm accuracy.
       var metres = div.map.getScale() / 200;
-      if (typeof precision === "undefined" || precision===null) {
+      if (typeof precision === 'undefined' || precision===null) {
         // now round to find appropriate square size
         if (metres < 3) {
           precision = 10;
@@ -1290,13 +1291,13 @@ var destroyAllFeatures;
      * Callback gets called with the sref in system, and the wkt in indiciaProjection. These may be different.
      */
     function pointToSref(div, point, system, callback, pointSystem, precision) {
-      if (typeof pointSystem==="undefined") {
+      if (typeof pointSystem==='undefined') {
         pointSystem=indiciaFns.projectionToSystem(div.map.projection, false);
       }
       // get precision required dependent on map zoom
       var precisionInfo=getPrecisionInfo(div, precision);
-      if (typeof indiciaData.srefHandlers==="undefined" ||
-          typeof indiciaData.srefHandlers[system.toLowerCase()]==="undefined" ||
+      if (typeof indiciaData.srefHandlers==='undefined' ||
+          typeof indiciaData.srefHandlers[system.toLowerCase()]==='undefined' ||
           $.inArray('wkt', indiciaData.srefHandlers[_getSystem().toLowerCase()].returns)===-1||
           $.inArray('sref', indiciaData.srefHandlers[_getSystem().toLowerCase()].returns)===-1) {
         // next call also generates the wkt in map projection
@@ -1362,7 +1363,7 @@ var destroyAllFeatures;
             var centroid = evt.feature.geometry.getCentroid();
             $('#imp-geom').val(centroid.toString());
             pointToSref(this.map.div, centroid, _getSystem(), function(data) {
-              if (typeof data.sref !== "undefined") {
+              if (typeof data.sref !== 'undefined') {
                 $('#'+map.div.settings.srefId).val(data.sref);
               }
             });
@@ -1376,7 +1377,7 @@ var destroyAllFeatures;
           }
           // as we are not separating the boundary geom, the geom's sref goes in the centroid
           pointToSref(div, geom.getCentroid(), _getSystem(), function(data) {
-            if (typeof data.sref !== "undefined") {
+            if (typeof data.sref !== 'undefined') {
               $('#'+div.settings.srefId).val(data.sref);
             }
           });
@@ -1412,7 +1413,7 @@ var destroyAllFeatures;
       $('#imp-boundary-geom').val(feature.geometry.toString());
       // Get the sref of the swVertex and show in control
       pointToSref(map.div, swVertex, _getSystem(), function(data) {
-        if (typeof data.sref !== "undefined") {
+        if (typeof data.sref !== 'undefined') {
           $('#'+map.div.settings.srefId).val(data.sref);
         }
       }, undefined, precision);
@@ -1578,8 +1579,8 @@ var destroyAllFeatures;
     }
 
     function showGridRefHints(div) {
-      if (div.settings.gridRefHint && typeof indiciaData.srefHandlers!=="undefined" &&
-          typeof indiciaData.srefHandlers[_getSystem().toLowerCase()]!=="undefined") {
+      if (div.settings.gridRefHint && typeof indiciaData.srefHandlers!=='undefined' &&
+          typeof indiciaData.srefHandlers[_getSystem().toLowerCase()]!=='undefined') {
         var ll = div.map.getLonLatFromPixel(currentMousePixel), precisionInfo,
               handler=indiciaData.srefHandlers[_getSystem().toLowerCase()], largestSrefLen, pt,
               proj, recalcGhost = ghost===null || !ghost.atPoint(ll, 0, 0);
@@ -1651,7 +1652,7 @@ var destroyAllFeatures;
       else {
         _setClickPoint(data, div); // data sref in _getSystem, wkt in indiciaProjection, mapwkt in mapProjection
       }
-      if (typeof indiciaFns.showHideRememberSiteButton!=="undefined") {
+      if (typeof indiciaFns.showHideRememberSiteButton!=='undefined') {
         indiciaFns.showHideRememberSiteButton();
       }
     };
@@ -1673,7 +1674,7 @@ var destroyAllFeatures;
 
     olOptions.projection = new OpenLayers.Projection("EPSG:"+olOptions.projection);
     olOptions.displayProjection = new OpenLayers.Projection("EPSG:"+olOptions.displayProjection);
-    if ((typeof olOptions.maxExtent !== "undefined") && (olOptions.maxExtent instanceof Array)) {
+    if ((typeof olOptions.maxExtent !== 'undefined') && (olOptions.maxExtent instanceof Array)) {
       // if the maxExtent is passed as an array, it could be from JSON on a Drupal settings form. We need an Ol bounds object.
       olOptions.maxExtent = new OpenLayers.Bounds(olOptions.maxExtent[0], olOptions.maxExtent[1],
             olOptions.maxExtent[2], olOptions.maxExtent[3]);
@@ -1819,7 +1820,7 @@ var destroyAllFeatures;
       div.map.events.register('mouseout', null, function(evt) {
         var testDiv=div.map.viewPortDiv;
         var target = (evt.relatedTarget) ? evt.relatedTarget : evt.toElement;
-        if (typeof target!=="undefined") {
+        if (typeof target!=='undefined') {
           // walk up the DOM tree.
           while (target!=testDiv && target!==null) {
             target = target.parentNode;
@@ -1833,7 +1834,7 @@ var destroyAllFeatures;
       });
 
       // setup the map to save the last position
-      if (div.settings.rememberPos && typeof $.cookie !== "undefined") {
+      if (div.settings.rememberPos && typeof $.cookie !== 'undefined') {
         div.map.events.register('moveend', null, function() {
           $.cookie('mapzoom', div.map.zoom, {expires: 7});
           $.cookie('maplon', div.map.center.lon, {expires: 7});
@@ -1844,7 +1845,7 @@ var destroyAllFeatures;
 
       // and prepare a georeferencer
       div.georefOpts = $.extend({}, $.fn.indiciaMapPanel.georeferenceDriverSettings, $.fn.indiciaMapPanel.georeferenceLookupSettings);
-      if (typeof Georeferencer !== "undefined") {
+      if (typeof Georeferencer !== 'undefined') {
         div.georeferencer = new Georeferencer(div, _displayGeorefOutput);
       }
 
@@ -1864,7 +1865,7 @@ var destroyAllFeatures;
         {
           var layer = presetLayers[item]();
           div.map.addLayer(layer);
-          if (typeof layer.mapObject!=="undefined") {
+          if (typeof layer.mapObject!=='undefined') {
             layer.mapObject.setTilt(0);
           }
         } else {
@@ -1886,7 +1887,7 @@ var destroyAllFeatures;
 
       // Centre the map, using cookie if remembering position, otherwise default setting.
       var zoom = null, center = {"lat":null, "lon":null}, baseLayerName = null, added;
-      if (typeof $.cookie !== "undefined" && div.settings.rememberPos!==false) {
+      if (typeof $.cookie !== 'undefined' && div.settings.rememberPos!==false) {
         zoom = $.cookie('mapzoom');
         center.lon = $.cookie('maplon');
         center.lat = $.cookie('maplat');
@@ -1997,12 +1998,12 @@ var destroyAllFeatures;
           div.map.events.register('mousemove', null, function(evt) {
             currentMousePixel = evt.xy;
             showGridRefHints(div);
-            if (typeof div.map.editLayer.clickControl!=="undefined" && div.map.editLayer.clickControl.active) {
+            if (typeof div.map.editLayer.clickControl!=='undefined' && div.map.editLayer.clickControl.active) {
               if (div.map.dragging) {
                 removeAllFeatures(div.map.editLayer, 'ghost');
               } else {
-                if (typeof indiciaData.srefHandlers!=="undefined" &&
-                    typeof indiciaData.srefHandlers[_getSystem().toLowerCase()]!=="undefined" &&
+                if (typeof indiciaData.srefHandlers!=='undefined' &&
+                    typeof indiciaData.srefHandlers[_getSystem().toLowerCase()]!=='undefined' &&
                     $.inArray('wkt', indiciaData.srefHandlers[_getSystem().toLowerCase()].returns)!==-1) {
                   var ll=div.map.getLonLatFromPixel(evt.xy), handler=indiciaData.srefHandlers[_getSystem().toLowerCase()],
                       pt, proj, recalcGhost = ghost===null || !ghost.atPoint(ll, 0, 0), precisionInfo;
@@ -2015,7 +2016,7 @@ var destroyAllFeatures;
                     // draw a ghost of the proposed sref if they click
                     var r, feature, parser;
                     r=handler.pointToSref(pt, precisionInfo);
-                    if (typeof r.error!=="undefined") {
+                    if (typeof r.error!=='undefined') {
                       removeAllFeatures(div.map.editLayer, 'ghost');
                     } else {
                       parser = new OpenLayers.Format.WKT();
@@ -2154,7 +2155,7 @@ var destroyAllFeatures;
               var centroid = evt.feature.geometry.getCentroid();
               $('#imp-geom').val(centroid.toString());
               pointToSref(div, centroid, _getSystem(), function(data) {
-                if (typeof data.sref !== "undefined") {
+                if (typeof data.sref !== 'undefined') {
                   $('#'+div.settings.srefId).val(data.sref);
                 }
               });
@@ -2213,7 +2214,7 @@ var destroyAllFeatures;
         } else if (ctrl=='hoverFeatureHighlight' && (div.settings.editLayer || indiciaData.reportlayer)) {
           // attach control to report layer, or the editLayer if no report loaded.
           ctrlObj = new OpenLayers.Control.SelectFeature(
-            typeof indiciaData.reportlayer ==="undefined" ? div.map.editLayer : indiciaData.reportlayer,
+            typeof indiciaData.reportlayer ==='undefined' ? div.map.editLayer : indiciaData.reportlayer,
             {hover: true, highlightOnly: true});
           div.map.addControl(ctrlObj);
         } else if (ctrl=='clearEditLayer' && div.settings.editLayer) {
@@ -2236,7 +2237,7 @@ var destroyAllFeatures;
           fullscreenchange=function () {
             var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
             if (fullscreenElement) {
-              if (typeof indiciaData.origMapStyle==="undefined") {
+              if (typeof indiciaData.origMapStyle==='undefined') {
                 indiciaData.origMapStyle=$(div).attr('style');
               }
               $(div).css('width','100%');
@@ -2543,7 +2544,7 @@ function format_selected_features(features, div) {
   if (features.length===0) {
     return div.settings.msgGetInfoNothingFound;
   } else {
-    var html='<table><thead><tr>', keepVagueDates = typeof features[0].attributes.date === "undefined";
+    var html='<table><thead><tr>', keepVagueDates = typeof features[0].attributes.date === 'undefined';
     // use normal for (in) to get object properties
     for(var attr in features[0].attributes) {
       // skip vague date component columns if we have a standard date

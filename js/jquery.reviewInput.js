@@ -122,6 +122,7 @@
           var $td;
           var existingRow = $(reviewTableBody).find('tr:nth-child(' + ($(row).index() + 1) + ')');
           var idAttr;
+          var colClass;
           var input;
           if (existingRow.length) {
             // Hook called after species name edit on existing row, so just update the species cell.
@@ -134,6 +135,7 @@
               }
               $td = $(row).find('td[headers="' + this.id + '"]');
               idAttr = '';
+              colClass = 'review-value-' + this.id.replace(/^species-grid-\d+-/, '').replace(/-\d+$/, '');
               if ($td.hasClass('scTaxonCell')) {
                 value = $(row).find('.scTaxonCell').html();
               } else if ($td.hasClass('scAddMediaCell')) {
@@ -143,7 +145,8 @@
                 value = getValue(input);
                 idAttr = input.attr('id') ? ' id="review-' + input.attr('id') + '"' : '';
               }
-              rowTemplate += '<td headers="review-' + this.id + '"' + idAttr + '>' + value + '</td>';
+              rowTemplate += '<td headers="review-' + this.id + '"' + idAttr + ' class="' + colClass + '">' +
+                  value + '</td>';
             });
             $(reviewTableBody).append('<tr>' + rowTemplate + '</tr>');
           }
