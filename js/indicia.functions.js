@@ -237,13 +237,17 @@ if (typeof window.indiciaData === 'undefined') {
     return system;
   };
 
+  // Some functions relating to location controls
+  indiciaFns.locationControl = [];
+
   /**
    * Function which uses the ID of the currently selected location ID to grab any previously input sample attribute
    * values by the same user and populate them into the relevant controls.
    * For example, a user picks their local nature reserve as a location and provides a habitat. The next time the
    * same location is picked by that user, the same habitat is auto-filled in.
    */
-  indiciaFns.fetchLocationAttributesIntoSample = function () {
+  indiciaFns.locationControl.fetchLocationAttributesIntoSample = function (locCntrlId, warehouseUserId) {
+    var locCntrlIdEscaped = locCntrlId.replace(':', '\\:');
     var reportingURL = indiciaData.read.url + 'index.php/services/report/requestReport' +
       '?report=library/sample_attribute_values/get_latest_values_for_site_and_user.xml&callback=?';
     var reportOptions = {
@@ -251,10 +255,10 @@ if (typeof window.indiciaData === 'undefined') {
       nonce: indiciaData.read.nonce,
       auth_token: indiciaData.read.auth_token,
       reportSource: 'local',
-      location_id: $('#imp-location').attr('value'),
-      created_by_id: indiciaData.warehouseUserId
+      location_id: $('#' + locCntrlIdEscaped).attr('value'),
+      created_by_id: warehouseUserId
     };
-    if ($('#imp-location').attr('value') !== '') {
+    if ($('#' + locCntrlIdEscaped).attr('value') !== '') {
       // Fill in the sample attributes based on what is returned by the report
       $.getJSON(reportingURL, reportOptions,
         function (data) {
@@ -265,7 +269,7 @@ if (typeof window.indiciaData === 'undefined') {
               input.val(item.value);
               if (input.is('select') && input.val() === '') {
                 // not in select list, so have to add it
-                input.append('<option value="'+item.value+'">'+item.term+'</option>');
+                input.append('<option value="' + item.value + '">' + item.term + '</option>');
                 input.val(item.value);
               }
             }
@@ -286,6 +290,56 @@ if (typeof window.indiciaData === 'undefined') {
         }
       );
     }
+  };
+
+  indiciaFns.locationControl.autoFillLocationFromLocationTypeId = function (locCntrlId, locationTypeId) {
+    var locCntrlIdEscaped = locCntrlId.replace(':', '\\:');
+    var reportingURL = indiciaData.read.url + 'index.php/services/report/requestReport' +
+      '?report=library/locations/locations_list_2.xml&callback=?';
+    var reportOptions = {
+      mode: 'json',
+      nonce: indiciaData.read.nonce,
+      auth_token: indiciaData.read.auth_token,
+      reportSource: 'local',
+      intersects: $('#imp-geom').attr('value'),
+      locationn_type_id: locationTypeId
+    };
+    $.getJSON(reportingURL, reportOptions,
+      function (data) {
+        var popupHtml;
+        var checkedRadio;
+        if (typeof data.error === 'undefined') {
+          if (data.length === 1) {
+            // single unique matching location found
+            $('#' + locCntrlIdEscaped).val(data[0].id);
+            $('#' + locCntrlIdEscaped + '\\:name').val(data[0].name);
+          } else if (data.length > 1) {
+            popupHtml = '<p>' + indiciaData.langMoreThanOneLocationMatch + '</p>';
+            popupHtml += '<ul>';
+            $.each(data, function () {
+              popupHtml += '<li><label><input type="radio" value="' + this.location_id + '" name="resolveLocation"/> ' +
+                  this.name + '</label></li>';
+            });
+            popupHtml += '</ul>';
+            popupHtml += '<button id="resolveLocationOk" disabled="disabled">Ok</button>';
+            popupHtml += '<button id="resolveLocationCancel">Cancel</button>';
+            $.fancybox('<div id="resolveLocationPopup">' + popupHtml + '</div>');
+            $('#resolveLocationPopup input[type="radio"]').change(function () {
+              $('#resolveLocationOk').removeAttr('disabled');
+            });
+            $('#resolveLocationOk').click(function () {
+              checkedRadio = $('#resolveLocationPopup input[type="radio"]:checked');
+              $('#' + locCntrlIdEscaped).val(checkedRadio.val());
+              $('#' + locCntrlIdEscaped + '\\:name').val(checkedRadio.closest('label').text());
+              $.fancybox.close();
+            });
+            $('#resolveLocationCancel').click(function () {
+              $.fancybox.close();
+            });
+          }
+        }
+      }
+    );
   };
 }(jQuery));
 
