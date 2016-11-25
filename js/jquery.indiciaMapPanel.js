@@ -650,7 +650,7 @@ var destroyAllFeatures;
         div.map.editLayer.removeFeatures(toRemove, {});
       }
       ghost = null;
-      $('#' + opts.geomId).val(data.wkt);
+      $('#' + opts.geomId).val(data.wkt).change();
       // If mapwkt not provided, calculate it
       if (typeof data.mapwkt === 'undefined') {
         if (div.indiciaProjection.getCode() === div.map.projection.getCode()) {
