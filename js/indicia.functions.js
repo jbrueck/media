@@ -16,7 +16,7 @@
 /**
  * File containing general purpose JavaScript functions for Indicia.
  */
-if (typeof window.indiciaData==="undefined") {
+if (typeof window.indiciaData === 'undefined') {
   window.indiciaData = {
     onloadFns: [],
     idDiffRuleMessages: {}
@@ -25,48 +25,50 @@ if (typeof window.indiciaData==="undefined") {
 }
 
 (function ($) {
-  "use strict";
+  'use strict';
 
   /**
    * Enable buttons hover Effect. Since jQuery 1.7 the 'live' function has been
    * deprecated and 'on' function should be used. Use this function to allow
    * non-version specific code.
    */
-  indiciaFns.enableHoverEffect = function(){
-      var version=$.fn.jquery.split('.'),
-          funcname=(version[0]==='1' && version[1]<7) ? 'live' : 'on';
+  indiciaFns.enableHoverEffect = function () {
+    var version = $.fn.jquery.split('.');
+    var funcname = (version[0] === '1' && version[1] < 7) ? 'live' : 'on';
 
-      $('.ui-state-default')[funcname]('mouseover', function() {
-          $(this).addClass('ui-state-hover');
-      });
-      $('.ui-state-default')[funcname]('mouseout', function() {
-          $(this).removeClass('ui-state-hover');
-      });
+    $('.ui-state-default')[funcname]('mouseover', function () {
+      $(this).addClass('ui-state-hover');
+    });
+    $('.ui-state-default')[funcname]('mouseout', function () {
+      $(this).removeClass('ui-state-hover');
+    });
   };
 
-  indiciaFns.initFindMe = function(hint) {
+  indiciaFns.initFindMe = function (hint) {
     $('input.findme').after('<span id="findme-icon" title="' + hint + '">&nbsp;</span>');
     $('#findme-icon').click(indiciaFns.findMe);
-  }
+  };
 
-  indiciaFns.findMe = function() {
-    var onSuccess = function(position) {
-        $('#findme-icon').removeClass('spinning');
-        var lonLat = new OpenLayers.LonLat(position.coords.longitude, position.coords.latitude)
-          .transform(
-          new OpenLayers.Projection("EPSG:4326"), //transform from WGS 1984
-          indiciaData.mapdiv.map.getProjectionObject() //to Spherical Mercator Projection
+  indiciaFns.findMe = function () {
+    var onSuccess = function (position) {
+      var lonLat;
+      $('#findme-icon').removeClass('spinning');
+      // transform from WGS 1984 to Web  Mercator Projection
+      lonLat = new OpenLayers.LonLat(position.coords.longitude, position.coords.latitude)
+        .transform(
+          new OpenLayers.Projection('EPSG:4326'),
+          indiciaData.mapdiv.map.getProjectionObject()
         );
-        indiciaData.mapdiv.map.setCenter(lonLat, 17);
-        indiciaData.mapdiv.processLonLatPositionOnMap(lonLat, indiciaData.mapdiv);
-      },
-      onFail = function() {
-        $('#findme-icon').removeClass('spinning');
-        alert('Your current position could not be found.');
-      };
+      indiciaData.mapdiv.map.setCenter(lonLat, 17);
+      indiciaData.mapdiv.processLonLatPositionOnMap(lonLat, indiciaData.mapdiv);
+    };
+    var onFail = function () {
+      $('#findme-icon').removeClass('spinning');
+      alert('Your current position could not be found.');
+    };
     $('#findme-icon').addClass('spinning');
     navigator.geolocation.getCurrentPosition(onSuccess, onFail);
-  }
+  };
 
   /**
    * Method to attach to the hover event of an id difficulty warning icon. The icon should have
@@ -115,53 +117,50 @@ if (typeof window.indiciaData==="undefined") {
    * jQuery UI 1.10 replaced option.selected with option.active. Use this function to allow non-version specific
    * code.
    */
-  indiciaFns.activeTab = function(tabs, index) {
-    var version=$.ui.version.split('.'),
-        versionPre1_10 = version[0] === '1' && version[1] < 10,
-        propname;
-    if (typeof index==="undefined") {
+  indiciaFns.activeTab = function (tabs, index) {
+    var version = $.ui.version.split('.');
+    var versionPre1x10 = version[0] === '1' && version[1] < 10;
+    var tabIndex;
+    if (typeof index === 'undefined') {
       // Getting a tab index
-      if (versionPre1_10) {
+      if (versionPre1x10) {
         return tabs.tabs('option', 'selected');
-      } else if (typeof index === "undefined") {
-        return tabs.tabs('option', 'active');
       }
-    } else {
-      // Setting selected tab index. If index is passed as the tab's ID, convert to numeric index.
-      index = $('#' + index + '-tab').index();
-      if (versionPre1_10) {
-        return tabs.tabs('select', index);
-      } else {
-        return tabs.tabs('option', 'active', index);
-      }
+      return tabs.tabs('option', 'active');
     }
+    // Setting selected tab index. If index is passed as the tab's ID, convert to numeric index.
+    tabIndex = $('#' + index + '-tab').index();
+    if (versionPre1x10) {
+      return tabs.tabs('select', tabIndex);
+    }
+    return tabs.tabs('option', 'active', tabIndex);
   };
-  
-  /** 
+
+  /**
    * jQuery UI 1.10 replaced the show event with activate. Use this function to allow non-version specific
    * code to bind to this event
    */
-  indiciaFns.bindTabsActivate = function(tabs, fn) {
-    var version=$.ui.version.split('.'), 
-        evtname=(version[0]==='1' && version[1]<10) ? 'tabsshow' : 'tabsactivate';
+  indiciaFns.bindTabsActivate = function (tabs, fn) {
+    var version = $.ui.version.split('.');
+    var evtname = (version[0] === '1' && version[1] < 10) ? 'tabsshow' : 'tabsactivate';
     return tabs.bind(evtname, fn);
   };
-  
-  /** 
+
+  /**
    * jQuery UI 1.10 replaced the show event with activate. Use this function to allow non-version specific
    * code to unbind from this event
    */
-  indiciaFns.unbindTabsActivate = function(tabs, fn) {
-    var version=$.ui.version.split('.'), 
-        evtname=(version[0]==='1' && version[1]<10) ? 'tabsshow' : 'tabsactivate';
+  indiciaFns.unbindTabsActivate = function (tabs, fn) {
+    var version = $.ui.version.split('.');
+    var evtname = (version[0] === '1' && version[1] < 10) ? 'tabsshow' : 'tabsactivate';
     return tabs.unbind(evtname, fn);
   };
-  
-  /** 
-   * jQuery UI 1.10 replaced the url method with the href attribute. Use this function to allow 
+
+  /**
+   * jQuery UI 1.10 replaced the url method with the href attribute. Use this function to allow
    * non-version specific code to set the target of a remote tab.
    */
-  indiciaFns.setTabHref = function(tabs, tabIdx, liId, href) {
+  indiciaFns.setTabHref = function (tabs, tabIdx, liId, href) {
     var version = $.ui.version.split('.');
     if (version[0] === '1' && version[1] < 10) {
       tabs.tabs('url', tabIdx, href);
@@ -173,7 +172,7 @@ if (typeof window.indiciaData==="undefined") {
   /**
    * jQuery version independent .live/.delegate/.on code.
    */
-  indiciaFns.on = function(events, selector, data, handler) {
+  indiciaFns.on = function (events, selector, data, handler) {
     var version = jQuery.fn.jquery.split('.');
     if (version[0] === '1' && version[1] < 4) {
       $(selector).live(events, handler);
@@ -182,36 +181,34 @@ if (typeof window.indiciaData==="undefined") {
     } else {
       $(document).on(events, selector, data, handler);
     }
-
   };
 
   /**
    * jQuery version independent .die/.undelegate/.off code.
    */
-  indiciaFns.off = function(event, selector, handler) {
+  indiciaFns.off = function (event, selector, handler) {
     var version = jQuery.fn.jquery.split('.');
     if (version[0] === '1' && version[1] < 4) {
       $(selector).die(event, handler);
     } else if (version[0] === '1' && version[1] < 7) {
-        $(document).undelegate(selector, event, handler);
-    } 
-    else {
+      $(document).undelegate(selector, event, handler);
+    } else {
       $(document).off(event, selector, handler);
     }
-
   };
 
   /**
    * Retrieves an array containing all the current URL query parameters.
    * @returns {Array}
    */
-  indiciaFns.getUrlVars = function() {
-    var vars = {}, hash, 
-        splitPos = window.location.href.indexOf('?'),
-        hashes = window.location.href.slice(splitPos + 1).split('&');
-    if (splitPos!==-1) {
-      for(var i = 0; i < hashes.length; i++)
-      {
+  indiciaFns.getUrlVars = function () {
+    var vars = {};
+    var hash;
+    var splitPos = window.location.href.indexOf('?');
+    var hashes = window.location.href.slice(splitPos + 1).split('&');
+    var i;
+    if (splitPos !== -1) {
+      for (i = 0; i < hashes.length; i++) {
         hash = hashes[i].split('=');
         vars[hash[0]] = hash[1];
       }
@@ -239,29 +236,32 @@ if (typeof window.indiciaData==="undefined") {
     }
     return system;
   };
-}) (jQuery);
+}(jQuery));
 
-jQuery(document).ready(function($) {
-  if ($('form input[name=website_id]').length>0) {
-    var iform=$('form input[name=auth_token]').parents('form'),
+jQuery(document).ready(function ($) {
+  var iform;
+  var confirmOnPageExit;
+  var detectInput;
+  if ($('form input[name=website_id]').length > 0) {
+    iform = $('form input[name=auth_token]').parents('form');
     confirmOnPageExit = function (e) {
-      // If we haven't been passed the event get the window.event
-      e = e || window.event;
       var message = 'Are you sure you want to navigate away from this page? You will lose any data you have entered.';
+      // If we haven't been passed the event get the window.event
+      var evt = e || window.event;
       // For IE6-8 and Firefox prior to version 4
-      if (e) {
-        e.returnValue = message;
+      if (evt) {
+        evt.returnValue = message;
       }
       // For Chrome, Safari, IE8+ and Opera 12+
       return message;
-    }, 
-    detectInput = function() {
+    };
+    detectInput = function () {
       window.onbeforeunload = confirmOnPageExit;
       $(iform).find(':input').unbind('change', detectInput);
-    }
+    };
     // any data input, need to confirm if navigating away
     $(iform).find(':input').bind('change', detectInput);
-    $(iform).submit(function() {
+    $(iform).submit(function () {
       // allowed to leave page on form submit
       window.onbeforeunload = null;
     });
