@@ -236,6 +236,57 @@ if (typeof window.indiciaData === 'undefined') {
     }
     return system;
   };
+
+  /**
+   * Function which uses the ID of the currently selected location ID to grab any previously input sample attribute
+   * values by the same user and populate them into the relevant controls.
+   * For example, a user picks their local nature reserve as a location and provides a habitat. The next time the
+   * same location is picked by that user, the same habitat is auto-filled in.
+   */
+  indiciaFns.fetchLocationAttributesIntoSample = function () {
+    var reportingURL = indiciaData.read.url + 'index.php/services/report/requestReport' +
+      '?report=library/sample_attribute_values/get_latest_values_for_site_and_user.xml&callback=?';
+    var reportOptions = {
+      mode: 'json',
+      nonce: indiciaData.read.nonce,
+      auth_token: indiciaData.read.auth_token,
+      reportSource: 'local',
+      location_id: $('#imp-location').attr('value'),
+      created_by_id: indiciaData.warehouseUserId
+    };
+    if ($('#imp-location').attr('value') !== '') {
+      // Fill in the sample attributes based on what is returned by the report
+      $.getJSON(reportingURL, reportOptions,
+        function (data) {
+          jQuery.each(data, function (i, item) {
+            var selector = 'smpAttr\\:' + item.id;
+            var input = $('[id=' + selector + ']');
+            if (item.value !== null && item.data_type !== 'Boolean') {
+              input.val(item.value);
+              if (input.is('select') && input.val() === '') {
+                // not in select list, so have to add it
+                input.append('<option value="'+item.value+'">'+item.term+'</option>');
+                input.val(item.value);
+              }
+            }
+            // If there is a date value then we use the date field instead.
+            // This is because the vague date engine returns to this special field
+            if (typeof item.value_date !== 'undefined' && item.value_date !== null) {
+              input.val(item.value_date);
+            }
+            // booleans need special treatment because checkboxes rely on using the'checked' attribute instead of using
+            // the value.
+            if (item.value_int === '1' && item.data_type === 'Boolean') {
+              input.attr('checked', 'checked');
+            }
+            if (item.value_int === '0' && item.data_type === 'Boolean') {
+              input.removeAttr('checked');
+            }
+          });
+        }
+      );
+    }
+  };
 }(jQuery));
 
 jQuery(document).ready(function ($) {
