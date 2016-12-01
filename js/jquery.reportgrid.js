@@ -463,7 +463,7 @@
                 }
               });
               $.each(div.settings.columns, function(idx, col) {
-                tdclasses=[];
+                tdclasses = [];
                 if (div.settings.sendOutputToMap && typeof indiciaData.reportlayer!=='undefined' &&
                     typeof col.mappable !== 'undefined' && (col.mappable === 'true' || col.mappable === true)) {
                   map=indiciaData.mapdiv.map;
@@ -516,7 +516,7 @@
                     tdclasses.push(col['class']);
                   }
                   // clear null value cells
-                  value = (value===null || typeof value==='undefined') ? '' : value;
+                  value = (value === null || typeof value === 'undefined') ? '' : value;
                   classes = (tdclasses.length===0) ? '' : ' class="' + tdclasses.join(' ') + '"';
                   rowOutput += '<td'+classes+'>' + value + '</td>';
                 }
@@ -524,7 +524,7 @@
               if ((rowidx % div.settings.galleryColCount)===div.settings.galleryColCount-1) {
                 rowOutput += '</tr>';
                 tbody.append(rowOutput);
-                rowInProgress=false;
+                rowInProgress = false;
               }
             }
           });
@@ -550,14 +550,14 @@
           $(div).find(".loading-overlay").hide();
 
           // execute callback it there is one
-          if (div.settings.callback !== "") {
+          if (div.settings.callback !== '') {
             window[div.settings.callback]();
           }
 
         },
-        error: function() {
-          div.loading=false;
-          $(div).find(".loading-overlay").hide();
+        error: function () {
+          div.loading = false;
+          $(div).find('.loading-overlay').hide();
           alert('The report did not load correctly.');
         }
       });
@@ -567,11 +567,11 @@
      * Build the URL required for a report request, excluding the pagination (limit + offset) parameters. Option to exclude the sort info and idlist param.
      */
     function getFullRequestPathWithoutPaging(div, sort, idlist) {
-      var request = getRequest(div), params=getUrlParamsForAllRecords(div);
-      $.each(params, function(key, val) {
-        if (!idlist && key==='idlist') {
+      var request = getRequest(div), params = getUrlParamsForAllRecords(div);
+      $.each(params, function (key, val) {
+        if (!idlist && key === 'idlist') {
           // skip the idlist param value as we want the whole map
-          val='';
+          val = '';
         }
         request += '&' + key + '=' + encodeURIComponent(val);
       });
@@ -608,74 +608,75 @@
     }
 
     // Sets up various clickable things like the filter button on a direct report, or the pagination links.
-    function setupReloadLinks (div) {
-      var lastPageOffset = Math.max(0, Math.floor((div.settings.recordCount-1) / div.settings.itemsPerPage)*div.settings.itemsPerPage);
+    function setupReloadLinks(div) {
+      var lastPageOffset = Math.max(0, Math.floor((div.settings.recordCount - 1) / div.settings.itemsPerPage)
+          * div.settings.itemsPerPage);
       // Define pagination clicks.
-      if (div.settings.itemsPerPage!==null) {
-        $(div).find('.pager .pag-next').click(function(e) {
+      if (div.settings.itemsPerPage !== null) {
+        $(div).find('.pager .pag-next').click(function (e) {
           e.preventDefault();
-          if (div.loading) {return;}
+          if (div.loading) { return; }
           div.loading = true;
           div.settings.offset += div.settings.currentPageCount; // in case not showing full page after deletes
-          if (div.settings.offset>lastPageOffset) {
-            div.settings.offset=lastPageOffset;
+          if (div.settings.offset > lastPageOffset) {
+            div.settings.offset = lastPageOffset;
           }
           load(div, false);
         });
 
-        $(div).find('.pager .pag-prev').click(function(e) {
+        $(div).find('.pager .pag-prev').click(function (e) {
           e.preventDefault();
-          if (div.loading) {return;}
+          if (div.loading) { return; }
           div.loading = true;
           div.settings.offset -= div.settings.itemsPerPage;
           // Min offset is zero.
-          if (div.settings.offset<0) {div.settings.offset=0;}
+          if (div.settings.offset < 0) { div.settings.offset = 0; }
           load(div, false);
         });
 
-        $(div).find('.pager .pag-first').click(function(e) {
+        $(div).find('.pager .pag-first').click(function (e) {
           e.preventDefault();
-          if (div.loading) {return;}
+          if (div.loading) { return; }
           div.loading = true;
           div.settings.offset = 0;
           load(div, false);
         });
 
-        $(div).find('.pager .pag-last').click(function(e) {
+        $(div).find('.pager .pag-last').click(function (e) {
           e.preventDefault();
-          if (div.loading) {return;}
+          if (div.loading) { return; }
           div.loading = true;
           div.settings.offset = lastPageOffset;
           load(div, false);
         });
 
-        $(div).find('.pager .pag-page').click(function(e) {
+        $(div).find('.pager .pag-page').click(function (e) {
           e.preventDefault();
-          if (div.loading) {return;}
+          if (div.loading) { return; }
           div.loading = true;
-          var page = this.id.replace('page-'+div.settings.id+'-', '');
-          div.settings.offset = (page-1) * div.settings.itemsPerPage;
+          var page = this.id.replace('page-' + div.settings.id + '-', '');
+          div.settings.offset = (page - 1) * div.settings.itemsPerPage;
           load(div, false);
         });
       }
 
-      if (div.settings.mode==='direct' && div.settings.autoParamsForm) {
+      if (div.settings.mode === 'direct' && div.settings.autoParamsForm) {
         // define a filter form click
         $(div).find('.run-filter').click(function(e) {
           e.preventDefault();
           div.settings.offset = 0;
-          if (div.loading) {return;}
+          if (div.loading) { return; }
           div.loading = true;
           div.settings.filterCol = $(div).find('.filterSelect').val();
           div.settings.filterValue = $(div).find('.filterInput').val();
           load(div, true);
-          if (div.settings.filterValue==='') {
+          if (div.settings.filterValue === '') {
             $(div).find('.clear-filter').hide();
           } else {
             $(div).find('.clear-filter').show();
           }
         });
-        $(div).find('.clear-filter').click(function(e) {
+        $(div).find('.clear-filter').click(function (e) {
           e.preventDefault();
           $(div).find('.filterSelect').val('');
           $(div).find('.filterInput').val('');
@@ -683,24 +684,24 @@
         });
       }
     }
-    
+
     /**
      * Public function which adds a list of records to the bottom of the grid, loaded according to a filter.
      * Typical usage might be to specify an id to add a single record.
      */
-    this.addRecords = function(filterField, filterValue) {
-      $.each($(this), function(idx, div) {
+    this.addRecords = function (filterField, filterValue) {
+      $.each($(this), function (idx, div) {
         var request = getRequest(div);
         request += '&' + filterField + '=' + filterValue;
         loadGridFrom(div, request, false);
       });
     };
 
-    this.getUrlParamsForAllRecords = function() {
-      var r={};
+    this.getUrlParamsForAllRecords = function () {
+      var r = {};
       // loop, though we only return 1.
-      $.each($(this), function(idx, div) {
-        r=getUrlParamsForAllRecords(div, false);
+      $.each($(this), function (idx, div) {
+        r = getUrlParamsForAllRecords(div, false);
       });
       return r;
     };
