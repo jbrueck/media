@@ -705,10 +705,10 @@
       return r;
     };
 
-    this.reload = function(recount) {
-      recount = (typeof recount==='undefined') ? false : recount;
-      $.each($(this), function(idx, div) {      
-        load(div, recount);
+    this.reload = function (recount) {
+      var doRecount = typeof recount === 'undefined' ? true : recount;
+      $.each($(this), function () {
+        load(this, doRecount);
       });
     };
 
@@ -716,13 +716,13 @@
      * Public method to support late-loading of the initial page of grid data via AJAX.
      * Automatically waits for the current tab to load if on jquery tabs.
      */
-    this.ajaxload = function() {
+    this.ajaxload = function () {
+      var report = this;
       // are we on a hidden tab?
-      if ($(this).parents('.ui-tabs-panel').length>0 && $(this).parents('.ui-tabs-panel:visible').length===0) {
-        var report=this;
-        indiciaFns.bindTabsActivate($(this).parents('.ui-tabs-panel').parent(), function(evt, ui) {
-          var panel = typeof ui.newPanel==='undefined' ? ui.panel : ui.newPanel[0];
-          if (panel.id===$(report).parents('.ui-tabs-panel')[0].id) {
+      if ($(this).parents('.ui-tabs-panel').length > 0 && $(this).parents('.ui-tabs-panel:visible').length === 0) {
+        indiciaFns.bindTabsActivate($(this).parents('.ui-tabs-panel').parent(), function (evt, ui) {
+          var panel = typeof ui.newPanel === 'undefined' ? ui.panel : ui.newPanel[0];
+          if (panel.id === $(report).parents('.ui-tabs-panel')[0].id) {
             report.reload(true);
             $(this).unbind(evt);
           }
