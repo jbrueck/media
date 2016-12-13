@@ -661,7 +661,7 @@ jQuery(document).ready(function ($) {
           $('#has_photos').removeAttr('disabled');
         }
         if (context && ((context.quality && context.quality !== 'all') ||
-            context.autochecks || context.identification_difficulty || context.has_photos)) {
+          context.autochecks || context.identification_difficulty || context.has_photos)) {
           $('#controls-filter_quality .context-instruct').show();
         }
       }
@@ -813,34 +813,38 @@ jQuery(document).ready(function ($) {
   }
 
   function loadSites(idsToSelect, doClear) {
+    var idQuery;
     if (typeof doClear === 'undefined' || doClear) {
       clearSites(true);
     }
     if (typeof idsToSelect === 'undefined' || idsToSelect.length === 0) {
       return;
     }
-    var idQuery = '{"in":{"id":[' + idsToSelect + ']}}';
+    idQuery = '{"in":{"id":[' + idsToSelect + ']}}';
     loadingSites = true;
     $.ajax({
       dataType: 'json',
       url: indiciaData.read.url + 'index.php/services/data/location',
       data: 'mode=json&view=list&orderby=name&auth_token=' + indiciaData.read.auth_token +
-        '&nonce=' + indiciaData.read.nonce + '&query=' + idQuery + '&view=detail&callback=?',
+      '&nonce=' + indiciaData.read.nonce + '&query=' + idQuery + '&view=detail&callback=?',
       success: function (data) {
         var features = [];
+        var feature;
+        var geomwkt;
+        var parser;
         if (data.length) {
           $.each(data, function (idx, loc) {
-            if ($('input[name="location_list\[\]"][value="' + loc.id + '"]').length === 0) {
+            if ($('input[name="location_list[]"][value="' + loc.id + '"]').length === 0) {
               $('#location_list\\:sublist').append('<li class="ui-widget-content ui-corner-all"><span class="ind-delete-icon">' +
                 '&nbsp;</span>' + loc.name + '<input type="hidden" name="location_list[]" value="' + loc.id + '"/></li>');
             }
             if (loc.boundary_geom || loc.centroid_geom) {
-              var geomwkt = loc.boundary_geom || loc.centroid_geom,
-                parser = new OpenLayers.Format.WKT();
+              geomwkt = loc.boundary_geom || loc.centroid_geom;
+              parser = new OpenLayers.Format.WKT();
               if (indiciaData.mapdiv.map.projection.getCode() !== indiciaData.mapdiv.indiciaProjection.getCode()) {
                 geomwkt = parser.read(geomwkt).geometry.transform(indiciaData.mapdiv.indiciaProjection, indiciaData.mapdiv.map.projection).toString();
               }
-              var feature = parser.read(geomwkt);
+              feature = parser.read(geomwkt);
               feature.attributes.type = 'boundary';
               feature.attributes.id = loc.id;
               features.push(feature);
@@ -870,7 +874,7 @@ jQuery(document).ready(function ($) {
       // a location_type_id selected
       $('#location_list\\:box').show();
       $('input#location_list\\:search\\:name').setExtraParams({
-        view: "list",
+        view: 'list',
         location_type_id: $('#site-type').val()
       });
       $('input#location_list\\:search\\:name').unsetExtraParams('created_by_id');
@@ -884,7 +888,7 @@ jQuery(document).ready(function ($) {
     indiciaData.mapdiv.map.updateSize();
   }
 
-  $('#site-type').change(function() {
+  $('#site-type').change(function () {
     changeSiteType();
   });
 
@@ -896,8 +900,7 @@ jQuery(document).ready(function ($) {
     if (surveys.length === 0) {
       // no websites picked, so can pick any survey
       $('#filter-input_forms li').show();
-    }
-    else if ($('#filter-surveys-mode').val() === 'in') {
+    } else if ($('#filter-surveys-mode').val() === 'in') {
       // list only the forms that can be picked
       $('#filter-input_forms li').filter(surveys.join(',')).removeClass('survey-hide');
       $('#filter-input_forms li').not(surveys.join(',')).addClass('survey-hide');
@@ -920,8 +923,7 @@ jQuery(document).ready(function ($) {
     if (websites.length === 0) {
       // no websites picked, so can pick any survey
       lis.removeClass('website-hide');
-    }
-    else if ($('#filter-websites-mode').val() === 'in') {
+    } else if ($('#filter-websites-mode').val() === 'in') {
       // list only the surveys that can be picked
       lis.filter(websites.join(',')).removeClass('website-hide');
       lis.not(websites.join(',')).addClass('website-hide');
@@ -938,11 +940,11 @@ jQuery(document).ready(function ($) {
 
   $('#filter-surveys :input').change(updateSurveySelection);
 
-  $('#my_groups').click(function() {
+  $('#my_groups').click(function () {
     $.each(indiciaData.myGroups, function(idx, group) {
       if ($('#taxon_group_list\\:sublist input[value=' + group[0] + ']').length === 0) {
         $('#taxon_group_list\\:sublist').append('<li><span class="ind-delete-icon"> </span>' + group[1] +
-            '<input type="hidden" value="' + group[0] + '" name="taxon_group_list[]"></li>');
+          '<input type="hidden" value="' + group[0] + '" name="taxon_group_list[]"></li>');
       }
     });
   });
@@ -959,14 +961,17 @@ jQuery(document).ready(function ($) {
   // Hook the above event handler to the select filter dropdown.
   $('#select-filter').change(filterChange);
 
+  /**
+   * If a context is loaded, need to limit the filter to the records in the context
+   */
   function applyContextLimits() {
     var context;
-    // if a context is loaded, need to limit the filter to the records in the context
+    // apply the selected context
     if ($('#context-filter').length) {
       context = indiciaData.filterContextDefs[$('#context-filter').val()];
       $.each(context, function (param, value) {
         if (value !== '') {
-          indiciaData.filter.def[param+'_context']=value;
+          indiciaData.filter.def[param + '_context'] = value;
         }
       });
     }
@@ -980,11 +985,9 @@ jQuery(document).ready(function ($) {
     });
   };
 
-  applyFilterToReports = function(reload) {
+  applyFilterToReports = function (doReload) {
     var filterDef;
-    if (typeof reload === 'undefined') {
-      reload = true;
-    }
+    var reload = (typeof doReload === 'undefined') ? true : doReload;
     applyContextLimits();
     refreshFilters(); // make sure upto date.
     filterDef = $.extend({}, indiciaData.filter.def);
@@ -1006,9 +1009,15 @@ jQuery(document).ready(function ($) {
           if (typeof grid[0].settings.origParams === 'undefined') {
             grid[0].settings.origParams = $.extend({}, grid[0].settings.extraParams);
           }
+          // reset context filter since we are applying a new one
+          $.each(grid[0].settings.origParams, function (key) {
+            if (key.match(/_context$/)) {
+              delete grid[0].settings.origParams[key];
+            }
+          });
           // merge in the filter
           grid[0].settings.extraParams = $.extend({}, grid[0].settings.origParams, filterDef);
-          if ($('#filter\\:sharing').length>0) {
+          if ($('#filter\\:sharing').length > 0) {
             grid[0].settings.extraParams.sharing = codeToSharingTerm($('#filter\\:sharing').val()).replace(' ', '_');
           }
           if (reload) {
@@ -1174,7 +1183,7 @@ jQuery(document).ready(function ($) {
           dataType: 'json',
           url: indiciaData.read.url + 'index.php/services/data/filter/' + id,
           data: 'mode=json&view=list&auth_token=' + indiciaData.read.auth_token +
-            '&nonce=' + indiciaData.read.nonce + '&callback=?',
+          '&nonce=' + indiciaData.read.nonce + '&callback=?',
           success: filterLoaded
         });
       }
@@ -1232,7 +1241,7 @@ jQuery(document).ready(function ($) {
         attrName = $(ctrl).attr('name');
         // Special case for dates where the filter value name is prefixed with the date type.
         if (attrName && attrName.substring(0, 5) === 'date_' && attrName !== 'date_type'
-            && typeof indiciaData.filter.def.date_type !== 'undefined' && indiciaData.filter.def.date_type !== 'recorded') {
+          && typeof indiciaData.filter.def.date_type !== 'undefined' && indiciaData.filter.def.date_type !== 'recorded') {
           attrName = indiciaData.filter.def.date_type + '_' + attrName;
         }
         $(ctrl).val(indiciaData.filter.def[attrName]);
@@ -1495,7 +1504,7 @@ jQuery(document).ready(function ($) {
           if ($('#select-filter').val() === '') {
             // this is a new filter, so add to the select list
             $('#select-filter').append('<option value="' + indiciaData.filter.id + '" selected="selected">' +
-                indiciaData.filter.title + '</option>');
+              indiciaData.filter.title + '</option>');
           }
           if (indiciaData.redirectOnSuccess !== '') {
             window.location = indiciaData.redirectOnSuccess;
@@ -1508,9 +1517,9 @@ jQuery(document).ready(function ($) {
                 if (confirm(indiciaData.lang.FilterExistsOverwrite)) {
                   // need to load the existing filter to get it's ID, then resave
                   $.getJSON(indiciaData.read.url + 'index.php/services/data/filter?created_by_id=' +
-                      indiciaData.user_id + '&title=' + encodeURIComponent($('#filter\\:title').val()) + '&sharing=' +
-                      indiciaData.filterSharing + '&mode=json&view=list&auth_token=' + indiciaData.read.auth_token +
-                      '&nonce=' + indiciaData.read.nonce + '&callback=?', function (response) {
+                    indiciaData.user_id + '&title=' + encodeURIComponent($('#filter\\:title').val()) + '&sharing=' +
+                    indiciaData.filterSharing + '&mode=json&view=list&auth_token=' + indiciaData.read.auth_token +
+                    '&nonce=' + indiciaData.read.nonce + '&callback=?', function (response) {
                     indiciaData.filter.id = response[0].id;
                     indiciaData.filter.title = $('#filter\\:title').val();
                     saveFilter();
