@@ -1009,6 +1009,12 @@ jQuery(document).ready(function ($) {
           if (typeof grid[0].settings.origParams === 'undefined') {
             grid[0].settings.origParams = $.extend({}, grid[0].settings.extraParams);
           }
+          // reset context filter since we are applying a new one
+          $.each(grid[0].settings.origParams, function (key) {
+            if (key.match(/_context$/)) {
+              delete grid[0].settings.origParams[key];
+            }
+          });
           // merge in the filter
           grid[0].settings.extraParams = $.extend({}, grid[0].settings.origParams, filterDef);
           if ($('#filter\\:sharing').length > 0) {
