@@ -1002,29 +1002,33 @@ jQuery(document).ready(function ($) {
     if (indiciaData.reports) {
       // apply the filter to any reports on the page
       $.each(indiciaData.reports, function (i, group) {
-        $.each(group, function (j, grid) {
+        $.each(group, function () {
+          var grid = this[0];
           // reset to first page
-          grid[0].settings.offset=0;
-          // store a copy of the original params before any reset, so we can revert.
-          if (typeof grid[0].settings.origParams === 'undefined') {
-            grid[0].settings.origParams = $.extend({}, grid[0].settings.extraParams);
+          grid.settings.offset = 0;
+          if (typeof grid.settings.suppliedParams === 'undefined') {
+            // First time - store a copy of the supplied default params before any reset, so we can revert.
+            grid.settings.suppliedParams = $.extend({}, grid.settings.extraParams);
+            // Remove context filter from the params since we always apply a new one afresh each time the filter changes
+            $.each(grid.settings.suppliedParams, function (key) {
+              if (key.match(/_context$/)) {
+                delete grid.settings.suppliedParams[key];
+              }
+            });
+          } else {
+            // Subsequently - reset the default parameters for the grid
+            grid.settings.extraParams = $.extend({}, grid.settings.suppliedParams);
           }
-          // reset context filter since we are applying a new one
-          $.each(grid[0].settings.origParams, function (key) {
-            if (key.match(/_context$/)) {
-              delete grid[0].settings.origParams[key];
-            }
-          });
           // merge in the filter
-          grid[0].settings.extraParams = $.extend({}, grid[0].settings.origParams, filterDef);
+          grid.settings.extraParams = $.extend(grid.settings.extraParams, filterDef);
           if ($('#filter\\:sharing').length > 0) {
-            grid[0].settings.extraParams.sharing = codeToSharingTerm($('#filter\\:sharing').val()).replace(' ', '_');
+            grid.settings.extraParams.sharing = codeToSharingTerm($('#filter\\:sharing').val()).replace(' ', '_');
           }
           if (reload) {
             // reload the report grid
-            grid.ajaxload();
-            if (grid[0].settings.linkFilterToMap && typeof indiciaData.mapdiv !== 'undefined') {
-              grid.mapRecords(grid[0].settings.mapDataSource, grid[0].settings.mapDataSourceLoRes);
+            this.ajaxload();
+            if (grid.settings.linkFilterToMap && typeof indiciaData.mapdiv !== 'undefined') {
+              this.mapRecords(grid.settings.mapDataSource, grid.settings.mapDataSourceLoRes);
             }
           }
         });
@@ -1049,14 +1053,6 @@ jQuery(document).ready(function ($) {
     indiciaData.filter.id = null;
     $('#filter\\:title').val('');
     $('#select-filter').val('');
-    $.each(indiciaData.reports, function(i, group) {
-      $.each(group, function (j, grid) {
-        // revert any stored original params for the grid.
-        if (typeof grid[0].settings.origParams !== 'undefined') {
-          grid[0].settings.extraParams = $.extend({}, grid[0].settings.origParams);
-        }
-      });
-    });
     applyFilterToReports();
     // clear map edit layer
     clearSites();
