@@ -1030,7 +1030,19 @@ jQuery(document).ready(function ($) {
             // Subsequently - reset the default parameters for the grid
             grid.settings.extraParams = $.extend({}, grid.settings.suppliedParams);
           }
-          // merge in the filter
+          // merge in the filter. Supplied filter overrides other location settings (since indexed_location_list and
+          // location_list are logically the same filter setting.
+          if ((typeof grid.settings.extraParams.indexed_location_list !== 'undefined' ||
+              typeof grid.settings.extraParams.indexed_location_id !== 'undefined') &&
+              typeof filterDef.location_list !== 'undefined') {
+            delete grid.settings.extraParams.indexed_location_list;
+            delete grid.settings.extraParams.indexed_location_id;
+          } else if ((typeof grid.settings.extraParams.location_list !== 'undefined' ||
+              typeof grid.settings.extraParams.location_id !== 'undefined') &&
+              typeof filterDef.indexed_location_list !== 'undefined') {
+            delete grid.settings.extraParams.location_list;
+            delete grid.settings.extraParams.location_id;
+          }
           grid.settings.extraParams = $.extend(grid.settings.extraParams, filterDef);
           if ($('#filter\\:sharing').length > 0) {
             grid.settings.extraParams.sharing = codeToSharingTerm($('#filter\\:sharing').val()).replace(' ', '_');
