@@ -985,6 +985,17 @@ jQuery(document).ready(function ($) {
     });
   };
 
+  function codeToSharingTerm(code) {
+    switch (code) {
+      case 'R': return 'reporting';
+      case 'V': return 'verification';
+      case 'P': return 'peer review';
+      case 'D': return 'data flow';
+      case 'M': return 'moderation';
+      default: return code;
+    }
+  }
+
   applyFilterToReports = function (doReload) {
     var filterDef;
     var reload = (typeof doReload === 'undefined') ? true : doReload;
@@ -1185,17 +1196,6 @@ jQuery(document).ready(function ($) {
       }
     }
   };
-
-  function codeToSharingTerm(code) {
-    switch (code) {
-      case 'R': return 'reporting';
-      case 'V': return 'verification';
-      case 'P': return 'peer review';
-      case 'D': return 'data flow';
-      case 'M': return 'moderation';
-      default: return code;
-    }
-  }
 
   loadFilterUser = function (fu, getParams) {
     indiciaData.filter.def = $.extend(JSON.parse(fu.filter_definition), getParams);
