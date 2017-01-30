@@ -1097,15 +1097,15 @@
 
       // Show a picker for the visible columns
       $(div).find('.col-picker').click(function () {
-        var checked,
-            colPickerHtml = '<div class="col-picker-options-container"><p>Choose which columns to display:</p><ul>',
-            visibleCols = $(div).find('thead tr:first-child th:visible').length,
-            hiddenCols = $(div).find('thead tr:first-child th:not(:visible)').length,
-            checked = visibleCols > 0 ? 'checked="checked"' : '',
-            opacity = visibleCols > 0 && hiddenCols > 0 ? ' style="opacity: 0.4"' : '';
-        colPickerHtml += '<li id="col-checkbox-all-container" ' + opacity + '><input id="col-checkbox-all" type="checkbox" ' + checked + '/>' +
+        var visibleCols = $(div).find('thead tr:first-child th:visible').length;
+        var hiddenCols = $(div).find('thead tr:first-child th:not(:visible)').length;
+        var checked = visibleCols > 0 ? 'checked="checked"' : '';
+        var opacity = visibleCols > 0 && hiddenCols > 0 ? ' style="opacity: 0.4"' : '';
+        var colPickerHtml = '<div class="col-picker-options-container"><p>Choose which columns to display:</p>';
+        colPickerHtml += '<input type="hidden" class="div-id-holder" data-divid="' + div.id + '" />';
+        colPickerHtml += '<ul><li id="col-checkbox-all-container" ' + opacity + '><input id="col-checkbox-all" type="checkbox" ' + checked + '/>' +
             '<label for="col-checkbox-all">Check/uncheck all</label></li>';
-        $.each($(div).find('thead tr:first-child th'), function(idx) {
+        $.each($(div).find('thead tr:first-child th'), function (idx) {
           if ($(this).text() !== '') {
             checked = $(this).is(':visible') ? ' checked="checked"' : '';
             colPickerHtml += '<li><input id="show-col-' + idx + '" class="col-checkbox" type="checkbox" ' + checked +
@@ -1113,7 +1113,7 @@
           }
         });
         colPickerHtml += '</ul></div>';
-        colPickerHtml += '<input type=\"button\" class=\"apply-col-picker\" value=\"Apply\">';
+        colPickerHtml += '<input type="button" class="apply-col-picker" value="Apply">';
         $.fancybox(colPickerHtml);
       });
 
@@ -1201,11 +1201,13 @@
 
       // Col picker event handlers
 
-      indiciaFns.on('click', '.apply-col-picker', {}, function() {
-        var colIdx, el;
-        $.each($('.col-checkbox'), function() {
-          colIdx = parseInt(this.id.replace('show-col-', '')) + 1;
-          el = $(div).find('th:nth-child(' + colIdx + '),td:nth-child(' + colIdx + ')');
+      indiciaFns.on('click', '.apply-col-picker', {}, function (e) {
+        var colIdx;
+        var el;
+        var table = $('#' + $(e.currentTarget).parent().find('.div-id-holder').attr('data-divid'));
+        $.each($('.col-checkbox'), function () {
+          colIdx = parseInt(this.id.replace('show-col-', ''), 10) + 1;
+          el = $(table).find('th:nth-child(' + colIdx + '),td:nth-child(' + colIdx + ')');
           if (this.checked) {
             el.show();
           } else {
@@ -1215,7 +1217,7 @@
         saveColPickerToCookie();
         $.fancybox.close();
       });
-      indiciaFns.on('change', '#col-checkbox-all', {}, function() {
+      indiciaFns.on('change', '#col-checkbox-all', {}, function () {
         $('#col-checkbox-all-container').css('opacity', 1);
         if (this.checked) {
           $('.col-checkbox').attr('checked', 'checked');
@@ -1223,12 +1225,12 @@
           $('.col-checkbox').removeAttr('checked');
         }
       });
-      indiciaFns.on('change', '.col-checkbox', {}, function() {
+      indiciaFns.on('change', '.col-checkbox', {}, function () {
         // set the state of the check all button when the individual checkboxes change
-        var checkedCols = $('.col-checkbox:checked').length,
-          uncheckedCols = $('.col-checkbox:not(:checked)').length,
-          checked = checkedCols > 0,
-          opacity = checkedCols === 0 || uncheckedCols === 0 ? 1 : 0.4;
+        var checkedCols = $('.col-checkbox:checked').length;
+        var uncheckedCols = $('.col-checkbox:not(:checked)').length;
+        var checked = checkedCols > 0;
+        var opacity = checkedCols === 0 || uncheckedCols === 0 ? 1 : 0.4;
         if (checked) {
           $('#col-checkbox-all').attr('checked', 'checked');
         } else {
