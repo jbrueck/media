@@ -101,7 +101,7 @@ jQuery(document).ready(function ($) {
       // website checkbox, plus linked survey and form checkboxes.
       $.each(typeIds, function () {
         allCheckboxesMatchingIds = $.merge(allCheckboxesMatchingIds,
-          $('#check-' + type + '-' + this + ',.vis-' + type + '-' + this + ' input'));
+          $('#check-website-' + type + '-' + this + ',.vis-' + type + '-' + this + ' input'));
       });
       if (context[type + '_list_op'] === 'not in') {
         $(allRelevantCheckboxes).removeAttr('disabled');
@@ -670,23 +670,21 @@ jQuery(document).ready(function ($) {
       getDescription: function () {
         var r = [];
         var list = [];
-        if (indiciaData.filter.def.website_list) {
-          $.each(indiciaData.filter.def.website_list.split(','), function (idx, id) {
-            list.push($('#check-' + id).next('label').html());
-          });
-          r.push((indiciaData.filter.def.website_list_op === 'not in' ? 'Exclude ' : '') + list.join(', '));
-        }
-        if (indiciaData.filter.def.survey_list) {
-          $.each(indiciaData.filter.def.survey_list.split(','), function (idx, id) {
-            list.push($('#check-survey-' + id).next('label').html());
-          });
-          r.push((indiciaData.filter.def.survey_list_op === 'not in' ? 'Exclude ' : '') + list.join(', '));
-        }
         if (indiciaData.filter.def.input_form_list) {
           $.each(indiciaData.filter.def.input_form_list.split(','), function (idx, id) {
             list.push($('#check-input_form-' + id).next('label').html());
           });
           r.push((indiciaData.filter.def.input_form_list_op === 'not in' ? 'Exclude ' : '') + list.join(', '));
+        } else if (indiciaData.filter.def.survey_list) {
+          $.each(indiciaData.filter.def.survey_list.split(','), function (idx, id) {
+            list.push($('#check-survey-' + id).next('label').html());
+          });
+          r.push((indiciaData.filter.def.survey_list_op === 'not in' ? 'Exclude ' : '') + list.join(', '));
+        } else if (indiciaData.filter.def.website_list) {
+          $.each(indiciaData.filter.def.website_list.split(','), function (idx, id) {
+            list.push($('#check-website-' + id).next('label').html());
+          });
+          r.push((indiciaData.filter.def.website_list_op === 'not in' ? 'Exclude ' : '') + list.join(', '));
         }
         return r.join('<br/>');
       },
@@ -698,7 +696,7 @@ jQuery(document).ready(function ($) {
         if (indiciaData.filter.def.website_list) {
           $('#website-list-checklist input').attr('checked', false);
           $.each(indiciaData.filter.def.website_list.split(','), function (idx, id) {
-            $('#check-' + id).attr('checked', true);
+            $('#check-website-' + id).attr('checked', true);
           });
           updateWebsiteSelection();
         }
@@ -985,6 +983,17 @@ jQuery(document).ready(function ($) {
     });
   };
 
+  function codeToSharingTerm(code) {
+    switch (code) {
+      case 'R': return 'reporting';
+      case 'V': return 'verification';
+      case 'P': return 'peer review';
+      case 'D': return 'data flow';
+      case 'M': return 'moderation';
+      default: return code;
+    }
+  }
+
   applyFilterToReports = function (doReload) {
     var filterDef;
     var reload = (typeof doReload === 'undefined') ? true : doReload;
@@ -1019,7 +1028,19 @@ jQuery(document).ready(function ($) {
             // Subsequently - reset the default parameters for the grid
             grid.settings.extraParams = $.extend({}, grid.settings.suppliedParams);
           }
-          // merge in the filter
+          // merge in the filter. Supplied filter overrides other location settings (since indexed_location_list and
+          // location_list are logically the same filter setting.
+          if ((typeof grid.settings.extraParams.indexed_location_list !== 'undefined' ||
+              typeof grid.settings.extraParams.indexed_location_id !== 'undefined') &&
+              typeof filterDef.location_list !== 'undefined') {
+            delete grid.settings.extraParams.indexed_location_list;
+            delete grid.settings.extraParams.indexed_location_id;
+          } else if ((typeof grid.settings.extraParams.location_list !== 'undefined' ||
+              typeof grid.settings.extraParams.location_id !== 'undefined') &&
+              typeof filterDef.indexed_location_list !== 'undefined') {
+            delete grid.settings.extraParams.location_list;
+            delete grid.settings.extraParams.location_id;
+          }
           grid.settings.extraParams = $.extend(grid.settings.extraParams, filterDef);
           if ($('#filter\\:sharing').length > 0) {
             grid.settings.extraParams.sharing = codeToSharingTerm($('#filter\\:sharing').val()).replace(' ', '_');
@@ -1186,17 +1207,6 @@ jQuery(document).ready(function ($) {
     }
   };
 
-  function codeToSharingTerm(code) {
-    switch (code) {
-      case 'R': return 'reporting';
-      case 'V': return 'verification';
-      case 'P': return 'peer review';
-      case 'D': return 'data flow';
-      case 'M': return 'moderation';
-      default: return code;
-    }
-  }
-
   loadFilterUser = function (fu, getParams) {
     indiciaData.filter.def = $.extend(JSON.parse(fu.filter_definition), getParams);
     indiciaData.filter.id = fu.filter_id;
@@ -1244,8 +1254,22 @@ jQuery(document).ready(function ($) {
       }
     );
     $.each(pane.find(':checkbox'), function (idx, ctrl) {
-      $(ctrl).attr('checked', typeof indiciaData.filter.def[$(ctrl).attr('name')] !== 'undefined'
-        && indiciaData.filter.def[$(ctrl).attr('name')] === $(ctrl).val());
+      var tokens;
+      var type;
+      var ids;
+      if (ctrl.id.match(/^check-/)) {
+        // source checkboxes map to a list of IDs
+        tokens = ctrl.id.split('-');
+        type = tokens[0];
+        if (typeof indiciaData.filter.def[type + '_list'] !== 'undefined') {
+          ids = indiciaData.filter.def[type + '_list'].split(',');
+          $(ctrl).attr('checked', $.inArray($(ctrl).val(), ids) > -1);
+        }
+      } else {
+        // other checkboxes are simple on/off flags for filter parameters.
+        $(ctrl).attr('checked', typeof indiciaData.filter.def[$(ctrl).attr('name')] !== 'undefined'
+          && indiciaData.filter.def[$(ctrl).attr('name')] === $(ctrl).val());
+      }
     });
   }
   $('.fb-filter-link').fancybox({
@@ -1259,9 +1283,8 @@ jQuery(document).ready(function ($) {
       pane.find('.fb-apply').data('clicked', false);
       updateControlValuesToReflectCurrentFilter(pane);
     },
-    afterShow: function() {
+    afterShow: function () {
       var pane = $(this.href.replace(/^[^#]+/, ''));
-      var paneName = $(pane).attr('id').replace('controls-filter_', '');
       var element;
       $('.context-instruct').hide();
       if (pane[0].id === 'controls-filter_where') {
@@ -1289,8 +1312,9 @@ jQuery(document).ready(function ($) {
     },
     afterClose: function () {
       var pane = $(this.href.replace(/^[^#]+/, ''));
+      var element;
       if (pane[0].id === 'controls-filter_where' && typeof indiciaData.linkToMapDiv !== 'undefined') {
-        var element = $('#' + indiciaData.linkToMapDiv);
+        element = $('#' + indiciaData.linkToMapDiv);
         $(indiciaData.mapdiv).css('width', indiciaData.origMapSize.width);
         $(indiciaData.mapdiv).css('height', indiciaData.origMapSize.height);
         $(indiciaData.origMapParent).append(element);
