@@ -2225,13 +2225,23 @@ var destroyAllFeatures;
               {'displayClass': align + 'olControlModifyFeature', 'title':div.settings.hintModifyFeature});
           toolbarControls.push(ctrlObj);
         } else if (ctrl=='graticule') {
-          ctrlObj = new OpenLayers.Control.IndiciaGraticule({projection: div.settings.graticuleProjection, bounds: div.settings.graticuleBounds, 
-              intervals: div.settings.graticuleIntervals, intervalColours: div.settings.graticuleIntervalColours});
-          div.map.addControl(ctrlObj);
-          if ($.inArray(ctrl, div.settings.activatedStandardControls)===-1) {
-            // if this control is not active, also need to reflect this in the layer.
-            ctrlObj.gratLayer.setVisibility(false);
-          }
+          $.each($('#' + div.settings.srefSystemId + ' option'), function() {
+            var graticuleDef;
+            if (typeof div.settings.graticules[$(this).val()] !== 'undefined') {
+              graticuleDef = div.settings.graticules[$(this).val()];
+              ctrlObj = new OpenLayers.Control.IndiciaGraticule({
+                projection: 'EPSG:' + graticuleDef.projection,
+                bounds: graticuleDef.bounds,
+                intervals: graticuleDef.intervals,
+                intervalColours: div.settings.graticuleIntervalColours
+              });
+              div.map.addControl(ctrlObj);
+              if ($.inArray(ctrl, div.settings.activatedStandardControls)===-1) {
+                // if this control is not active, also need to reflect this in the layer.
+                ctrlObj.gratLayer.setVisibility(false);
+              }
+            }
+          });
         } else if (ctrl==="fullscreen") {
           var fullscreenEnabled = document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled,
           fullscreenchange=function () {
@@ -2454,9 +2464,23 @@ jQuery.fn.indiciaMapPanel.defaults = {
     hoverPointUnit: '%',
     pointerEvents: 'visiblePainted',
     cursor: '',
-    graticuleProjection: 'EPSG:27700',
-    graticuleBounds: [0,0,700000,1300000],
-    graticuleIntervals: [100000,10000,1000,100],
+    graticules: {
+      'OSGB': {
+        projection: 27700,
+        bounds: [0, 0, 700000, 1300000],
+        intervals: [100000, 10000, 1000, 100]
+      },
+      'OSIE': {
+        projection: 29901,
+        bounds: [0, 0, 400000, 500000],
+        intervals: [100000, 10000, 1000, 100]
+      },
+      'utm30ed50': {
+        projection: 23030,
+        bounds: [500000, 5400000, 600000, 5550000],
+        intervals: [100000, 10000, 1000, 100]
+      }
+    },
     /* Intention is to also implement hoveredSrefPrecisionMin and Max for a square size shown when you hover, and also a
      * displayedSrefPrecisionMin and Mx for a square size output into a list box as you hover. Both of these could either be
      * absolute numbers, or a number preceded by - or + to be relative to the default square size for this zoom level. */
