@@ -594,6 +594,8 @@ var destroyAllFeatures;
         $('#' + div.settings.helpDiv).html(helptext.join(' '));
       }
       $('#' + div.settings.helpDiv).show();
+      // Just in case the change shifted the map
+      div.map.updateSize();
     }
 
     /**
