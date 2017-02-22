@@ -2235,7 +2235,8 @@ var destroyAllFeatures;
                 projection: 'EPSG:' + graticuleDef.projection,
                 bounds: graticuleDef.bounds,
                 intervals: graticuleDef.intervals,
-                intervalColours: div.settings.graticuleIntervalColours
+                intervalColours: div.settings.graticuleIntervalColours,
+                layerName: 'Map grid for ' + $(this).html()
               });
               div.map.addControl(ctrlObj);
               if ($.inArray(ctrl, div.settings.activatedStandardControls)===-1) {
