@@ -1896,17 +1896,18 @@ var destroyAllFeatures;
         baseLayerName = $.cookie('mapbase');
       }
 
-      // Missing cookies result in null variables
-      if (zoom === null) {
+      // Missing cookies result in null or undefined variables
+      if (typeof zoom === 'undefined' || zoom === null) {
         zoom = this.settings.initial_zoom;
       }
-      if (center.lon !== null && center.lat !== null) {
-        center = new OpenLayers.LonLat(center.lon, center.lat);   
-      } else {
+      if (typeof center.lat === 'undefined' || center.lat === null
+          || typeof center.long === 'undefined' || center.long === null) {
         center = new OpenLayers.LonLat(this.settings.initial_long, this.settings.initial_lat);
         if (div.map.displayProjection.getCode()!=div.map.projection.getCode()) {
           center.transform(div.map.displayProjection, div.map.projection);
         }
+      } else {
+        center = new OpenLayers.LonLat(center.lon, center.lat);
       }
       div.map.setCenter(center, zoom);
 
