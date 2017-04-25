@@ -1079,6 +1079,8 @@ jQuery(document).ready(function ($) {
     clearSites();
     $('#site-type').val('');
     $('#location_list\\:box').hide();
+    // clear any sublists
+    $('.ind-sub-list li').remove();
     updateFilterDescriptions();
     $('#filter-build').html(indiciaData.lang.CreateAFilter);
     $('#filter-reset').addClass('disabled');
