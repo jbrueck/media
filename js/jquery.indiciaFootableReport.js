@@ -95,7 +95,8 @@
       }
       else {
         // This column is visible so ensure it appears in the filter.
-        $filterCell.css('display', 'auto');
+        $filterCell.css('display', '');
+        $filterCell.addClass('footable-visible');
       }
     });
     $table.find('thead tr').after($filterRow);
