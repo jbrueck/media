@@ -1303,6 +1303,8 @@ jQuery(document).ready(function ($) {
           $('#filter-map-container').append(element);
           indiciaData.mapdiv.map.updateSize();
           indiciaData.mapdiv.settings.drawObjectType = 'queryPolygon';
+        } else {
+          indiciaData.mapdiv.map.updateSize();
         }
       }
       // these auto-disable on form submission
