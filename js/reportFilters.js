@@ -1079,6 +1079,8 @@ jQuery(document).ready(function ($) {
     clearSites();
     $('#site-type').val('');
     $('#location_list\\:box').hide();
+    // clear any sublists
+    $('.ind-sub-list li').remove();
     updateFilterDescriptions();
     $('#filter-build').html(indiciaData.lang.CreateAFilter);
     $('#filter-reset').addClass('disabled');
@@ -1301,6 +1303,8 @@ jQuery(document).ready(function ($) {
           $('#filter-map-container').append(element);
           indiciaData.mapdiv.map.updateSize();
           indiciaData.mapdiv.settings.drawObjectType = 'queryPolygon';
+        } else {
+          indiciaData.mapdiv.map.updateSize();
         }
       }
       // these auto-disable on form submission
@@ -1357,11 +1361,12 @@ jQuery(document).ready(function ($) {
   });
 
   $('#filter-delete').click(function (e) {
+    var filter;
     if ($(e.currentTarget).hasClass('disabled')) {
       return;
     }
     if (confirm(indiciaData.lang.ConfirmFilterDelete.replace('{title}', indiciaData.filter.title))) {
-      var filter = {
+      filter = {
         id: indiciaData.filter.id,
         website_id: indiciaData.website_id,
         user_id: indiciaData.user_id,

@@ -656,7 +656,10 @@ $.extend($.validator, {
 					label = label.hide().show().wrap("<" + this.settings.wrapper + "/>").parent();
 				}
 				if ( !this.labelContainer.append(label).length ) {
-					elementBefore = $(element).next().hasClass('deh-required') ? $(element).next() : element;
+					elementBefore = element;
+					while ($(elementBefore).next().is('.deh-required,.locked-icon,.unlocked-icon,#imp-geom,#imp-sref-system')) {
+						elementBefore = $(elementBefore).next();
+					}
 					this.settings.errorPlacement
 						? this.settings.errorPlacement(label, $(element) )
 						: label.insertAfter(elementBefore);

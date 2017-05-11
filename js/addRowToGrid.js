@@ -896,7 +896,7 @@ function getAutocompleteSettings(extraParams, gridId) {
     selectMode: indiciaData.speciesGrid[gridId].selectMode,
     matchContains: indiciaData.speciesGrid[gridId].matchContains,
     parse: function(data) {
-      var results = [], done={};
+      var results = [], done={}, display;
       jQuery.each(data, function(i, item) {
         // common name can be supplied in a field called common, or default_common_name
         if (indiciaData.speciesGrid[gridId].cacheLookup) {
@@ -904,15 +904,17 @@ function getAutocompleteSettings(extraParams, gridId) {
         } else {
           item.searchterm = item.taxon;
         }
-        // note we track the distinct ttl_id and display term, so we don't output duplicates
-        if (!done.hasOwnProperty(item.taxon_meaning_id + '_' + item.display)) {
+        // note we track the distinct meaning id and display term, so we don't output duplicates
+        // display field does not seem to be available, though there may be some form somewhere which uses it.
+        display = (typeof item.display != 'undefined' ? item.display : item.taxon).replace(/\W+/g, "");
+        if (!done.hasOwnProperty(item.taxon_meaning_id + '_' + display)) {
           results[results.length] =
           {
             data: item,
             result: item.searchterm,
             value: item.id
           };
-          done[item.taxon_meaning_id + '_' + item.display] = true;
+          done[item.taxon_meaning_id + '_' + display] = true;
         }
       });
       return results;
