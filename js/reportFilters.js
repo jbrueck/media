@@ -1361,11 +1361,12 @@ jQuery(document).ready(function ($) {
   });
 
   $('#filter-delete').click(function (e) {
+    var filter;
     if ($(e.currentTarget).hasClass('disabled')) {
       return;
     }
     if (confirm(indiciaData.lang.ConfirmFilterDelete.replace('{title}', indiciaData.filter.title))) {
-      var filter = {
+      filter = {
         id: indiciaData.filter.id,
         website_id: indiciaData.website_id,
         user_id: indiciaData.user_id,
