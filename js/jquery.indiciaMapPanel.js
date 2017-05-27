@@ -1859,15 +1859,14 @@ var destroyAllFeatures;
       });
 
       // Iterate over the preset layers, adding them to the map
-      var presetLayers=_getPresetLayers(this.settings);
-      $.each(this.settings.presetLayers, function(i, item)
-      {
+      var presetLayers = _getPresetLayers(this.settings);
+      $.each(this.settings.presetLayers, function(i, item) {
         // Check whether this is a defined layer
         if (presetLayers.hasOwnProperty(item))
         {
           var layer = presetLayers[item]();
           div.map.addLayer(layer);
-          if (typeof layer.mapObject!=='undefined') {
+          if (typeof layer.mapObject !== 'undefined') {
             layer.mapObject.setTilt(0);
           }
         } else {
@@ -1876,20 +1875,21 @@ var destroyAllFeatures;
       });
 
       // Convert indicia WMS/WFS layers into js objects
-      $.each(this.settings.indiciaWMSLayers, function(key, value)
-      {
+      $.each(this.settings.indiciaWMSLayers, function (key, value) {
         div.settings.layers.push(new OpenLayers.Layer.WMS(key, div.settings.indiciaGeoSvc + 'wms', {layers: value, transparent: true}, {singleTile: true, isBaseLayer: false, sphericalMercator: true}));
       });
-      $.each(this.settings.indiciaWFSLayers, function(key, value)
-      {
+      $.each(this.settings.indiciaWFSLayers, function (key, value) {
         div.settings.layers.push(new OpenLayers.Layer.WFS(key, div.settings.indiciaGeoSvc + 'wms', {typename: value, request: 'GetFeature'}, {sphericalMercator: true}));
       });
 
       div.map.addLayers(this.settings.layers);
 
       // Centre the map, using cookie if remembering position, otherwise default setting.
-      var zoom = null, center = {"lat":null, "lon":null}, baseLayerName = null, added;
-      if (typeof $.cookie !== 'undefined' && div.settings.rememberPos!==false) {
+      var zoom = null;
+      var center = { lat: null, lon: null };
+      var baseLayerName = null;
+      var added;
+      if (typeof $.cookie !== 'undefined' && div.settings.rememberPos !== false) {
         zoom = $.cookie('mapzoom');
         center.lon = $.cookie('maplon');
         center.lat = $.cookie('maplat');
@@ -1901,9 +1901,9 @@ var destroyAllFeatures;
         zoom = this.settings.initial_zoom;
       }
       if (typeof center.lat === 'undefined' || center.lat === null
-          || typeof center.long === 'undefined' || center.long === null) {
+          || typeof center.lon === 'undefined' || center.lon === null) {
         center = new OpenLayers.LonLat(this.settings.initial_long, this.settings.initial_lat);
-        if (div.map.displayProjection.getCode()!=div.map.projection.getCode()) {
+        if (div.map.displayProjection.getCode() !== div.map.projection.getCode()) {
           center.transform(div.map.displayProjection, div.map.projection);
         }
       } else {
@@ -1913,8 +1913,8 @@ var destroyAllFeatures;
 
       // Set the base layer using cookie if remembering
       if (baseLayerName !== null) {
-        $.each(div.map.layers, function(idx, layer) {
-          if (layer.isBaseLayer && layer.name == baseLayerName && div.map.baseLayer !== layer) {
+        $.each(div.map.layers, function (idx, layer) {
+          if (layer.isBaseLayer && layer.name === baseLayerName && div.map.baseLayer !== layer) {
             div.map.setBaseLayer(layer);
           }
         });
@@ -1923,36 +1923,36 @@ var destroyAllFeatures;
       /**
        * Public function to change selection of features on a layer.
        */
-      div.map.setSelection = function(layer, features) {
-        $.each(layer.selectedFeatures, function(idx, feature) {
-          feature.renderIntent='default';
+      div.map.setSelection = function (layer, features) {
+        $.each(layer.selectedFeatures, function (idx, feature) {
+          feature.renderIntent = 'default';
         });
         layer.selectedFeatures = features;
-        $.each(layer.selectedFeatures, function(idx, feature) {
-          feature.renderIntent='select';
+        $.each(layer.selectedFeatures, function (idx, feature) {
+          feature.renderIntent = 'select';
         });
         layer.redraw();
       };
 
       // This hack fixes an IE8 bug where it won't display Google layers when switching using the Layer Switcher.
       div.map.events.register('changebaselayer', null, function() {
-        // trigger layer redraw by changing the map size
-        div.style.height = (parseInt(div.style.height)-1) + 'px';
         // keep a local reference to the map div, so we can access it from the timeout
-        var tmp=div;
+        var tmp = div;
+        // trigger layer redraw by changing the map size
+        div.style.height = (parseInt(div.style.height, 10) - 1) + 'px';
         // after half a second, reset the map size
-        setTimeout(function() {tmp.style.height = (parseInt(tmp.style.height) + 1) + 'px';}, 500);
+        setTimeout(function () { tmp.style.height = (parseInt(tmp.style.height, 10) + 1) + 'px'; }, 500);
       });
-      
+
       if (this.settings.editLayer) {
         var editLayer;
-        //If using click for plot, there can be a zoom ghost on the page, but we don't want
-        //the ghost's style to carry over when the user clicks to create the plot as the vertex
-        //rotate handles will be the same colour as the main plot. To get round this, use the boundary
-        //colours as this will allow the vertex handles to be red.
+        // If using click for plot, there can be a zoom ghost on the page, but we don't want
+        // the ghost's style to carry over when the user clicks to create the plot as the vertex
+        // rotate handles will be the same colour as the main plot. To get round this, use the boundary
+        // colours as this will allow the vertex handles to be red.
         if (indiciaData.zoomid && !div.settings.clickForPlot) {
-          //Change the feature colour to make it a ghost when we are in add mode and zoomed into a location (as the location boundary isn't
-          //used, it is only visual)
+          // Change the feature colour to make it a ghost when we are in add mode and zoomed into a location (as the location boundary isn't
+          // used, it is only visual)
           editLayer = new OpenLayers.Layer.Vector(
               this.settings.editLayerName,
               {style: new style('ghost'), 'sphericalMercator': true, displayInLayerSwitcher: this.settings.editLayerInSwitcher}
