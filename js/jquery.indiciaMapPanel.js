@@ -1901,7 +1901,7 @@ var destroyAllFeatures;
         zoom = this.settings.initial_zoom;
       }
       if (typeof center.lat === 'undefined' || center.lat === null
-          || typeof center.long === 'undefined' || center.long === null) {
+          || typeof center.lon === 'undefined' || center.lon === null) {
         center = new OpenLayers.LonLat(this.settings.initial_long, this.settings.initial_lat);
         if (div.map.displayProjection.getCode()!=div.map.projection.getCode()) {
           center.transform(div.map.displayProjection, div.map.projection);
