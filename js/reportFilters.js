@@ -1322,7 +1322,7 @@ jQuery(document).ready(function ($) {
       $('#taxon_group_list\\:search\\:q').removeAttr('disabled');
       $('#higher_taxa_taxon_list_list\\:search\\:searchterm').removeAttr('disabled');
       $('#taxa_taxon_list_list\\:search\\:searchterm').removeAttr('disabled');
-      $('#taxon_designation_list\\:search\\:title').removeAttr('disabled');
+      $('#taxon_designation_list\\:search').removeAttr('disabled');
       $('#location_list\\:search\\:name').removeAttr('disabled');
     },
     afterClose: function () {
