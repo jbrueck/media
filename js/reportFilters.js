@@ -412,7 +412,10 @@ jQuery(document).ready(function ($) {
         }
       },
       applyFormToDefinition: function () {
-        var geoms = [], geom;
+        var geoms = [];
+        var geom;
+        var ids;
+        var names;
         delete indiciaData.filter.def.location_id;
         delete indiciaData.filter.def.indexed_location_id;
         delete indiciaData.filter.def.location_list;
@@ -430,7 +433,8 @@ jQuery(document).ready(function ($) {
             indiciaData.filter.def.remembered_location_name = $('#site-type :selected').text();
             return;
           } else if ($('input[name="location_list[]"]').length > 0) {
-            var ids = [], names = [];
+            ids = [];
+            names = [];
             $.each($('#location_list\\:sublist li'), function () {
               ids.push($(this).find('input[name="location_list[]"]').val());
               names.push($(this).text().trim());
@@ -447,9 +451,9 @@ jQuery(document).ready(function ($) {
 
         $.each(indiciaData.mapdiv.map.editLayer.features, function (i, feature) {
           // ignore features with a special purpose, e.g. the selected record when verifying
-          if (typeof feature.tag === "undefined" &&
-            (typeof feature.attributes.type === "undefined" ||
-            (feature.attributes.type !== "boundary" && feature.attributes.type !== "ghost"))) {
+          if (typeof feature.tag === 'undefined' &&
+            (typeof feature.attributes.type === 'undefined' ||
+            (feature.attributes.type !== 'boundary' && feature.attributes.type !== 'ghost'))) {
             if (feature.geometry.CLASS_NAME.indexOf('Multi') !== -1) {
               geoms = geoms.concat(feature.geometry.components);
             } else {
@@ -539,10 +543,17 @@ jQuery(document).ready(function ($) {
         }
       },
       loadFilter: function () {
-        if (typeof indiciaData.mapdiv !== "undefined") {
-          var filter = indiciaData.filter.def, map = indiciaData.mapdiv.map;
+        var filter;
+        var map;
+        var parser;
+        var feature;
+        var locationsToLoad;
+        if (typeof indiciaData.mapdiv !== 'undefined') {
+          filter = indiciaData.filter.def;
+          map = indiciaData.mapdiv.map;
           if (filter.searchArea) {
-            var parser = new OpenLayers.Format.WKT(), feature = parser.read(filter.searchArea);
+            parser = new OpenLayers.Format.WKT();
+            feature = parser.read(filter.searchArea);
             if (map.projection.getCode() !== indiciaData.mapdiv.indiciaProjection.getCode()) {
               feature.geometry.transform(indiciaData.mapdiv.indiciaProjection, map.projection);
             }
@@ -556,7 +567,7 @@ jQuery(document).ready(function ($) {
             if (filter.indexed_location_id && !filter.indexed_location_list) {
               filter.indexed_location_list = filter.indexed_location_id;
             }
-            var locationsToLoad = filter.indexed_location_list ? filter.indexed_location_list : filter.location_list;
+            locationsToLoad = filter.indexed_location_list ? filter.indexed_location_list : filter.location_list;
             loadSites(locationsToLoad);
           }
         }
@@ -756,7 +767,7 @@ jQuery(document).ready(function ($) {
   // Hook the addedFeature handler up to the draw controls on the map
   mapInitialisationHooks.push(function (mapdiv) {
     $.each(mapdiv.map.controls, function (idx, ctrl) {
-      if (ctrl.CLASS_NAME.indexOf('Control.Draw') >- 1) {
+      if (ctrl.CLASS_NAME.indexOf('Control.Draw') > -1) {
         ctrl.events.register('featureadded', ctrl, addedFeature);
       }
     });
@@ -1223,11 +1234,11 @@ jQuery(document).ready(function ($) {
     applyFilterToReports();
     $('#filter-reset').removeClass('disabled');
     $('#filter-delete').removeClass('disabled');
-    $('#active-filter-label').html('Active filter: '+fu.filter_title);
+    $('#active-filter-label').html('Active filter: ' + fu.filter_title);
     updateFilterDescriptions();
     $('#standard-params .header span.changed').hide();
     // can't delete a filter you didn't create.
-    if (fu.filter_created_by_id===indiciaData.user_id) {
+    if (fu.filter_created_by_id === indiciaData.user_id) {
       $('#filter-delete').show();
     } else {
       $('#filter-delete').hide();
@@ -1398,8 +1409,8 @@ jQuery(document).ready(function ($) {
   });
 
   // Select a named location - deactivate the drawFeature and hide modifyFeature controls.
-  $('#location_list\\:search\\:name').change(function() {
-    $.each(indiciaData.mapdiv.map.controls, function() {
+  $('#location_list\\:search\\:name').change(function () {
+    $.each(indiciaData.mapdiv.map.controls, function () {
       if (this.CLASS_NAME === 'OpenLayers.Control.DrawFeature') {
         this.deactivate();
       }
@@ -1411,62 +1422,63 @@ jQuery(document).ready(function ($) {
     // On initialisation of the map, hook event handlers to the draw feature control so we can link the modify feature
     // control visibility to it.
     $.each(div.map.controls, function() {
-      if (this.CLASS_NAME==='OpenLayers.Control.DrawFeature' || this.CLASS_NAME==='OpenLayers.Control.ModifyFeature') {
-        this.events.register('activate', '', function() {
+      if (this.CLASS_NAME === 'OpenLayers.Control.DrawFeature' || this.CLASS_NAME === 'OpenLayers.Control.ModifyFeature') {
+        this.events.register('activate', '', function () {
           $('.olControlModifyFeatureItemInactive, .olControlModifyFeatureItemActive').show();
         });
-        this.events.register('deactivate', '', function() {
+        this.events.register('deactivate', '', function () {
           $('.olControlModifyFeatureItemInactive').hide();
         });
       }
     });
   });
 
-  mapClickForSpatialRefHooks.push(function(data, mapdiv) {
+  mapClickForSpatialRefHooks.push(function (data, mapdiv) {
     // on click to set a grid square, clear any other boundary data
     mapdiv.removeAllFeatures(mapdiv.map.editLayer, 'clickPoint', true);
     clearSites();
-    $('#controls-filter_where').find(':input').not('#imp-sref,#imp-sref-system,:checkbox,[type=button],[name="location_list\[\]"]').val('');
+    $('#controls-filter_where').find(':input')
+        .not('#imp-sref,#imp-sref-system,:checkbox,[type=button],[name="location_list[]"]').val('');
   });
 
-  $('form.filter-controls').submit(function(e){
+  $('form.filter-controls').submit(function(e) {
+    var arrays = {};
+    var arrayName;
+    var pane;
     e.preventDefault();
     if (!$(e.currentTarget).valid() || $(e.currentTarget).find('.fb-apply').data('clicked')) {
       return false;
     }
     $(e.currentTarget).find('.fb-apply').data('clicked', true);
-    var arrays = {};
-    var arrayName;
     // persist each control value into the stored settings
-    $.each($(e.currentTarget).find(':input[name]'), function(idx, ctrl) {
+    $.each($(e.currentTarget).find(':input[name]'), function (idx, ctrl) {
       if (!$(ctrl).hasClass('olButton')) { // skip open layers switcher
-        if ($(ctrl).attr('type')!=='checkbox' || $(ctrl).attr('checked')) {
+        if ($(ctrl).attr('type') !== 'checkbox' || $(ctrl).attr('checked')) {
           // array control?
           if ($(ctrl).attr('name').match(/\[\]$/)) {
             // store array control data to handle later
             arrayName = $(ctrl).attr('name').substring(0, $(ctrl).attr('name').length-2);
-            if (typeof arrays[arrayName]==='undefined') {
+            if (typeof arrays[arrayName] === 'undefined') {
               arrays[arrayName] = [];
             }
             arrays[arrayName].push($(ctrl).val());
           } else {
             // normal control
-            indiciaData.filter.def[$(ctrl).attr('name')]=$(ctrl).val();
+            indiciaData.filter.def[$(ctrl).attr('name')] = $(ctrl).val();
           }
-        }
-        else {
+        } else {
           // an unchecked checkbox so clear it's value
-          indiciaData.filter.def[$(ctrl).attr('name')]='';
+          indiciaData.filter.def[$(ctrl).attr('name')] = '';
         }
       }
     });
     // convert array values to comma lists
-    $.each(arrays, function(name, arr) {
+    $.each(arrays, function (name, arr) {
       indiciaData.filter.def[name] = arr.join(',');
     });
-    var pane=e.currentTarget.parentNode.id.replace('controls-filter_', '');
+    pane = e.currentTarget.parentNode.id.replace('controls-filter_', '');
     // Does the pane have any special code for applying it's settings to the definition?
-    if (typeof paneObjList[pane].applyFormToDefinition!=='undefined') {
+    if (typeof paneObjList[pane].applyFormToDefinition !== 'undefined') {
       paneObjList[pane].applyFormToDefinition();
     }
     applyFilterToReports();
@@ -1478,12 +1490,12 @@ jQuery(document).ready(function ($) {
     if (saving) {
       return;
     }
-    if ($.trim($('#filter\\:title').val())==='') {
+    if ($.trim($('#filter\\:title').val()) === '') {
       alert('Please provide a name for your filter.');
       $('#filter\\:title').focus();
       return;
     }
-    if ($('#filters_user\\:user_id').length && $('#filters_user\\:user_id').val()==='') {
+    if ($('#filters_user\\:user_id').length && $('#filters_user\\:user_id').val() === '') {
       alert('Please fill in who this filter is for.');
       $('#filters_user\\:user_id\\:person_name').focus();
       return;
