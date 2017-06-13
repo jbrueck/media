@@ -545,39 +545,41 @@ var resetSpeciesTextOnEscape;
    */
   indiciaFns.on('click', '.add-media-link', {}, function(evt) {
     evt.preventDefault();
-    var table = evt.target.id.replace('add-media','sc') + ':occurrence_medium',
-        ctrlId='container-'+table+'-'+Math.floor((Math.random())*0x10000),
-        colspan = $($(evt.target).parent().parent()).children().length,
-        imageRow = '<tr class="image-row"><td colspan="' + colspan + '">',
-        mediaTypes = indiciaData.uploadSettings.mediaTypes;
+    var table = evt.target.id.replace('add-media','sc') + ':occurrence_medium';
+    var ctrlId='container-'+table+'-'+Math.floor((Math.random())*0x10000);
+    var colspan = $($(evt.target).parent().parent()).children().length;
+    var imageRow = '<tr class="image-row"><td colspan="' + colspan + '">';
+    var mediaTypes = indiciaData.uploadSettings.mediaTypes;
+    var settingsToClone = ['uploadScript', 'destinationFolder', 'resizeWidth', 'resizeHeight', 'resizeQuality',
+      'addBtnCaption', 'msgPhoto', 'msgFile', 'msgLink', 'msgNewImage', 'msgDelete'];
     imageRow += '<div class="file-box" id="' + ctrlId + '"></div>';
     imageRow += '</td></tr>';
     imageRow = $(imageRow);
     $($(evt.target).parent().parent()).after(imageRow);
-        var opts={
-          caption : (mediaTypes.length===1 && mediaTypes[0]==='Image:Local') ? 'Photos' : 'Files',
-          autoupload : '1',
-          msgUploadError : 'An error occurred uploading the file.',
-          msgFileTooBig : 'The image file cannot be uploaded because it is larger than the maximum file size allowed.',
-          runtimes : 'html5,flash,silverlight,html4',
-          imagewidth : '250',
-          uploadScript : indiciaData.uploadSettings.uploadScript,
-          destinationFolder : indiciaData.uploadSettings.destinationFolder,
-          jsPath : indiciaData.uploadSettings.jsPath,
-          table : table,
-          maxUploadSize : '4000000', // 4mb
-          container: ctrlId,
-          autopick: true,
-          mediaTypes: mediaTypes
-        };
-        if (typeof indiciaData.uploadSettings.resizeWidth!=='undefined') { opts.resizeWidth=indiciaData.uploadSettings.resizeWidth; }
-        if (typeof indiciaData.uploadSettings.resizeHeight!=='undefined') { opts.resizeHeight=indiciaData.uploadSettings.resizeHeight; }
-        if (typeof indiciaData.uploadSettings.resizeQuality!=='undefined') { opts.resizeQuality=indiciaData.uploadSettings.resizeQuality; }
-        if (typeof indiciaData.uploadSettings.maxFileCount!=='undefined') { opts.maxFileCount=indiciaData.uploadSettings.maxFileCount; }
-        if (typeof buttonTemplate!=='undefined') { opts.buttonTemplate=buttonTemplate; }
-        if (typeof file_boxTemplate!=='undefined') { opts.file_boxTemplate=file_boxTemplate; }
-        if (typeof file_box_initial_file_infoTemplate!=='undefined') { opts.file_box_initial_file_infoTemplate=file_box_initial_file_infoTemplate; }
-        if (typeof file_box_uploaded_imageTemplate!=='undefined') { opts.file_box_uploaded_imageTemplate=file_box_uploaded_imageTemplate; }
+    var opts={
+      caption : (mediaTypes.length===1 && mediaTypes[0]==='Image:Local') ? 'Photos' : 'Files',
+      autoupload : '1',
+      msgUploadError : 'An error occurred uploading the file.',
+      msgFileTooBig : 'The image file cannot be uploaded because it is larger than the maximum file size allowed.',
+      runtimes : 'html5,flash,silverlight,html4',
+      imagewidth : '250',
+      jsPath : indiciaData.uploadSettings.jsPath,
+      table : table,
+      maxUploadSize : '4000000', // 4mb
+      container: ctrlId,
+      autopick: true,
+      mediaTypes: mediaTypes
+    };
+    // Copy settings from indiciaData.uploadSettings
+    $.each(settingsToClone, function() {
+      if (typeof indiciaData.uploadSettings[this]!=='undefined') {
+        opts[this]=indiciaData.uploadSettings[this];
+      }
+    });
+    if (typeof buttonTemplate!=='undefined') { opts.buttonTemplate=buttonTemplate; }
+    if (typeof file_boxTemplate!=='undefined') { opts.file_boxTemplate=file_boxTemplate; }
+    if (typeof file_box_initial_file_infoTemplate!=='undefined') { opts.file_box_initial_file_infoTemplate=file_box_initial_file_infoTemplate; }
+    if (typeof file_box_uploaded_imageTemplate!=='undefined') { opts.file_box_uploaded_imageTemplate=file_box_uploaded_imageTemplate; }
     imageRow.find('div').uploader(opts);
     $(evt.target).hide();
   });
