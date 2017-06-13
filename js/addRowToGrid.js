@@ -551,7 +551,7 @@ var resetSpeciesTextOnEscape;
     var imageRow = '<tr class="image-row"><td colspan="' + colspan + '">';
     var mediaTypes = indiciaData.uploadSettings.mediaTypes;
     var settingsToClone = ['uploadScript', 'destinationFolder', 'resizeWidth', 'resizeHeight', 'resizeQuality',
-      'addBtnCaption', 'msgPhoto', 'msgFile', 'msgLink', 'msgNewImage', 'msgDelete'];
+      'caption', 'addBtnCaption', 'msgPhoto', 'msgFile', 'msgLink', 'msgNewImage', 'msgDelete'];
     imageRow += '<div class="file-box" id="' + ctrlId + '"></div>';
     imageRow += '</td></tr>';
     imageRow = $(imageRow);
