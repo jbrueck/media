@@ -83,9 +83,8 @@
           }
       );
     } else {
-      // Postcode was cleared, so remove the geom info
+      // Postcode was cleared, so remove the spatial reference info
       $srefCtrl.attr('value', '');
-      $srefSystemCtrl.attr('value', '');
     }
   };
 }(jQuery));
