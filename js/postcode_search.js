@@ -13,10 +13,36 @@
  * along with this program.  If not, see http://www.gnu.org/licenses/gpl.html.
  */
 
-var decodePostcode;
-
 (function ($) {
-  "use strict";
+  'use strict';
+
+  // Private method
+  function usePointFromPostcode(postcode, callbackFunction) {
+    $.ajax({
+      dataType: 'json',
+      url: $.fn.indiciaMapPanel.georeferenceLookupSettings.proxy,
+      data: {
+        url: 'https://maps.googleapis.com/maps/api/place/textsearch/json',
+        key: indiciaData.google_api_key,
+        query: postcode,
+        sensor: 'false'
+      },
+      success: function (data) {
+        var done = false;
+        $.each(data.results, function () {
+          if ($.inArray('postal_code', this.types) !== -1) {
+            callbackFunction(this);
+            done = true;
+            return false;
+          }
+          return true;
+        });
+        if (!done) {
+          alert('Postcode not found!');
+        }
+      }
+    });
+  }
 
   /**
   * Function to decode an entered postcode using the Google Places API
@@ -27,26 +53,26 @@ var decodePostcode;
   * geomField - Optional, the id of the control which receives the geometry (WKT).
   * addressField - Optional, the id of the control which receives the address locality information.
   */
-  decodePostcode = function(addressField) {
-    var postcode=$('#imp-postcode').val(),
-      $srefCtrl = $('#imp-sref'),
-      $srefSystemCtrl = $('#imp-sref-system');
-    if (postcode!='') {
+  indiciaFns.decodePostcode = function (addressField) {
+    var postcode = $('#imp-postcode').val();
+    var $srefCtrl = $('#imp-sref');
+    var $srefSystemCtrl = $('#imp-sref-system');
+    if (postcode !== '') {
       usePointFromPostcode(
           postcode,
-          function(place) {
-            var wkt='POINT(' + place.geometry.location.lng + ' ' + place.geometry.location.lat + ')';
-            if (addressField!=='') {
-              document.getElementById(addressField).value=place.formatted_address;
+          function (place) {
+            var wkt = 'POINT(' + place.geometry.location.lng + ' ' + place.geometry.location.lat + ')';
+            if (addressField !== '') {
+              document.getElementById(addressField).value = place.formatted_address;
             }
 
-            if (indiciaData.mapdiv!=="undefined") {
+            if (indiciaData.mapdiv !== 'undefined') {
               // Use map to convert to preferred projection
               $srefCtrl.attr('value', indiciaData.mapdiv.pointToSref(indiciaData.mapdiv, wkt, $('#imp-sref-system').attr('value'),
-                function(data) {
+                function (data) {
                   $srefCtrl.attr('value', data.sref); // SRID for WGS84 lat long
                   $srefCtrl.change();
-                }, new  OpenLayers.Projection('4326'), 8)
+                }, new OpenLayers.Projection('4326'), 8)
               );
             } else {
               // map not available for conversions, so have to use LatLong as returned projection.
@@ -62,27 +88,4 @@ var decodePostcode;
       $srefSystemCtrl.attr('value', '');
     }
   };
-
-  // Private method
-  function usePointFromPostcode(postcode, callbackFunction) {
-    $.ajax({
-        dataType: "json",
-        url: $.fn.indiciaMapPanel.georeferenceLookupSettings.proxy,
-        data: {"url":"https://maps.googleapis.com/maps/api/place/textsearch/json","key":indiciaData.google_api_key, "query":postcode, "sensor":"false"},
-        success: function(data) {
-          var done=false;
-          $.each(data.results, function() {
-            if ($.inArray('postal_code', this.types)!==-1) {
-              callbackFunction(this);
-              done=true;
-              return false;
-            }
-          });
-          if (!done) {
-            alert("Postcode not found!");
-          }
-        }
-    });
-  }
-
-}) (jQuery);
+}(jQuery));
