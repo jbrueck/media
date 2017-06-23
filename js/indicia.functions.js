@@ -19,7 +19,9 @@
 if (typeof window.indiciaData === 'undefined') {
   window.indiciaData = {
     onloadFns: [],
-    idDiffRuleMessages: {}
+    idDiffRuleMessages: {},
+    documentReady: 'no',
+    windowLoaded: 'no'
   };
   window.indiciaFns = {};
 }
