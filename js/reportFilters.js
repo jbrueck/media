@@ -1253,6 +1253,7 @@ jQuery(document).ready(function ($) {
   // Applies the current loaded filter to the controls within the pane.
   function updateControlValuesToReflectCurrentFilter(pane) {
     var attrName;
+    var option;
     // regexp extracts the pane ID from the href. Loop through the controls in the pane
     $.each(pane.find(':input').not('#imp-sref-system,:checkbox,[type=button],[name="location_list[]"]'),
       function (idx, ctrl) {
@@ -1263,7 +1264,14 @@ jQuery(document).ready(function ($) {
           && typeof indiciaData.filter.def.date_type !== 'undefined' && indiciaData.filter.def.date_type !== 'recorded') {
           attrName = indiciaData.filter.def.date_type + '_' + attrName;
         }
-        $(ctrl).val(indiciaData.filter.def[attrName]);
+        if ($(ctrl).is('select')) {
+          option = $(ctrl).find('option[value="' + indiciaData.filter.def[attrName] + '"]');
+          if (option) {
+            option.attr('selected', 'selected');
+          }
+        } else {
+          $(ctrl).val(indiciaData.filter.def[attrName]);
+        }
       }
     );
     $.each(pane.find(':checkbox'), function (idx, ctrl) {
