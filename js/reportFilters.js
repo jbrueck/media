@@ -1115,16 +1115,12 @@ jQuery(document).ready(function ($) {
     });
   }
 
-  function loadFilterOntoForms() {
-    var name;
+  function loadFilterOntoForm(paneName) {
     var context = $('#context-filter').length ? indiciaData.filterContextDefs[$('#context-filter').val()] : null;
-    $.each($('#filter-panes .pane'), function (idx, pane) {
-      name = pane.id.replace(/^pane-filter_/, '');
-      // Does the pane have any special code for loading the definition into the form?
-      if (typeof paneObjList[name].loadForm !== 'undefined') {
-        paneObjList[name].loadForm(context);
-      }
-    });
+    // Does the pane have any special code for loading the definition into the form?
+    if (typeof paneObjList[paneName].loadForm !== 'undefined') {
+      paneObjList[paneName].loadForm(context);
+    }
   }
 
   function filterLoaded(data) {
@@ -1144,7 +1140,6 @@ jQuery(document).ready(function ($) {
       }
     });
     updateFilterDescriptions();
-    loadFilterOntoForms();
     $('#filter-build').html(indiciaData.lang.ModifyFilter);
     $('#standard-params .header span.changed').hide();
     // can't delete a filter you didn't create.
@@ -1303,6 +1298,7 @@ jQuery(document).ready(function ($) {
       // reset
       pane.find('.fb-apply').data('clicked', false);
       updateControlValuesToReflectCurrentFilter(pane);
+      loadFilterOntoForm(paneName);
     },
     afterShow: function () {
       var pane = $(this.href.replace(/^[^#]+/, ''));
