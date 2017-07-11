@@ -264,18 +264,23 @@ $.Autocompleter = function(input, options) {
     $input.unbind();
     $(input.form).unbind(".autocomplete");
   });
-  
-  
-  function selectCurrent(keycode) {
-    var selected = select.selected(), simplified=simplify($input.val()), value, regexp;
-    // escape special characters in regexp
-    value = simplified.toLowerCase().replace(/[\[\]\\\^\$\.\|\?\+\(\)]/g, "\\$&");
-    regexp = new RegExp('^'+value.replace('*','.*')); 
-    if (!selected || !selected.result.toLowerCase().match(regexp)) {
+
+  function selectCurrent() {
+    var selected = select.selected();
+    var valueSimple;
+    var regexpSimple;
+    var valueOrig;
+    var regexpOrig;
+    valueSimple = simplify($input.val()).toLowerCase().replace(/[\[\]\\\^\$\.\|\?\+\(\)]/g, '\\$&');
+    regexpSimple = new RegExp('^' + valueSimple.replace('*', '.*'));
+    valueOrig = $input.val().toLowerCase().replace(/[\[\]\\\^\$\.\|\?\+\(\)]/g, '\\$&');
+    regexpOrig = new RegExp('^' + valueOrig.replace('*', '.*'));
+    if (!selected ||
+        (!selected.result.toLowerCase().match(regexpSimple) && !selected.result.toLowerCase().match(regexpOrig))) {
       return false;
     }
-    // If searching against a searchterm field in a table with an original field, we actually need to display the original field. 
-    var v = (typeof selected.data.searchterm !== "undefined" && selected.data.searchterm===selected.result && typeof selected.data.original!=="undefined") ?
+    // If searching against a searchterm field in a table with an original field, we actually need to display the original field.
+    var v = (typeof selected.data.searchterm !== "undefined" && selected.data.searchterm===selected.result && typeof selected.data.original !== "undefined") ?
         selected.data.original : selected.result;
     previousValue = v;
     
