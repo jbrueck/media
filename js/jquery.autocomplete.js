@@ -403,15 +403,20 @@ $.Autocompleter = function(input, options) {
   };
 
   function receiveData(q, data) {
-    var value, simple, regexp;
+    var valueSimple;
+    var regexpSimple;
+    var valueOrig;
+    var regexpOrig;
+    var idx;
     if (data && data.length) {
-      simple = simplify($input.val());
-      // escape special characters in regexp
-      value = simple.toLowerCase().replace(/[\[\]\\\^\$\.\|\?\+\(\)]/g, "\\$&");
-      regexp = new RegExp('^'+value.replace('*','.*'));
-      for (idx=data.length-1; idx>=0; idx--) {
+      // escape special characters in matching regexp. 2 versions - one simplified, one not.
+      valueSimple = simplify($input.val()).toLowerCase().replace(/[\[\]\\\^\$\.\|\?\+\(\)]/g, '\\$&');
+      regexpSimple = new RegExp('^' + valueSimple.replace('*', '.*'));
+      valueOrig = $input.val().toLowerCase().replace(/[\[\]\\\^\$\.\|\?\+\(\)]/g, '\\$&');
+      regexpOrig = new RegExp('^' + valueOrig.replace('*', '.*'));
+      for (idx = data.length - 1; idx >= 0; idx--) {
         // Drop anything that does not match, in case the edit has changed since the query was issued.
-        if (!data[idx].result.toLowerCase().match(regexp)) {
+        if (!data[idx].result.toLowerCase().match(regexpSimple) && !data[idx].result.toLowerCase().match(regexpOrig)) {
           data.splice(idx, 1);
         }
       }
