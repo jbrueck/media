@@ -462,6 +462,7 @@ $.Autocompleter = function(input, options) {
         url: options.url,
         data: $.extend({
           q: simplify(lastWord(term)),
+          unsimplified: lastWord(term),
           limit: options.max+1
         }, extraParams),
         success: function(data) {

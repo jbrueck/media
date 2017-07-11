@@ -136,57 +136,76 @@
     }
 
     function getActions (div, row, actions, queryParams) {
-      var result='', onclick, href, content, img;
-      row = $.extend(queryParams, row);
-      $.each(actions, function(idx, action) {
-        if (typeof action.visibility_field === 'undefined' || row[action.visibility_field] !== 'f') {
+      var result='';
+      var onclick;
+      var href;
+      var content;
+      var img;
+      var classAttr;
+      var classes;
+      var link;
+      var linkParams;
+      var rowCopy;
+      var thisrow = $.extend(queryParams, row);
+      $.each(actions, function (idx, action) {
+        if (typeof action.visibility_field === 'undefined' || thisrow[action.visibility_field] !== 'f') {
           if (typeof action.javascript !== 'undefined') {
-            var rowCopy = row;
-            $.each(rowCopy, function(idx) {
+            rowCopy = thisrow;
+            $.each(rowCopy, function (idx) {
               if (rowCopy[idx] !== null) {
                 rowCopy[idx] = rowCopy[idx].replace(/'/g,"\\'");
               }
             });
-            onclick=' onclick="' + mergeParamsIntoTemplate(div, rowCopy, action.javascript) + '"';
+            onclick = ' onclick="' + mergeParamsIntoTemplate(div, rowCopy, action.javascript) + '"';
           } else {
-            onclick='';
+            onclick = '';
           }
           if (typeof action.url !== 'undefined') {
-            var link = action.url, linkParams=[];
-            row.rootFolder = div.settings.rootFolder;
+            link = action.url;
+            linkParams = [];
+            thisrow.rootFolder = div.settings.rootFolder;
             if (div.settings.pathParam !== '' &&
                 link.indexOf('?' + div.settings.pathParam + '=') === -1 &&
-                row.rootFolder.indexOf('?' + div.settings.pathParam + '=') === -1) {
-              //if there is a path param but it is not in either the link or the rootfolder already then add it to the rootFolder
-              row.rootFolder += '?' + div.settings.pathParam + '=';
+                thisrow.rootFolder.indexOf('?' + div.settings.pathParam + '=') === -1) {
+              // if there is a path param but it is not in either the link or the rootfolder already then add it to the rootFolder
+              thisrow.rootFolder += '?' + div.settings.pathParam + '=';
             }
             if (link.substr(0, 12).toLowerCase() !== '{rootfolder}' && link.substr(0, 12).toLowerCase() !== '{currenturl}'
                 && link.substr(0, 4).toLowerCase() !== 'http') {
-              link='{rootFolder}' + link;
+              link = '{rootFolder}' + link;
             }
-            link = mergeParamsIntoTemplate(div, row, link);
+            link = mergeParamsIntoTemplate(div, thisrow, link);
             if (!$.isEmptyObject(action.urlParams)) {
               if (link.indexOf('?') === -1) {
                 link += '?';
               } else {
                 link += '&';
               }
-              $.each(action.urlParams, function(name, value) {
+              $.each(action.urlParams, function (name, value) {
                 linkParams.push(name + '=' + value);
               });
             }
-            link = link + mergeParamsIntoTemplate(div, row, linkParams.join('&'));
-            href=' href="' + link + '"';
+            link += mergeParamsIntoTemplate(div, thisrow, linkParams.join('&'));
+            href = ' href="' + link + '"';
           } else {
-            href='';
+            href = '';
           }
           if (typeof action.img !== 'undefined') {
-            img=action.img.replace(/\{rootFolder\}/g, div.settings.rootFolder.replace(/\?q=$/, ''));
+            img = action.img.replace(/\{rootFolder\}/g, div.settings.rootFolder.replace(/\?q=$/, ''));
             content = '<img src="' + img + '" title="' + action.caption + '" />';
-          } else
+          } else {
             content = action.caption;
-          var classlist = "action-button" + (typeof action.class !== 'undefined' ? ' ' + action.class : '');
-          result += '<a class="' + classlist + '" ' + onclick + href + '>' + content + '</a>';
+          }
+          classes = ['action-button'];
+          if (typeof action.class !== 'undefined') {
+            classes.push(action.class);
+          }
+          classAttr = ' class="' + classes.join(' ') + '"';
+          result += mergeParamsIntoTemplate(div,
+              { class: classAttr, href: href, onclick: onclick, content: content },
+              div.settings.actionButtonTemplate
+          );
+          // result += '<a class="' + classlist + '" ' + onclick + href + '>' + content + '</a>';
         }
       });
       return result;
@@ -242,7 +261,7 @@
         pagerContent = pagerContent.replace('{next}', '<span class="pag-next pager-button ui-state-disabled">' + div.settings.langNext + '</span> ');
         pagerContent = pagerContent.replace('{last}', '<span class="pag-last pager-button ui-state-disabled">' + div.settings.langLast + '</span> ');
       }
-      
+
       for (page = Math.max(1, div.settings.offset/div.settings.itemsPerPage - 4);
           page <= Math.min(div.settings.offset/div.settings.itemsPerPage + 6, Math.ceil(div.settings.recordCount / div.settings.itemsPerPage));
           page += 1) {
@@ -752,7 +771,7 @@
     }
 
     function _internalMapRecords(div, request, offset, callback, recordCount) {
-      $('#map-loading').show();  
+      $('#map-loading').show();
       var matchString, feature, url;
       // first call- get the record count
       $.ajax({
@@ -764,14 +783,14 @@
             response = response.records;
           }
           //Need to apply popup filter to map records as well as the grid.
-          if (indiciaData.includePopupFilter) {   
+          if (indiciaData.includePopupFilter) {
             response=applyPopupFilterExclusionsToRows(response,div, true);
             if (typeof response.count !== 'undefined') {
-              //response.count can be included in the response data, however as we applied a filter we 
+              //response.count can be included in the response data, however as we applied a filter we
               //need to override this.
               response.count=response.count-indiciaData.popupFilteRemovedRowsCount;
-            }   
-          } 
+            }
+          }
           // implement a crude way of aborting out of date requests, since jsonp does not support xhr
           // therefore no xhr.abort...&jsonp
           matchString = this.url.replace(/((jsonp\d+)|(jQuery\d+_\d+))/, '?').substring(0, currentMapRequest.length);
@@ -989,7 +1008,7 @@
         $.each(div.settings.extraParams, function(field, val) {
           if (field.match(/^[a-zA-Z_]+$/)) { // filter out rubbish in the extraParams
             // strip any prior values out before replacing with the latest filter settings
-            url = url.replace(new RegExp('[?&]' + field + '=[^&]*&?'), function replacer(match) { 
+            url = url.replace(new RegExp('[?&]' + field + '=[^&]*&?'), function replacer(match) {
                 return match.substr(0,1);
               }) + '&' + field + '=' + encodeURIComponent(val);
           }
@@ -1333,5 +1352,6 @@ jQuery.fn.reportgrid.defaults = {
   noRecords: 'No records',
   sendOutputToMap: false, // does the current page of report data get shown on a map?
   linkFilterToMap: false, // requires a rowId - filtering the grid also filters the map
-  msgRowLinkedToMapHint: 'Click the row to highlight the record on the map. Double click to zoom in.'
+  msgRowLinkedToMapHint: 'Click the row to highlight the record on the map. Double click to zoom in.',
+  actionButtonTemplate: '<a{class}{href}{onclick}>{content}</a>'
 };
