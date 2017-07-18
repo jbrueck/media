@@ -272,17 +272,20 @@ var destroyAllFeatures;
         // extend the boundary to include a buffer, so the map does not zoom too tight.
         bounds = _extendBounds(bounds, div.settings.maxZoomBuffer);
       }
-      if (typeof panzoom==='undefined' || panzoom) {
+      if (typeof panzoom === 'undefined' || panzoom) {
         if (div.map.getZoomForExtent(bounds) > div.settings.maxZoom) {
           // if showing something small, don't zoom in too far
           div.map.setCenter(bounds.getCenterLonLat(), div.settings.maxZoom);
-        }
-        else {
+        } else {
           // Set the default view to show something a bit larger than the size of the grid square
           div.map.zoomToExtent(bounds);
+          // If map not yet drawn, e.g. on another tab, remember this boundary to zoom into
+          if ($('div#map:visible').length === 0 && typeof indiciaData.zoomedBounds === "undefined") {
+            indiciaData.zoomedBounds = bounds;
+          }
         }
       }
-      return features.length===1 ? features[0] : features;
+      return features.length === 1 ? features[0] : features;
     }
 
     /*
