@@ -237,7 +237,7 @@ var destroyAllFeatures;
           if (typeof transform!=='undefined' && transform && div.map.projection.getCode() != div.indiciaProjection.getCode()) {
             this.geometry.transform(div.indiciaProjection, div.map.projection);
           }
-          this.style = new style(styletype);
+          this.style = new style(styletype, div.settings);
           this.attributes.type = type;
           if (temporary) {
             this.attributes.temp = true;
@@ -255,7 +255,7 @@ var destroyAllFeatures;
         //there are invisible features that define the map extent
         $.each(invisible, function(){
           feature = parser.read(this);
-          feature.style = new style('invisible');
+          feature.style = new style('invisible', div.settings);
           //give the invisible features a type so that they are replaced too
           feature.attributes.type = type;
           if (temporary) {
@@ -291,51 +291,51 @@ var destroyAllFeatures;
     /*
      * An OpenLayers vector style object
      */
-    function style(styletype) {
-      styletype = (typeof styletype !== 'undefined') ? styletype : 'default';
+    function style(styletype, settings) {
+      var styleToApply = (typeof styletype !== 'undefined') ? styletype : 'default';
 
-      this.fillColor = opts.fillColor;
-      this.fillOpacity = opts.fillOpacity;
-      this.hoverFillColor = opts.hoverFillColor;
-      this.hoverFillOpacity = opts.hoverFillOpacity;
-      this.hoverStrokeColor = opts.hoverStrokeColor;
-      this.hoverStrokeOpacity = opts.hoverStrokeOpacity;
-      this.hoverStrokeWidth = opts.hoverStrokeWidth;
-      this.strokeColor = opts.strokeColor;
-      this.strokeOpacity = opts.strokeOpacity;
-      this.strokeWidth = opts.strokeWidth;
-      this.strokeLinecap = opts.strokeLinecap;
-      this.strokeDashstyle = opts.strokeDashstyle;
+      this.fillColor = settings.fillColor;
+      this.fillOpacity = settings.fillOpacity;
+      this.hoverFillColor = settings.hoverFillColor;
+      this.hoverFillOpacity = settings.hoverFillOpacity;
+      this.hoverStrokeColor = settings.hoverStrokeColor;
+      this.hoverStrokeOpacity = settings.hoverStrokeOpacity;
+      this.hoverStrokeWidth = settings.hoverStrokeWidth;
+      this.strokeColor = settings.strokeColor;
+      this.strokeOpacity = settings.strokeOpacity;
+      this.strokeWidth = settings.strokeWidth;
+      this.strokeLinecap = settings.strokeLinecap;
+      this.strokeDashstyle = settings.strokeDashstyle;
 
-      this.pointRadius = opts.pointRadius;
-      this.hoverPointRadius = opts.hoverPointRadius;
-      this.hoverPointUnit = opts.hoverPointUnit;
-      this.pointerEvents = opts.pointerEvents;
-      this.cursor = opts.cursor;
+      this.pointRadius = settings.pointRadius;
+      this.hoverPointRadius = settings.hoverPointRadius;
+      this.hoverPointUnit = settings.hoverPointUnit;
+      this.pointerEvents = settings.pointerEvents;
+      this.cursor = settings.cursor;
 
-      switch(styletype) {
-        case "georef":
-          this.fillColor = opts.fillColorSearch;
-          this.fillOpacity = opts.fillOpacitySearch;
-          this.strokeColor = opts.strokeColorSearch;
+      switch (styleToApply) {
+        case 'georef':
+          this.fillColor = settings.fillColorSearch;
+          this.fillOpacity = settings.fillOpacitySearch;
+          this.strokeColor = settings.strokeColorSearch;
           break;
-        case "ghost":
-          this.fillColor = opts.fillColorGhost;
-          this.fillOpacity= opts.fillOpacityGhost;
-          this.strokeColor = opts.strokeColorGhost;
-          this.strokeOpacity = opts.strokeOpacityGhost;
-          this.strokeDashstyle = opts.strokeDashstyleGhost;
+        case 'ghost':
+          this.fillColor = settings.fillColorGhost;
+          this.fillOpacity = settings.fillOpacityGhost;
+          this.strokeColor = settings.strokeColorGhost;
+          this.strokeOpacity = settings.strokeOpacityGhost;
+          this.strokeDashstyle = settings.strokeDashstyleGhost;
           break;
-        case "boundary":
-          this.fillColor = opts.fillColorBoundary;
-          this.fillOpacity = opts.fillOpacityBoundary;
-          this.strokeColor = opts.strokeColorBoundary;
-          this.strokeWidth = opts.strokeWidthBoundary;
-          this.strokeDashstyle = opts.strokeDashstyleBoundary;
-          //pointRadius needed for clickForPlot rotation handle circle size.
+        case 'boundary':
+          this.fillColor = settings.fillColorBoundary;
+          this.fillOpacity = settings.fillOpacityBoundary;
+          this.strokeColor = settings.strokeColorBoundary;
+          this.strokeWidth = settings.strokeWidthBoundary;
+          this.strokeDashstyle = settings.strokeDashstyleBoundary;
+          // pointRadius needed for clickForPlot rotation handle circle size.
           this.pointRadius = 10;
           break;
-        case "invisible":
+        case 'invisible':
           this.pointRadius = 0;
           break;
       }
@@ -349,106 +349,107 @@ var destroyAllFeatures;
       var currentZoom;
 
       // If the spatial ref input control exists, bind it to the map, so entering a ref updates the map
-      $('#'+opts.srefId).change(function() {
+      $('#' + opts.srefId).change(function() {
         _handleEnteredSref($(this).val(), div);
       });
       // If the spatial ref latitude or longitude input control exists, bind it to the map, so entering a ref updates the map
-      $('#'+opts.srefLatId).change(function() {
+      $('#'+opts.srefLatId).change(function () {
         // Only do something if both the lat and long are populated
-        if ($.trim($(this).val())!=='' && $.trim($('#'+opts.srefLongId).val())!=='') {
+        if ($.trim($(this).val()) !== '' && $.trim($('#' + opts.srefLongId).val()) !== '') {
           // copy the complete sref into the sref field
           $('#'+opts.srefId).val($.trim($(this).val()) + ', ' + $.trim($('#'+opts.srefLongId).val()));
-          _handleEnteredSref($('#'+opts.srefId).val(), div);
+          _handleEnteredSref($('#' + opts.srefId).val(), div);
         }
       });
-      $('#'+opts.srefLongId).change(function() {
+      $('#'+opts.srefLongId).change(function () {
         // Only do something if both the lat and long are populated
-        if ($.trim($('#'+opts.srefLatId).val())!=='' && $.trim($(this).val())!=='') {
+        if ($.trim($('#'+opts.srefLatId).val()) !== '' && $.trim($(this).val())!=='') {
           // copy the complete sref into the sref field
-          $('#'+opts.srefId).val($.trim($('#'+opts.srefLatId).val()) + ', ' + $.trim($(this).val()));
-          _handleEnteredSref($('#'+opts.srefId).val(), div);
+          $('#'+opts.srefId).val($.trim($('#' + opts.srefLatId).val()) + ', ' + $.trim($(this).val()));
+          _handleEnteredSref($('#' + opts.srefId).val(), div);
         }
       });
-      $('#'+opts.srefSystemId).change(function() {
-        //When Spatial reference system is changed then do the following....
-        //-If the spatial referece has already been changed by the user since the page was loaded
-        //then use that last position to provide the position to switch the spatial reference system for
-        //-If the spatial reference field is loaded onto the page (e.g. existing data) then get the position
-        //from the centre of the geometry rather than the last click point
-        ////TO DO
-        //-If the Spatial Reference is typed then currently it will only do a conversion if the clickForPlot option is used (which isn't very often)
-        //Only do the conversion if the spatial reference field is not blank
+      $('#' + opts.srefSystemId).change(function () {
+        // When Spatial reference system is changed then do the following....
+        // -If the spatial referece has already been changed by the user since the page was loaded
+        // then use that last position to provide the position to switch the spatial reference system for
+        // -If the spatial reference field is loaded onto the page (e.g. existing data) then get the position
+        // from the centre of the geometry rather than the last click point
+        // @todo
+        // -If the Spatial Reference is typed then currently it will only do a conversion if the clickForPlot option is used (which isn't very often)
+        // Only do the conversion if the spatial reference field is not blank
         if ($('#' + opts.srefId).val()) {
-          //indiciaData.no_conversion_on_sp_system_changed should not be needed, however the system doesn't not currently support the
-          //conversion of spatial reference if clickForPlot is off and the sp reference is typed by hand, so we need to switch off this function
-          //in that scenario
+          // indiciaData.no_conversion_on_sp_system_changed should not be needed, however the system doesn't not currently support the
+          // conversion of spatial reference if clickForPlot is off and the sp reference is typed by hand, so we need to switch off this function
+          // in that scenario
           if (!indiciaData.no_conversion_on_sp_system_changed||indiciaData.no_conversion_on_sp_system_changed==false) {
-            //When the user zooms out on the map, the spatial reference doesn't change until they click on the map,
-            //This means when we convert the spatial reference we need to remember the zoom state the map was in
-            //when it was last clicked (else the precision will suddenly change when switching sref system)
-            //However once the conversion is done, we need to set the zoom back to its proper state so that the zoombar
-            //continues to operate normally.
-            currentZoom=div.map.zoom;
-            //When switching spatial reference system, we don't want to suddenly zoom in without warning
-            indiciaData.skip_zoom=true;
-            //If user has already clicked on map, then use last click position for the conversion
+            // When the user zooms out on the map, the spatial reference doesn't change until they click on the map,
+            // This means when we convert the spatial reference we need to remember the zoom state the map was in
+            // when it was last clicked (else the precision will suddenly change when switching sref system)
+            // However once the conversion is done, we need to set the zoom back to its proper state so that the zoombar
+            // continues to operate normally.
+            currentZoom = div.map.zoom;
+            // When switching spatial reference system, we don't want to suddenly zoom in without warning
+            indiciaData.skip_zoom = true;
+            // If user has already clicked on map, then use last click position for the conversion
             if (lastClickedLatLonZoom.lat) {
-              div.map.zoom=lastClickedLatLonZoom.zoom;
+              div.map.zoom = lastClickedLatLonZoom.zoom;
               processLonLatPositionOnMap(lastClickedLatLonZoom,div);
-              //If user not yet clicked on map, we can use the centre of the spatial reference geom loaded from database to do a conversion
+              // If user not yet clicked on map, we can use the centre of the spatial reference geom loaded from database to do a conversion
             } else if ($('#'+opts.srefSystemId).val() && div.map.editLayer.features[0].geometry.getCentroid().y && div.map.editLayer.features[0].geometry.getCentroid().x) {
-              //Set the loaded spatial reference geom to be our last "click point"
-              lastClickedLatLonZoom.lat=div.map.editLayer.features[0].geometry.getCentroid().y;
-              lastClickedLatLonZoom.lon=div.map.editLayer.features[0].geometry.getCentroid().x;
-              lastClickedLatLonZoom.zoom=div.map.zoom;
-              processLonLatPositionOnMap(lastClickedLatLonZoom,div);
+              // Set the loaded spatial reference geom to be our last "click point"
+              lastClickedLatLonZoom.lat = div.map.editLayer.features[0].geometry.getCentroid().y;
+              lastClickedLatLonZoom.lon = div.map.editLayer.features[0].geometry.getCentroid().x;
+              lastClickedLatLonZoom.zoom = div.map.zoom;
+              processLonLatPositionOnMap(lastClickedLatLonZoom, div);
             }
-            div.map.zoom=currentZoom;
+            div.map.zoom = currentZoom;
           }
         }
       });
 
       // If a place search (georeference) control exists, bind it to the map.
-      $('#'+div.georefOpts.georefSearchId).keypress(function(e) {
-        if (e.which==13) {
+      $('#' + div.georefOpts.georefSearchId).keypress(function (e) {
+        if (e.which === 13) {
           _georeference(div);
           return false;
         }
       });
 
-      $('#'+div.georefOpts.georefSearchBtnId).click(function() {
+      $('#' + div.georefOpts.georefSearchBtnId).click(function () {
         _georeference(div);
       });
 
-      $('#'+div.georefOpts.georefCloseBtnId).click(function(e) {
-        $('#'+div.georefOpts.georefDivId).hide('fast', function() {div.map.updateSize();});
+      $('#' + div.georefOpts.georefCloseBtnId).click(function (e) {
+        $('#' + div.georefOpts.georefDivId).hide('fast', function () {div.map.updateSize();});
         e.preventDefault();
       });
       if ($('#imp-location').length) {
-        var locChange = function() {locationSelectedInInput(div, $('#imp-location').val());};
+        var locChange = function() {
+          locationSelectedInInput(div, $('#imp-location').val());
+        };
         $('#imp-location').change(locChange);
         // trigger change event, incase imp-location was already populated when the map loaded
         locChange();
       }
     }
-    
+
     /**
      * After a click on the map, zoom in to the clicked on point.
      */
     function _zoomInToClickPoint(div) {
-      var features=getFeaturesByVal(div.map.editLayer, 'clickPoint', 'type'),
-          bounds = features[0].geometry.getBounds();
+      var features = getFeaturesByVal(div.map.editLayer, 'clickPoint', 'type');
+      var bounds = features[0].geometry.getBounds();
       bounds = _extendBounds(bounds, div.settings.maxZoomBuffer);
       if (div.map.getZoomForExtent(bounds) > div.settings.maxZoom) {
         // if showing something small, don't zoom in too far
         div.map.setCenter(bounds.getCenterLonLat(), div.settings.maxZoom);
-      }
-      else {
+      } else {
         // Set the default view to show something triple the size of the grid square
         div.map.zoomToExtent(bounds);
       }
     }
-    
+
     function switchToSatelliteBaseLayer(map) {
       $.each(map.layers, function() {
         if (this.isBaseLayer && (this.name.indexOf('Satellite')!==-1 || this.name.indexOf('Hybrid')!==-1) && map.baseLayer!==this) {
@@ -667,7 +668,7 @@ var destroyAllFeatures;
       }
       feature = parser.read(data.mapwkt);
       feature.attributes = {type: "clickPoint"};
-      feature.style = new style('default');
+      feature.style = new style('default', div.settings);
       div.map.editLayer.addFeatures([feature]);
 
       // Call any code which handles a click to set the spatial reference, e.g. zoom the map in, or set help hints.
@@ -1363,7 +1364,7 @@ var destroyAllFeatures;
         }
         if (separateBoundary) {
           $('#' + div.settings.boundaryGeomId).val(geom.toString());
-          evt.feature.style = new style('boundary');
+          evt.feature.style = new style('boundary', div.settings);
           if(this.map.div.settings.autoFillInCentroid) {
             var centroid = evt.feature.geometry.getCentroid();
             $('#imp-geom').val(centroid.toString());
@@ -1686,9 +1687,9 @@ var destroyAllFeatures;
     }
     // set the image path otherwise Drupal js optimisation can move the script relative to the images.
     if (!OpenLayers.ImgPath && opts.jsPath) {
-      OpenLayers.ImgPath=opts.jsPath + 'img/';
+      OpenLayers.ImgPath = opts.jsPath + 'img/';
     }
-    return this.each(function() {
+    return this.each(function () {
       // expose public stuff
       this.settings = opts;
       this.pointToSref = pointToSref;
@@ -1958,13 +1959,13 @@ var destroyAllFeatures;
           // used, it is only visual)
           editLayer = new OpenLayers.Layer.Vector(
               this.settings.editLayerName,
-              {style: new style('ghost'), 'sphericalMercator': true, displayInLayerSwitcher: this.settings.editLayerInSwitcher}
+              {style: new style('ghost', this.settings), 'sphericalMercator': true, displayInLayerSwitcher: this.settings.editLayerInSwitcher}
           );
         } else {
           // Add an editable layer to the map
           editLayer = new OpenLayers.Layer.Vector(
               this.settings.editLayerName,
-              {style: new style('boundary'), 'sphericalMercator': true, displayInLayerSwitcher: this.settings.editLayerInSwitcher}
+              {style: new style('boundary', this.settings), 'sphericalMercator': true, displayInLayerSwitcher: this.settings.editLayerInSwitcher}
           );
         }
         div.map.editLayer = editLayer;
@@ -1978,7 +1979,7 @@ var destroyAllFeatures;
         if (this.settings.initialBoundaryWkt === null && $('#'+this.settings.boundaryGeomId).length>0) {
           // same again for the boundary
           added=this.settings.initialBoundaryWkt = $('#'+this.settings.boundaryGeomId).val();
-          added.style = new style('boundary');
+          added.style = new style('boundary', this.settings);
         }
 
         // Draw the feature to be loaded on startup, if present
@@ -2174,7 +2175,7 @@ var destroyAllFeatures;
         if (div.settings.editLayer && div.settings.allowPolygonRecording) {
           c.events.register('featureadded', c, recordPolygon);
         }
-      }, drawStyle=new style('boundary');
+      }, drawStyle=new style('boundary', div.settings);
       var ctrlObj;
       $.each(div.settings.standardControls, function(i, ctrl) {       
         ctrlObj=null;
