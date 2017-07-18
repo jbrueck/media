@@ -179,15 +179,17 @@ var destroyAllFeatures;
      * separated list of values, against any field.
      */
     function getFeaturesByVal(layer, value, field) {
-      var features = [], ids, featureVal;
-      for(var i=0, len=layer.features.length; i<len; ++i) {
-        if (typeof field!=='undefined' && typeof layer.features[i].attributes[field+'s']!=='undefined') {
-          ids=layer.features[i].attributes[field+'s'].split(',');
-          if ($.inArray(value, ids)>-1) {
+      var features = [];
+      var ids;
+      var featureVal;
+      for(var i = 0, len = layer.features.length; i < len; ++i) {
+        if (typeof field!=='undefined' && typeof layer.features[i].attributes[field + 's'] !== 'undefined') {
+          ids = layer.features[i].attributes[field + 's'].split(',');
+          if ($.inArray(value, ids) >- 1) {
             features.push(layer.features[i]);
           }
         } else {
-          featureVal=(typeof field==='undefined' ? layer.features[i].id : layer.features[i].attributes[field]);
+          featureVal = (typeof field === 'undefined' ? layer.features[i].id : layer.features[i].attributes[field]);
           if (featureVal == value) {
             features.push(layer.features[i]);
           }
@@ -223,19 +225,23 @@ var destroyAllFeatures;
      * @access private
      */
     function _showWktFeature(div, wkt, layer, invisible, temporary, type, panzoom, transform) {
-      var parser = new OpenLayers.Format.WKT(), bounds = new OpenLayers.Bounds(), geometry;
+      var parser = new OpenLayers.Format.WKT();
+      var bounds = new OpenLayers.Bounds();
+      var geometry;
       var features = [];
+      var feature;
+      var styletype;
       // This replaces other features of the same type
-        removeAllFeatures(layer, type);
-      if(wkt){
-        var feature = parser.read(wkt);
+      removeAllFeatures(layer, type);
+      if (wkt ){
+        feature = parser.read(wkt);
         // this could be an array of features for a GEOMETRYCOLLECTION
-        if ($.isArray(feature)===false) {
+        if ($.isArray(feature) === false) {
           feature = [feature];
         }
-        var styletype = (typeof type !== 'undefined') ? type : 'default';
-        $.each(feature, function(){
-          if (typeof transform!=='undefined' && transform && div.map.projection.getCode() != div.indiciaProjection.getCode()) {
+        styletype = (typeof type !== 'undefined') ? type : 'default';
+        $.each(feature, function () {
+          if (typeof transform !== 'undefined' && transform && div.map.projection.getCode() !== div.indiciaProjection.getCode()) {
             this.geometry.transform(div.indiciaProjection, div.map.projection);
           }
           this.style = new style(styletype, div.settings);
@@ -252,12 +258,12 @@ var destroyAllFeatures;
         });
       }
 
-      if(invisible !== null){
-        //there are invisible features that define the map extent
-        $.each(invisible, function(){
+      if (invisible !== null) {
+        // there are invisible features that define the map extent
+        $.each(invisible, function () {
           feature = parser.read(this);
           feature.style = new style('invisible', div.settings);
-          //give the invisible features a type so that they are replaced too
+          // give the invisible features a type so that they are replaced too
           feature.attributes.type = type;
           if (temporary) {
             feature.attributes.temp=true;
@@ -266,10 +272,10 @@ var destroyAllFeatures;
           bounds.extend(feature.geometry);
         });
       }
-      if(features.length===0) return false;
+      if (features.length === 0) return false;
       layer.addFeatures(features);
 
-      if(invisible === null) {
+      if (invisible === null) {
         // extend the boundary to include a buffer, so the map does not zoom too tight.
         bounds = _extendBounds(bounds, div.settings.maxZoomBuffer);
       }
@@ -354,15 +360,15 @@ var destroyAllFeatures;
         _handleEnteredSref($(this).val(), div);
       });
       // If the spatial ref latitude or longitude input control exists, bind it to the map, so entering a ref updates the map
-      $('#'+opts.srefLatId).change(function () {
+      $('#' + opts.srefLatId).change(function () {
         // Only do something if both the lat and long are populated
         if ($.trim($(this).val()) !== '' && $.trim($('#' + opts.srefLongId).val()) !== '') {
           // copy the complete sref into the sref field
-          $('#'+opts.srefId).val($.trim($(this).val()) + ', ' + $.trim($('#'+opts.srefLongId).val()));
+          $('#' + opts.srefId).val($.trim($(this).val()) + ', ' + $.trim($('#'+opts.srefLongId).val()));
           _handleEnteredSref($('#' + opts.srefId).val(), div);
         }
       });
-      $('#'+opts.srefLongId).change(function () {
+      $('#' + opts.srefLongId).change(function () {
         // Only do something if both the lat and long are populated
         if ($.trim($('#'+opts.srefLatId).val()) !== '' && $.trim($(this).val())!=='') {
           // copy the complete sref into the sref field
@@ -415,6 +421,7 @@ var destroyAllFeatures;
           _georeference(div);
           return false;
         }
+        return true;
       });
 
       $('#' + div.georefOpts.georefSearchBtnId).click(function () {
@@ -426,7 +433,7 @@ var destroyAllFeatures;
         e.preventDefault();
       });
       if ($('#imp-location').length) {
-        var locChange = function() {
+        var locChange = function () {
           locationSelectedInInput(div, $('#imp-location').val());
         };
         $('#imp-location').change(locChange);
