@@ -127,7 +127,7 @@ var destroyAllFeatures;
      * A public method that can be fired when a location is selected in an input control, to load the location's
      * boundary onto the map. Automatic for #imp-location, but can be attached to other controls as well.
      */
-    function locationSelectedInInput(div, val) {
+    function locationSelectedInInput(div, val, loading) {
       if (div.map.editLayer) {
         removeAllFeatures(div.map.editLayer, 'boundary');
       }
@@ -150,8 +150,9 @@ var destroyAllFeatures;
               }
               _showWktFeature(div, geomwkt, div.map.editLayer, null, true, 'boundary');
 
-              if (typeof indiciaData.searchUpdatesSref !== 'undefined' && indiciaData.searchUpdatesSref) {
-                // The location search box must fill in the sample sref box
+              if (typeof loading === "undefined" &&
+                  typeof indiciaData.searchUpdatesSref !== 'undefined' && indiciaData.searchUpdatesSref) {
+                // The location search box must fill in the sample sref box, but not during initial page load
                 $('#'+div.settings.srefId).val(data[0].centroid_sref);
                 $('#'+div.settings.srefSystemId).val(data[0].centroid_sref_system);
                 $('#'+div.settings.geomId).val(data[0].centroid_geom);
@@ -430,7 +431,7 @@ var destroyAllFeatures;
         };
         $('#imp-location').change(locChange);
         // trigger change event, incase imp-location was already populated when the map loaded
-        locChange();
+        locationSelectedInInput(div, $('#imp-location').val(), true);
       }
     }
 
