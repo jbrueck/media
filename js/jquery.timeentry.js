@@ -956,7 +956,7 @@ $.fn.timeEntry = function(options) {
 			else {
 				// Check for settings on the control itself
 				var inlineSettings = ($.fn.metadata ? $(this).metadata() : {});
-				$.timeEntry._connectTimeEntry(this, $.extend(inlineSettings, options));
+				$.timeEntry._connectTimeEntry(this, $.extend({}, inlineSettings, options));
 			}
 		} 
 	});
