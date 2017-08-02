@@ -1150,3 +1150,6 @@ div.note-fail, p.note-fail {
 .licence-cc0 {
   background-position: 0 -54px;
 }
+.resolveLocationPopup li {
+  list-style-type: none;
+}
