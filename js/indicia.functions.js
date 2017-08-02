@@ -310,18 +310,29 @@ if (typeof window.indiciaData === 'undefined') {
       function (data) {
         var popupHtml;
         var checkedRadio;
+        var alreadySet = false;
         if (typeof data.error === 'undefined') {
           if (data.length === 1) {
             // single unique matching location found
             $('#' + locCntrlIdEscaped).val(data[0].id);
             $('#' + locCntrlIdEscaped + '\\:name').val(data[0].name);
           } else if (data.length > 1) {
+            // if populated already with something on the list, just use that one.
+            
             popupHtml = '<p>' + indiciaData.langMoreThanOneLocationMatch + '</p>';
             popupHtml += '<ul>';
             $.each(data, function () {
+              if (this.location_id == $('#' + locCntrlIdEscaped).val()) {
+                alreadySet = true;
+                return false;
+              }
               popupHtml += '<li><label><input type="radio" value="' + this.location_id + '" name="resolveLocation"/> ' +
                   this.name + '</label></li>';
             });
+            if (alreadySet) {
+              // user already has a selected boundary which matches one of the options, so keep it.
+              return;
+            }
             popupHtml += '</ul>';
             popupHtml += '<button id="resolveLocationOk" disabled="disabled">Ok</button>';
             popupHtml += '<button id="resolveLocationCancel">Cancel</button>';
