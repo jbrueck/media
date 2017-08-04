@@ -385,6 +385,7 @@ var destroyAllFeatures;
         // @todo
         // -If the Spatial Reference is typed then currently it will only do a conversion if the clickForPlot option is used (which isn't very often)
         // Only do the conversion if the spatial reference field is not blank
+        // -Hide graticules other than that for the the selected system
         if ($('#' + opts.srefId).val()) {
           // indiciaData.no_conversion_on_sp_system_changed should not be needed, however the system doesn't not currently support the
           // conversion of spatial reference if clickForPlot is off and the sp reference is typed by hand, so we need to switch off this function
@@ -413,6 +414,13 @@ var destroyAllFeatures;
             div.map.zoom = currentZoom;
           }
         }
+        $.each(div.map.controls, function() {
+          if (this.CLASS_NAME === 'OpenLayers.Control.Graticule') {
+            
+            this.gratLayer.setVisibility(this.projection === 'EPSG:' + 
+                div.settings.graticules[$('#' + opts.srefSystemId).val()].projection);
+          }
+        });
       });
 
       // If a place search (georeference) control exists, bind it to the map.
