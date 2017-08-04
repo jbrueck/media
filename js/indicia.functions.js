@@ -304,7 +304,8 @@ if (typeof window.indiciaData === 'undefined') {
       auth_token: indiciaData.read.auth_token,
       reportSource: 'local',
       intersects: $('#imp-geom').attr('value'),
-      location_type_id: locationTypeId
+      location_type_id: locationTypeId,
+      exclude_composites: 1
     };
     $.getJSON(reportingURL, reportOptions,
       function (data) {
