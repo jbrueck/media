@@ -370,6 +370,7 @@ var destroyAllFeatures;
       // If the spatial ref input control exists, bind it to the map, so entering a ref updates the map
       $('#' + opts.srefId).change(function() {
         _handleEnteredSref($(this).val(), div);
+        _hideOtherGraticules(div);
       });
       // If the spatial ref latitude or longitude input control exists, bind it to the map, so entering a ref updates the map
       $('#' + opts.srefLatId).change(function () {
@@ -1679,6 +1680,7 @@ var destroyAllFeatures;
       }
       else {
         _setClickPoint(data, div); // data sref in _getSystem, wkt in indiciaProjection, mapwkt in mapProjection
+        _hideOtherGraticules(div);
       }
       if (typeof indiciaFns.showHideRememberSiteButton!=='undefined') {
         indiciaFns.showHideRememberSiteButton();
