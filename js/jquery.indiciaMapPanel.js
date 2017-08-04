@@ -347,6 +347,18 @@ var destroyAllFeatures;
           break;
       }
     }
+    
+    /**
+     * Hides graticules other than the one currently selected as a system.
+     */
+    function _hideOtherGraticules(div) {
+      $.each(div.map.controls, function() {
+        if (this.CLASS_NAME === 'OpenLayers.Control.Graticule') {
+          this.gratLayer.setVisibility(this.projection === 'EPSG:' + 
+              div.settings.graticules[$('#' + opts.srefSystemId).val()].projection);
+        }
+      });
+    }
 
     /**
      * Use jQuery selectors to locate any other related controls on the page which need to have events
@@ -414,13 +426,7 @@ var destroyAllFeatures;
             div.map.zoom = currentZoom;
           }
         }
-        $.each(div.map.controls, function() {
-          if (this.CLASS_NAME === 'OpenLayers.Control.Graticule') {
-            
-            this.gratLayer.setVisibility(this.projection === 'EPSG:' + 
-                div.settings.graticules[$('#' + opts.srefSystemId).val()].projection);
-          }
-        });
+        _hideOtherGraticules(div);
       });
 
       // If a place search (georeference) control exists, bind it to the map.
