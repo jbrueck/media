@@ -407,7 +407,9 @@ var resetSpeciesTextOnEscape;
       nonce: readAuth.nonce,
       taxon_list_id: lookupListId
     };
-    extraParams.orderby = indiciaData.speciesGrid[gridId].cacheLookup ? 'original,preferred_taxon' : 'taxon';
+    if (!indiciaData.speciesGrid[gridId].cacheLookup) {
+      extraParams.orderby = 'taxon';
+    }
     if (typeof indiciaData['taxonExtraParams-' + gridId]!=='undefined') {
       $.extend(extraParams, indiciaData['taxonExtraParams-' + gridId]);
       // a custom query on the list id overrides the standard filter..
@@ -421,7 +423,7 @@ var resetSpeciesTextOnEscape;
       autocompleteSettings.width = 200;
     }
     // Attach auto-complete code to the input
-    ctrl = $('#' + selectorId).autocomplete(url+'/'+(indiciaData.speciesGrid[gridId].cacheLookup ? 'cache_taxon_searchterm' : 'taxa_taxon_list'), autocompleteSettings);
+    ctrl = $('#' + selectorId).autocomplete(url+'/'+(indiciaData.speciesGrid[gridId].cacheLookup ? 'taxa_search' : 'taxa_taxon_list'), autocompleteSettings);
     ctrl.bind('result', handleSelectedTaxon);
     ctrl.bind('return', returnPressedInAutocomplete);
     // Check that the new entry control for taxa will remain in view with enough space for the autocomplete drop down
@@ -465,15 +467,17 @@ var resetSpeciesTextOnEscape;
       $(taxonCell).text('');
       $(taxonCell).append(speciesAutocomplete);
       var extraParams = {
-        orderby : cacheLookup ? 'searchterm_length,original,preferred_taxon' : 'taxon',
         mode : 'json',
         qfield : cacheLookup ? 'searchterm' : 'taxon',
         auth_token: readAuth.auth_token,
         nonce: readAuth.nonce,
         taxon_list_id: lookupListId
       };
+      if (!cacheLookup) {
+        extraParams.orderby = 'taxon';
+      }
       var autocompleteSettings = getAutocompleteSettings(extraParams, gridId);
-      var ctrl = $(taxonCell).children(':input').autocomplete(url+'/'+(cacheLookup ? 'cache_taxon_searchterm' : 'taxa_taxon_list'), autocompleteSettings);
+      var ctrl = $(taxonCell).children(':input').autocomplete(url+'/'+(cacheLookup ? 'taxa_search' : 'taxa_taxon_list'), autocompleteSettings);
       // Put the taxon name into the autocomplete ready for editing
       $('#' + selectorId).val(taxonTextBeforeUserEdit);
       $('#' + selectorId).focus();
@@ -714,7 +718,6 @@ var resetSpeciesTextOnEscape;
   });
 })(jQuery);
 
-
 function createSubSpeciesList(url, selectedItemPrefId, selectedItemPrefName, lookupListId, subSpeciesCtrlId, readAuth, selectedChild) {
   'use strict';
   var subSpeciesData = {
@@ -883,9 +886,9 @@ function getAutocompleteSettings(extraParams, gridId) {
    * or not.
    */
   var mapFromCacheTable = function(item) {
-    item.common = item.default_common_name;
-    item.preferred_name = item.preferred_taxon;
-    item.taxon = item.original;
+    item.common = item.common_name;
+    item.preferred_name = item.preferred_name;
+    item.taxon = item.taxon;
     item.id = item.taxa_taxon_list_id;
     return item;
   };
@@ -893,7 +896,6 @@ function getAutocompleteSettings(extraParams, gridId) {
   var autocompleterSettingsToReturn = {
     extraParams : extraParams,
     continueOnBlur: true,
-    simplify: indiciaData.speciesGrid[gridId].cacheLookup, // uses simplified version of search string in cache to remove errors due to punctuation etc.
     max: indiciaData.speciesGrid[gridId].numValues,
     selectMode: indiciaData.speciesGrid[gridId].selectMode,
     matchContains: indiciaData.speciesGrid[gridId].matchContains,
