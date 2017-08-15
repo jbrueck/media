@@ -102,7 +102,8 @@ jQuery(document).ready(function($) {
   });
 
   $('table.complex-attr-grid tbody').click(function(e) {
-	var table=this.parentNode;
+    var table=this.parentNode; 
+    var row;
     // e.target is the actual thing clicked on inside the tbody
     if ($(e.target).hasClass('ind-delete-icon')) {
       var row=$(e.target).closest('tr')[0],
@@ -110,15 +111,15 @@ jQuery(document).ready(function($) {
       attrName=table.id.replace('complex-attr-grid-', '').split('-'),
       attrTypeTag=attrName[0], attrId=attrName[1],
       gridDef=indiciaData['complexAttrGrid-'+attrTypeTag+'-'+attrId];
-	if(gridDef['deleteRows']) 
-		$(row).remove(); 
-	else
-{
-      $(row).css('opacity', 0.4);
-      $(row).find(':input:visible').css('text-decoration', 'line-through');
-      $(row).find('.delete-flag').val('t');
-      $(row).find(':input:visible').attr('disabled', true);
-}
+      if(gridDef['deleteRows']) 
+        $(row).remove(); 
+      else {
+        $(row).css('opacity', 0.4);
+        $(row).addClass('row-deleted');
+        $(row).find(':input:visible').css('text-decoration', 'line-through');
+        $(row).find('.delete-flag').val('t');
+        $(row).find(':input:visible').attr('disabled', true);
+      }
       updateUniqueSelects(newTarget); 
     }
   });

@@ -127,7 +127,7 @@
     function getComplexAttrGridValue(grid) {
       var valueParts = [];
       var rowParts;
-      $.each($(grid).find('tbody tr'), function() {
+      $.each($(grid).find('tbody tr').not('.row-deleted'), function() {
         rowParts = [];
         $.each($(this).find(':input:visible'), function() {
           rowParts.push(getValue(this));
@@ -191,6 +191,8 @@
       indiciaFns.on('change', '.ctrl-wrap :input:visible:not(.ac_input), .complex-attr-grid :input:visible:not(.ac_input)', {}, handleInputChange);
       // autocompletes don't fire when picking from the list, so use blur instead.
       indiciaFns.on('blur', '.ctrl-wrap input.ac_input:visible, .complex-attr-grid input.ac_input:visible', {}, handleInputChange);
+      // delete a row in a complex attr grid also fires an update
+      indiciaFns.on('click', '.complex-attr-grid .ind-delete-icon', {}, handleInputChange);
 
       // Initial population of basic inputs, skip buttons, place searches etc
       $.each($('.ctrl-wrap :input:visible, .complex-attr-grid').not('button,#imp-georef-search,.scSensitivity'), function () {
