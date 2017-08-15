@@ -44,19 +44,27 @@
      * Repopulate the value in the review summary when an input is changed.
      */
     function handleInputChange() {
-      var value = getValue(this);
-      $('#review-' + this.id.replace(/:/g, '\\:') + ' td').html(value);
-      if (value) {
-        $('#review-' + this.id.replace(/:/g, '\\:')).show();
+      var grid = $(this).closest('.complex-attr-grid');
+      var value;
+      var el = grid.length ? grid : this;
+      var row$ = $('#review-' + $(el).attr('id').replace(/:/g, '\\:'));
+      if (grid.length) {
+        value = getComplexAttrGridValue(grid);
       } else {
-        $('#review-' + this.id.replace(/:/g, '\\:')).hide();
+        value = getValue(this);
+      }
+      row$.find('td').html(value);
+      if (value) {
+        row$.show();
+      } else {
+        row$.hide();
       }
     }
 
     /**
      * Ensures the layout of rows in the input table and review table matchup. Especially important when footable rows
      * get in the mix.
-     * @param inputTable
+     * @param inputTableBody
      * @param reviewTableBody
      */
     function matchupRows(inputTableBody, reviewTableBody, colspan) {
@@ -103,6 +111,32 @@
         outputTd.html(getValue(this));
         outputTd.removeClass('warning');
       }
+    }
+    
+    function getComplexAttrGridLabel(grid) {
+      var labelParts = [];
+      // make a comma separated label from the column titles
+      $.each($(grid).find('thead th'), function() {
+        if ($(this).text()) {
+          labelParts.push($(this).text());
+        }
+      });
+      return labelParts.join(', ');
+    }
+    
+    function getComplexAttrGridValue(grid) {
+      var valueParts = [];
+      var rowParts;
+      $.each($(grid).find('tbody tr'), function() {
+        rowParts = [];
+        $.each($(this).find(':input:visible'), function() {
+          rowParts.push(getValue(this));
+        });
+        if (rowParts.join('').trim() !== '') {
+          valueParts.push(rowParts.join(', '));
+        }
+      });
+      return valueParts.join(' & ');
     }
 
     $.each(this, function () {
@@ -154,20 +188,27 @@
       }
 
       // Trap changes to inputs to update the review
-      indiciaFns.on('change', '.ctrl-wrap :input:visible:not(.ac_input)', {}, handleInputChange);
+      indiciaFns.on('change', '.ctrl-wrap :input:visible:not(.ac_input), .complex-attr-grid :input:visible:not(.ac_input)', {}, handleInputChange);
       // autocompletes don't fire when picking from the list, so use blur instead.
-      indiciaFns.on('blur', '.ctrl-wrap input.ac_input:visible', {}, handleInputChange);
+      indiciaFns.on('blur', '.ctrl-wrap input.ac_input:visible, .complex-attr-grid input.ac_input:visible', {}, handleInputChange);
 
       // Initial population of basic inputs, skip buttons, place searches etc
-      $.each($('.ctrl-wrap :input:visible').not('button,#imp-georef-search,.scSensitivity'), function () {
+      $.each($('.ctrl-wrap :input:visible, .complex-attr-grid').not('button,#imp-georef-search,.scSensitivity'), function () {
         var label;
         var value;
         var hide;
         if ($.inArray(this.id, div.settings.exclude) === -1 &&
-          $.inArray($(this).attr('name'), div.settings.exclude) === -1) {
-          label = $(this).closest('.ctrl-wrap').find('label').text()
-              .replace(/:$/, '');
-          value = getValue(this);
+            $.inArray($(this).attr('name'), div.settings.exclude) === -1) {
+          if ($(this).is('.complex-attr-grid')) {
+            label = getComplexAttrGridLabel(this);
+            value = getComplexAttrGridValue(this);
+          } else {
+            label = $(this).closest('.ctrl-wrap').find('label').text()
+                .replace(/:$/, '');
+            value = getValue(this);
+          }
+          label = indiciaFns.escapeHtml(label);
+          value = indiciaFns.escapeHtml(value);
           hide = value ? '' : ' style="display: none"';
           content += '<tr id="review-' + this.id + '"' + hide + '><th>' + label + '</th><td>' + value + '</td></tr>\n';
         }
