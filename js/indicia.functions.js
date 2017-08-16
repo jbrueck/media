@@ -238,6 +238,22 @@ if (typeof window.indiciaData === 'undefined') {
     }
     return system;
   };
+  
+  /**
+   * Utility function, equivalent to htmlspecialchars in PHP.
+   * @param string text
+   * @returns string
+   */
+  indiciaFns.escapeHtml = function(text) {
+    var map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+  };
 
   // Some functions relating to location controls
   indiciaFns.locationControl = [];
