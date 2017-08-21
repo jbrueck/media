@@ -24,12 +24,6 @@
       nameFilterMode = $('#filter-name').length===0 ? '$defaultFilterMode' : $('#filter-name').val();
     }
     currentFilter=$.extend({}, indiciaData.speciesChecklistFilterOpts.nameFilter[nameFilterMode]);
-    // decode the query part, so we can modify it
-    if (typeof currentFilter.query !== "undefined") {
-      currentFilter.query=JSON.parse(currentFilter.query);
-    } else {
-      currentFilter.query={};
-    }
     // User preferred groups option should not be available if no groups set.
     if (type === 'user' && typeof indiciaData.usersPreferredTaxonGroups === 'undefined') {
       type = 'default';
@@ -46,28 +40,18 @@
         currentFilter.taxon_group_id = JSON.stringify(indiciaData.usersPreferredTaxonGroups);
         break;
     }
-    // re-encode the query part
-    currentFilter.query=JSON.stringify(currentFilter.query);
     if (type==='default') {
       $('#' + gridId + ' .species-filter').removeClass('button-active');
     } else {
       $('#' + gridId + ' .species-filter').addClass('button-active');
     }
-
+    // clear out previous filter
+    $('.scTaxonCell input').unsetExtraParams("language");
+    $('.scTaxonCell input').unsetExtraParams("preferred");
+    $('.scTaxonCell input').unsetExtraParams("synonyms");
     //Tell the system to use the current filter.
     indiciaData['taxonExtraParams-' + gridId] = currentFilter;
     $('.scTaxonCell input').setExtraParams(currentFilter);
-    // Unset previous filters which are no longer wanted
-    switch (nameFilterMode) {
-      case 'preferred':
-        $('.scTaxonCell input').unsetExtraParams("language_iso");
-        break;
-      case 'all':
-        $('.scTaxonCell input').unsetExtraParams("language_iso");
-      case 'currentLanguage':
-      default:
-        $('.scTaxonCell input').unsetExtraParams("name_type");
-    }
     // store in cookie
     $.cookie('user_selected_taxon_filter', JSON.stringify({
       type: type,
