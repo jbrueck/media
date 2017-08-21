@@ -290,7 +290,7 @@ var resetSpeciesTextOnEscape;
       checkbox = $(row).find('.scPresenceCell input.scPresence');
       checkbox.attr('checked', 'checked');
       // store the ttlId
-      checkbox.val(data.id);
+      checkbox.val(data.taxa_taxon_list_id);
       if (indiciaData['subSpeciesColumn-' + gridId] == true) {
         // Setup a subspecies picker if this option is enabled. Since we don't know for sure if this is matching the
         // last row in the grid (as the user might be typing ahead), use the presence checkbox to extract the row unique ID.
@@ -402,14 +402,11 @@ var resetSpeciesTextOnEscape;
     newRow.appendTo('table#' + gridId + ' > tbody').removeAttr('id');
     extraParams = {
       mode: 'json',
-      qfield: indiciaData.speciesGrid[gridId].cacheLookup ? 'searchterm' : 'taxon',
+      qfield: 'searchQuery',
       auth_token: readAuth.auth_token,
       nonce: readAuth.nonce,
       taxon_list_id: lookupListId
     };
-    if (!indiciaData.speciesGrid[gridId].cacheLookup) {
-      extraParams.orderby = 'taxon';
-    }
     if (typeof indiciaData['taxonExtraParams-' + gridId]!=='undefined') {
       $.extend(extraParams, indiciaData['taxonExtraParams-' + gridId]);
       // a custom query on the list id overrides the standard filter..
@@ -423,7 +420,7 @@ var resetSpeciesTextOnEscape;
       autocompleteSettings.width = 200;
     }
     // Attach auto-complete code to the input
-    ctrl = $('#' + selectorId).autocomplete(url+'/'+(indiciaData.speciesGrid[gridId].cacheLookup ? 'taxa_search' : 'taxa_taxon_list'), autocompleteSettings);
+    ctrl = $('#' + selectorId).autocomplete(url+'/taxa_search', autocompleteSettings);
     ctrl.bind('result', handleSelectedTaxon);
     ctrl.bind('return', returnPressedInAutocomplete);
     // Check that the new entry control for taxa will remain in view with enough space for the autocomplete drop down
@@ -438,7 +435,6 @@ var resetSpeciesTextOnEscape;
   };
 
   addRowToGrid = function (url, gridId, lookupListId, readAuth, formatter) {
-    var cacheLookup = indiciaData.speciesGrid[gridId].cacheLookup;
     makeSpareRow(gridId, readAuth, lookupListId, url, null, false);
     // Deal with user clicking on edit taxon icon
     indiciaFns.on('click', '.edit-taxon-name', {}, function(e) {
@@ -468,16 +464,13 @@ var resetSpeciesTextOnEscape;
       $(taxonCell).append(speciesAutocomplete);
       var extraParams = {
         mode : 'json',
-        qfield : cacheLookup ? 'searchterm' : 'taxon',
+        qfield : 'searchQuery',
         auth_token: readAuth.auth_token,
         nonce: readAuth.nonce,
         taxon_list_id: lookupListId
       };
-      if (!cacheLookup) {
-        extraParams.orderby = 'taxon';
-      }
       var autocompleteSettings = getAutocompleteSettings(extraParams, gridId);
-      var ctrl = $(taxonCell).children(':input').autocomplete(url+'/'+(cacheLookup ? 'taxa_search' : 'taxa_taxon_list'), autocompleteSettings);
+      var ctrl = $(taxonCell).children(':input').autocomplete(url + '/taxa_search', autocompleteSettings);
       // Put the taxon name into the autocomplete ready for editing
       $('#' + selectorId).val(taxonTextBeforeUserEdit);
       $('#' + selectorId).focus();
@@ -609,7 +602,7 @@ var resetSpeciesTextOnEscape;
    * });
    *
    * function hook_species_checklist_new_row(data) {
-   *   var id='#sc:'+data.id+'::occurrence:comment';
+   *   var id='#sc:'+data.taxa_taxon_list_id+'::occurrence:comment';
    *   id = id.replace(/:/g, '\\:');
    *   ConvertControlsToPopup($(id), 'Comment', indiciaData.imagesPath + 'nuvola/package_editors-22px.png');
    * }
@@ -881,17 +874,6 @@ function species_checklist_add_another_row(gridId) {
 
 //function to get settings to setup for an autocomplete cell
 function getAutocompleteSettings(extraParams, gridId) {
-  /**
-   * Ensure field names are consistent independent of whether we are using cached data
-   * or not.
-   */
-  var mapFromCacheTable = function(item) {
-    item.common = item.common_name;
-    item.preferred_name = item.preferred_name;
-    item.taxon = item.taxon;
-    item.id = item.taxa_taxon_list_id;
-    return item;
-  };
 
   var autocompleterSettingsToReturn = {
     extraParams : extraParams,
@@ -902,12 +884,6 @@ function getAutocompleteSettings(extraParams, gridId) {
     parse: function(data) {
       var results = [], done={}, display;
       jQuery.each(data, function(i, item) {
-        // common name can be supplied in a field called common, or default_common_name
-        if (indiciaData.speciesGrid[gridId].cacheLookup) {
-          item = mapFromCacheTable(item);
-        } else {
-          item.searchterm = item.taxon;
-        }
         // note we track the distinct meaning id and display term, so we don't output duplicates
         // display field does not seem to be available, though there may be some form somewhere which uses it.
         display = (typeof item.display != 'undefined' ? item.display : item.taxon).replace(/\W+/g, "");
@@ -916,7 +892,7 @@ function getAutocompleteSettings(extraParams, gridId) {
           {
             data: item,
             result: item.searchterm,
-            value: item.id
+            value: item.taxa_taxon_list_id
           };
           done[item.taxon_meaning_id + '_' + display] = true;
         }
