@@ -347,6 +347,18 @@ var destroyAllFeatures;
           break;
       }
     }
+    
+    /**
+     * Hides graticules other than the one currently selected as a system.
+     */
+    function _hideOtherGraticules(div) {
+      $.each(div.map.controls, function() {
+        if (this.CLASS_NAME === 'OpenLayers.Control.Graticule') {
+          this.gratLayer.setVisibility(this.projection === 'EPSG:' + 
+              div.settings.graticules[$('#' + opts.srefSystemId).val()].projection);
+        }
+      });
+    }
 
     /**
      * Use jQuery selectors to locate any other related controls on the page which need to have events
@@ -358,6 +370,7 @@ var destroyAllFeatures;
       // If the spatial ref input control exists, bind it to the map, so entering a ref updates the map
       $('#' + opts.srefId).change(function() {
         _handleEnteredSref($(this).val(), div);
+        _hideOtherGraticules(div);
       });
       // If the spatial ref latitude or longitude input control exists, bind it to the map, so entering a ref updates the map
       $('#' + opts.srefLatId).change(function () {
@@ -385,6 +398,7 @@ var destroyAllFeatures;
         // @todo
         // -If the Spatial Reference is typed then currently it will only do a conversion if the clickForPlot option is used (which isn't very often)
         // Only do the conversion if the spatial reference field is not blank
+        // -Hide graticules other than that for the the selected system
         if ($('#' + opts.srefId).val()) {
           // indiciaData.no_conversion_on_sp_system_changed should not be needed, however the system doesn't not currently support the
           // conversion of spatial reference if clickForPlot is off and the sp reference is typed by hand, so we need to switch off this function
@@ -413,6 +427,7 @@ var destroyAllFeatures;
             div.map.zoom = currentZoom;
           }
         }
+        _hideOtherGraticules(div);
       });
 
       // If a place search (georeference) control exists, bind it to the map.
@@ -1665,6 +1680,7 @@ var destroyAllFeatures;
       }
       else {
         _setClickPoint(data, div); // data sref in _getSystem, wkt in indiciaProjection, mapwkt in mapProjection
+        _hideOtherGraticules(div);
       }
       if (typeof indiciaFns.showHideRememberSiteButton!=='undefined') {
         indiciaFns.showHideRememberSiteButton();

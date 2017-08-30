@@ -267,16 +267,7 @@ $.Autocompleter = function(input, options) {
 
   function selectCurrent() {
     var selected = select.selected();
-    var valueSimple;
-    var regexpSimple;
-    var valueOrig;
-    var regexpOrig;
-    valueSimple = simplify($input.val()).toLowerCase().replace(/[\[\]\\\^\$\.\|\?\+\(\)]/g, '\\$&');
-    regexpSimple = new RegExp('^' + valueSimple.replace('*', '.*'));
-    valueOrig = $input.val().toLowerCase().replace(/[\[\]\\\^\$\.\|\?\+\(\)]/g, '\\$&');
-    regexpOrig = new RegExp('^' + valueOrig.replace('*', '.*'));
-    if (!selected ||
-        (!selected.result.toLowerCase().match(regexpSimple) && !selected.result.toLowerCase().match(regexpOrig))) {
+    if (!selected) {
       return false;
     }
     // If searching against a searchterm field in a table with an original field, we actually need to display the original field.
@@ -419,12 +410,6 @@ $.Autocompleter = function(input, options) {
       regexpSimple = new RegExp('^' + valueSimple.replace('*', '.*'));
       valueOrig = $input.val().toLowerCase().replace(/[\[\]\\\^\$\.\|\?\+\(\)]/g, '\\$&');
       regexpOrig = new RegExp('^' + valueOrig.replace('*', '.*'));
-      for (idx = data.length - 1; idx >= 0; idx--) {
-        // Drop anything that does not match, in case the edit has changed since the query was issued.
-        if (!data[idx].result.toLowerCase().match(regexpSimple) && !data[idx].result.toLowerCase().match(regexpOrig)) {
-          data.splice(idx, 1);
-        }
-      }
     }
     var hasFocus = $input[0].id===document.activeElement.id;
     if ( data && data.length && (hasFocus || options.continueOnBlur) ) {
