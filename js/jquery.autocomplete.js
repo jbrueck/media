@@ -271,8 +271,9 @@ $.Autocompleter = function(input, options) {
       return false;
     }
     // If searching against a searchterm field in a table with an original field, we actually need to display the original field.
-    var v = (typeof selected.data.searchterm !== "undefined" && selected.data.searchterm===selected.result && typeof selected.data.original !== "undefined") ?
-        selected.data.original : selected.result;
+    var v = (typeof selected.data.searchterm !== "undefined" && selected.data.searchterm===selected.result && 
+            typeof selected.data.taxon !== "undefined") ?
+        selected.data.taxon : selected.result;
     previousValue = v;
     
     if ( options.multiple ) {
