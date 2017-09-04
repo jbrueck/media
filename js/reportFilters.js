@@ -1001,6 +1001,7 @@ jQuery(document).ready(function ($) {
       case 'P': return 'peer review';
       case 'D': return 'data flow';
       case 'M': return 'moderation';
+      case 'E': return 'editing';
       default: return code;
     }
   }
