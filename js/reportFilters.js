@@ -683,7 +683,7 @@ jQuery(document).ready(function ($) {
         var list = [];
         if (indiciaData.filter.def.input_form_list) {
           $.each(indiciaData.filter.def.input_form_list.split(','), function (idx, id) {
-            list.push($('#check-input_form-' + id).next('label').html());
+            list.push($('#check-form-' + indiciaData.formsList[id.replace(/'/g, '')]).next('label').html());
           });
           r.push((indiciaData.filter.def.input_form_list_op === 'not in' ? 'Exclude ' : '') + list.join(', '));
         } else if (indiciaData.filter.def.survey_list) {
@@ -720,7 +720,7 @@ jQuery(document).ready(function ($) {
         if (indiciaData.filter.def.input_form_list) {
           $('#input_form_list input').attr('checked', false);
           $.each(indiciaData.filter.def.input_form_list.split(','), function (idx, form) {
-            $('#check-form-' + indiciaData.formsList[form]).attr('checked', true);
+            $('#check-form-' + indiciaData.formsList[form.replace(/'/g, '')]).attr('checked', true);
           });
         }
         $('#website-list-checklist,#survey-list-checklist,#input_form-list-checklist')
