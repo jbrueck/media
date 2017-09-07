@@ -1599,9 +1599,14 @@ var destroyAllFeatures;
           sys = 'LUGR';
         }
       }
-      // revert to the original system if we failed to find a better one
       if (!sys) {
-        sys = system;
+        var has4326 = $('#'+opts.srefSystemId+' option[value="' + "4326" + '"]'); 
+        //If we still haven't found a system, then fall back on the original system 
+        //unless we can find 4326 in which case switch to that instead
+        sys=system;
+        if (has4326.length !== 0) {
+          sys = '4326';   
+        }
       }
       return sys;
 
