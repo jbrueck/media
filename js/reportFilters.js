@@ -1027,19 +1027,8 @@ jQuery(document).ready(function ($) {
           var grid = this[0];
           // reset to first page
           grid.settings.offset = 0;
-          if (typeof grid.settings.suppliedParams === 'undefined') {
-            // First time - store a copy of the supplied default params before any reset, so we can revert.
-            grid.settings.suppliedParams = $.extend({}, grid.settings.extraParams);
-            // Remove context filter from the params since we always apply a new one afresh each time the filter changes
-            $.each(grid.settings.suppliedParams, function (key) {
-              if (key.match(/_context$/)) {
-                delete grid.settings.suppliedParams[key];
-              }
-            });
-          } else {
-            // Subsequently - reset the default parameters for the grid
-            grid.settings.extraParams = $.extend({}, grid.settings.suppliedParams);
-          }
+          // Reset the parameters which are fixed for the grid.
+          grid.settings.extraParams = $.extend({}, grid.settings.fixedParams);
           // merge in the filter. Supplied filter overrides other location settings (since indexed_location_list and
           // location_list are logically the same filter setting.
           if ((typeof grid.settings.extraParams.indexed_location_list !== 'undefined' ||
@@ -1078,10 +1067,10 @@ jQuery(document).ready(function ($) {
   }
 
   function resetFilter() {
-    indiciaData.filter.def={};
+    indiciaData.filter.def = {};
     applyDefaults();
-    if (typeof indiciaData.filter.orig !== 'undefined') {
-      indiciaData.filter.def = $.extend(indiciaData.filter.def, indiciaData.filter.orig);
+    if (typeof indiciaData.filter.resetParams !== 'undefined') {
+      indiciaData.filter.def = $.extend(indiciaData.filter.def, indiciaData.filter.resetParams);
     }
     indiciaData.filter.id = null;
     $('#filter\\:title').val('');
