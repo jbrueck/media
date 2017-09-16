@@ -1345,7 +1345,7 @@ jQuery(document).ready(function ($) {
   });
 
   $('#filter-apply').click(function () {
-    loadFilter($('#select-filter').val(), {});
+    loadFilter($('#select-filter').val(), indiciaData.filter.initialParams);
   });
 
   $('#filter-reset').click(function () {
