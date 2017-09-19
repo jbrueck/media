@@ -1070,7 +1070,7 @@ jQuery(document).ready(function ($) {
     indiciaData.filter.def = {};
     applyDefaults();
     if (typeof indiciaData.filter.resetParams !== 'undefined') {
-      indiciaData.filter.def = $.extend(indiciaData.filter.def, indiciaData.filter.resetParams);
+      indiciaData.filter.def = $.extend(indiciaData.filter.resetParams, indiciaData.filter.def);
     }
     indiciaData.filter.id = null;
     $('#filter\\:title').val('');
