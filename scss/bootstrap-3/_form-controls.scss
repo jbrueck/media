@@ -1,0 +1,4 @@
+/* Reintroduce spacing that is removed from the last control in a list */
+#controls > div {
+  padding-bottom: $form-group-margin-bottom;
+}

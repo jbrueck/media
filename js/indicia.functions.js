@@ -47,7 +47,12 @@ if (typeof window.indiciaData === 'undefined') {
   };
 
   indiciaFns.initFindMe = function (hint) {
-    $('input.findme').after('<span id="findme-icon" title="' + hint + '">&nbsp;</span>');
+    if ($('input.findme').nextAll('.ctrl-addons').length > 0) {
+      $('input.findme').nextAll('.ctrl-addons').append('<span id="findme-icon" title="' + hint + '">&nbsp;</span>');
+    }
+    else {
+      $('input.findme').after('<span id="findme-icon" title="' + hint + '">&nbsp;</span>');
+    }
     $('#findme-icon').click(indiciaFns.findMe);
   };
 
@@ -238,7 +243,7 @@ if (typeof window.indiciaData === 'undefined') {
     }
     return system;
   };
-  
+
   /**
    * Utility function, equivalent to htmlspecialchars in PHP.
    * @param string text
@@ -335,7 +340,7 @@ if (typeof window.indiciaData === 'undefined') {
             $('#' + locCntrlIdEscaped + '\\:name').val(data[0].name);
           } else if (data.length > 1) {
             // if populated already with something on the list, just use that one.
-            
+
             popupHtml = '<p>' + indiciaData.langMoreThanOneLocationMatch + '</p>';
             popupHtml += '<ul>';
             $.each(data, function () {
