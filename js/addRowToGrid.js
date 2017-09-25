@@ -226,7 +226,7 @@ var resetSpeciesTextOnEscape;
       var rowId;
       var row;
       var label;
-      var subSpeciesCellId;
+      var subSpeciesCellIdBeginsWith;
       var regex;
       var deleteAndEditHtml;
       /*
@@ -295,8 +295,8 @@ var resetSpeciesTextOnEscape;
         // Setup a subspecies picker if this option is enabled. Since we don't know for sure if this is matching the
         // last row in the grid (as the user might be typing ahead), use the presence checkbox to extract the row unique ID.
         rowId = checkbox[0].id.match(/sc:([a-z0-9\-]+)/)[1];
-        subSpeciesCellId = 'sc:' + rowId + '::occurrence:subspecies';
-        createSubSpeciesList(url, data.preferred_taxa_taxon_list_id, data.preferred_name, lookupListId, subSpeciesCellId, readAuth, 0);
+        subSpeciesCellIdBeginsWith = 'sc:' + rowId + ':';
+        createSubSpeciesList(url, data.preferred_taxa_taxon_list_id, data.preferred_taxon, lookupListId, subSpeciesCellIdBeginsWith, readAuth, 0);
       }
       // Finally, a blank row is added for the next record
       makeSpareRow(gridId, readAuth, lookupListId, url, null, true);
@@ -437,18 +437,22 @@ var resetSpeciesTextOnEscape;
   addRowToGrid = function (url, gridId, lookupListId, readAuth, formatter) {
     makeSpareRow(gridId, readAuth, lookupListId, url, null, false);
     // Deal with user clicking on edit taxon icon
-    indiciaFns.on('click', '.edit-taxon-name', {}, function(e) {
-      if ($('.ac_results:visible').length>0 || !$(e.target).is(':visible')) {
-        // don't go into edit mode if they are picking a species name already
-        return;
-      }
-      var row = $($(e.target).parents('tr:first')),
-          taxonCell=$(row).children('.scTaxonCell'),
-          gridId = $(taxonCell).closest('table').attr('id'),
-          selectorId = gridId + '-' + indiciaData['gridCounter-'+gridId],
-          taxonTextBeforeUserEdit;
+    indiciaFns.on('click', '.edit-taxon-name', {}, function (e) {
+      var row = $($(e.target).parents('tr:first'));
+      var taxonCell = $(row).children('.scTaxonCell');
+      var subspSelect = $(row).find('.scSubSpecies');
+      var gridId = $(taxonCell).closest('table').attr('id');
+      var selectorId = gridId + '-' + indiciaData['gridCounter-' + gridId];
+      var taxonTextBeforeUserEdit;
       // When moving into edit mode we need to create an autocomplete box for the user to fill in
       var speciesAutocomplete = '<input type="text" id="' + selectorId + '" class="grid-required ac_input {speciesMustBeFilled:true}" autocomplete="off"/>';
+      var extraParams;
+      var autocompleteSettings;
+      var ctrl;
+      if ($('.ac_results:visible').length > 0 || !$(e.target).is(':visible')) {
+        // Don't go into edit mode if they are picking a species name already.
+        return;
+      }
       // Remove the edit and delete icons.
       $(e.target).parent().remove();
       taxonNameBeforeUserEdit = $(taxonCell).html();
@@ -457,32 +461,36 @@ var resetSpeciesTextOnEscape;
       // Add the autocomplete cell
       $(taxonCell).append(speciesAutocomplete);
       // Adjust the size of the taxon cell to take up its full allocation of space
-      $(taxonCell).attr('colSpan',2);
+      $(taxonCell).attr('colSpan', 2);
+      // If we have a subspecies select, enable it
+      if (subspSelect.length > 0) {
+        $(subspSelect).removeAttr('disabled');
+      }
       // Moving into edit mode, we need to clear the static taxon label otherwise
       // the name is shown twice (it is also shown in the autocomplete)
       $(taxonCell).text('');
       $(taxonCell).append(speciesAutocomplete);
-      var extraParams = {
-        mode : 'json',
-        qfield : 'searchQuery',
+      extraParams = {
+        mode: 'json',
+        qfield: 'searchQuery',
         auth_token: readAuth.auth_token,
         nonce: readAuth.nonce,
         taxon_list_id: lookupListId
       };
-      var autocompleteSettings = getAutocompleteSettings(extraParams, gridId);
-      var ctrl = $(taxonCell).children(':input').autocomplete(url + '/taxa_search', autocompleteSettings);
+      autocompleteSettings = getAutocompleteSettings(extraParams, gridId);
+      ctrl = $(taxonCell).children(':input').autocomplete(url + '/taxa_search', autocompleteSettings);
       // Put the taxon name into the autocomplete ready for editing
       $('#' + selectorId).val(taxonTextBeforeUserEdit);
       $('#' + selectorId).focus();
       // Set the focus to the end of the string, this isn't elegant, but seems to be quickest way to do this.
       // After we set focus, we add a space to the end of the string to force focus to end, then remove the space
-      $('#' + selectorId).val($('#'+selectorId).val() + ' ');
-      $('#' + selectorId).val($('#'+selectorId).val().slice(0, -1));
+      $('#' + selectorId).val($('#' + selectorId).val() + ' ');
+      $('#' + selectorId).val($('#' + selectorId).val().slice(0, -1));
       ctrl.bind('result', handleSelectedTaxon);
       ctrl.bind('return', returnPressedInAutocomplete);
       // Bind function so that when user loses focus on the taxon cell immediately after clicking edit, we can reset
       // the cell back to read-only label
-      ctrl.bind('blur', resetSpeciesText);
+      //ctrl.bind('blur', resetSpeciesText);
       ctrl.bind('keydown', resetSpeciesTextOnEscape);
     });
   };
@@ -711,7 +719,8 @@ var resetSpeciesTextOnEscape;
   });
 })(jQuery);
 
-function createSubSpeciesList(url, selectedItemPrefId, selectedItemPrefName, lookupListId, subSpeciesCtrlId, readAuth, selectedChild) {
+function createSubSpeciesList(url, selectedItemPrefId, selectedItemPrefName, lookupListId,
+  subSpeciesCtrlIdBeginsWith, readAuth, selectedChild) {
   'use strict';
   var subSpeciesData = {
     mode: 'json',
@@ -722,7 +731,7 @@ function createSubSpeciesList(url, selectedItemPrefId, selectedItemPrefName, loo
     name_type: 'L',
     simplified: 'f'
   };
-  var ctrl = jQuery('#' + subSpeciesCtrlId.replace(/:/g, '\\:'));
+  var ctrl = jQuery('[id^=' + subSpeciesCtrlIdBeginsWith.replace(/:/g, '\\:') + ']');
   if (ctrl.length > 0) {
     jQuery.getJSON(url + '/cache_taxon_searchterm?callback=?', subSpeciesData,
       function (data) {
@@ -761,31 +770,34 @@ function createSubSpeciesList(url, selectedItemPrefId, selectedItemPrefName, loo
           }
           ctrl.show();
         }
-
       }
     );
   }
 }
 
 function SetHtmlIdsOnSubspeciesChange(subSpeciesId) {
-  "use strict";
-  //We can work out the grid row number we are working with by stripping the sub-species id.
-  var presentCellId, presentCellSelector, subSpecieSelectorId, subSpeciesValue, gridRowId = subSpeciesId.match(/\d+\.?\d*/g);
+  'use strict';
+  // We can work out the grid row number we are working with by stripping the sub-species id.
+  var presentCellId;
+  var presentCellSelector;
+  var subSpecieSelectorId;
+  var subSpeciesValue;
+  var gridRowId = subSpeciesId.replace(/^sc:/, '').match(/^([a-z0-9\-]*)/g);
   presentCellId = 'sc:' + gridRowId + '::present';
-  //We need to escape certain characters in the html id so we can use it with jQuery.
-  presentCellSelector = presentCellId.replace(/:/g,'\\:');
-  //If we don't have a taxon id for the parent species saved, then collect it from the html
+  // We need to escape certain characters in the html id so we can use it with jQuery.
+  presentCellSelector = presentCellId.replace(/:/g, '\\:');
+  // If we don't have a taxon id for the parent species saved, then collect it from the html.
   if (!mainSpeciesValue) {
-    mainSpeciesValue = jQuery("#"+presentCellSelector).val();
+    mainSpeciesValue = jQuery('#' + presentCellSelector).val();
   }
-  subSpecieSelectorId = subSpeciesId.replace(/:/g,'\\:');
-  subSpeciesValue=(jQuery("#"+subSpecieSelectorId).val());
-  //If the user has selected the blank sub-species row, then we use the parent species
-  if (subSpeciesValue==="") {
-    jQuery("#"+presentCellSelector).val(mainSpeciesValue);
+  subSpecieSelectorId = subSpeciesId.replace(/:/g, '\\:');
+  subSpeciesValue = (jQuery('#' + subSpecieSelectorId).val());
+  // If the user has selected the blank sub-species row, then we use the parent species.
+  if (subSpeciesValue === '') {
+    jQuery('#' + presentCellSelector).val(mainSpeciesValue);
   }
   if (subSpeciesValue) {
-    jQuery("#"+presentCellSelector).val(subSpeciesValue);
+    jQuery('#' + presentCellSelector).val(subSpeciesValue);
   }
 }
 
