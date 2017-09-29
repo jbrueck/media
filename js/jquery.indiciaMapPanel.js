@@ -63,7 +63,7 @@ var destroyAllFeatures;
      * Adds the distribution point indicated by a record object to a list of features.
      */
     function addPt(features, record, wktCol, opts, id) {
-      if (record[wktCol]===null) 
+      if (record[wktCol]===null)
         return;
       // if an int supplied instead of a geom, this must be an index into the indiciaData.geoms array.
       if (!isNaN(record[wktCol])) {
@@ -105,7 +105,7 @@ var destroyAllFeatures;
       });
       layer.removeFeatures(toRemove, {});
     }
-    
+
     /*
      * Destroy features version of removeAllFeatures function. Once destroyed features cannot be added back to the layer.
      */
@@ -128,16 +128,16 @@ var destroyAllFeatures;
      * boundary onto the map. Automatic for #imp-location, but can be attached to other controls as well.
      */
     function locationSelectedInInput(div, val, loading) {
+      var intValue = parseInt(val);
       if (div.map.editLayer) {
         removeAllFeatures(div.map.editLayer, 'boundary');
       }
-      var intValue = parseInt(val);
       if (!isNaN(intValue)) {
         // Change the location control requests the location's geometry to place on the map.
-        $.getJSON(div.settings.indiciaSvc + "index.php/services/data/location/"+val +
-          "?mode=json&view=detail" + div.settings.readAuth + "&callback=?", function(data) {
+        $.getJSON(div.settings.indiciaSvc + 'index.php/services/data/location/' + val +
+          '?mode=json&view=detail' + div.settings.readAuth + '&callback=?', function (data) {
             // store value in saved field?
-            if (data.length>0) {
+            if (data.length > 0) {
               // TODO not sure best way of doing this using the services, we don't really want
               // to use the proj4 client transform until its issues are sorted out, but have little choice here as
               // the wkt for a boundary could be too big to send to the services on the URL
@@ -150,20 +150,29 @@ var destroyAllFeatures;
               }
               _showWktFeature(div, geomwkt, div.map.editLayer, null, true, 'boundary');
 
-              if (typeof loading === "undefined" &&
+              if (typeof loading === 'undefined' &&
                   typeof indiciaData.searchUpdatesSref !== 'undefined' && indiciaData.searchUpdatesSref) {
                 // The location search box must fill in the sample sref box, but not during initial page load
-                $('#'+div.settings.srefId).val(data[0].centroid_sref);
-                $('#'+div.settings.srefSystemId).val(data[0].centroid_sref_system);
-                $('#'+div.settings.geomId).val(data[0].centroid_geom);
+                $('#' + div.settings.srefId).val(data[0].centroid_sref);
+                $('#' + div.settings.srefSystemId).val(data[0].centroid_sref_system);
+                if (indiciaData.searchUpdatesUsingBoundary && data[0].boundary_geom) {
+                  $('#' + div.settings.geomId).val(data[0].boundary_geom);
+                } else {
+                  $('#' + div.settings.geomId).val(data[0].centroid_geom);
+                }
                 // If the sref is in two parts, then we might need to split it across 2 input fields for lat and long
-                if (data[0].centroid_sref.indexOf(' ')!==-1) {
-                  var parts=$.trim(data[0].centroid_sref).split(' ');
+                if (data[0].centroid_sref.indexOf(' ') !== -1) {
+                  var parts = $.trim(data[0].centroid_sref).split(' ');
                   // part 1 may have a comma at the end, so remove
                   var part1 = parts.shift().split(',')[0];
-                  $('#'+div.settings.srefLatId).val(part1);
-                  $('#'+div.settings.srefLongId).val(parts.join(''));
+                  $('#' + div.settings.srefLatId).val(part1);
+                  $('#' + div.settings.srefLongId).val(parts.join(''));
                 }
+              }
+              if (typeof loading === "undefined" &&
+                  typeof indiciaData.searchUpdatesGeom !== 'undefined' && indiciaData.searchUpdatesGeom) {
+                // The location search box must fill in the sample sref box, but not during initial page load
+                $('#'+div.settings.geomId).val(data[0].boundary_geom);
               }
               $.each(mapLocationSelectedHooks, function() {
                 this(div, data);
@@ -347,14 +356,14 @@ var destroyAllFeatures;
           break;
       }
     }
-    
+
     /**
      * Hides graticules other than the one currently selected as a system.
      */
     function _hideOtherGraticules(div) {
       $.each(div.map.controls, function() {
         if (this.CLASS_NAME === 'OpenLayers.Control.Graticule') {
-          this.gratLayer.setVisibility(this.projection === 'EPSG:' + 
+          this.gratLayer.setVisibility(this.projection === 'EPSG:' +
               div.settings.graticules[$('#' + opts.srefSystemId).val()].projection);
         }
       });
@@ -698,7 +707,7 @@ var destroyAllFeatures;
       $.each(mapClickForSpatialRefHooks, function() {
         this(data, div, feature);
       });
-      
+
       showGridRefHints(div);
     }
 
@@ -1018,7 +1027,7 @@ var destroyAllFeatures;
               tolerantGeom = OpenLayers.Geometry.Polygon.createRegularPolygon(testGeom, tolerance, 8, 0);
               testGeoms['geom-'+Math.round(tolerance/100)] = tolerantGeom;
             }
-            if ((tolerantGeom.intersects(feature.geometry) || testGeom.intersects(feature.geometry)) && 
+            if ((tolerantGeom.intersects(feature.geometry) || testGeom.intersects(feature.geometry)) &&
                 $.inArray(feature, layer.selectedFeatures)===-1) {
               featuresToSelect.push(feature);
             }
@@ -1046,7 +1055,7 @@ var destroyAllFeatures;
             clickableVectorLayers.push(this);
           }
         });
-        
+
         clickableWMSLayerNames = clickableWMSLayerNames.join(',');
         // Create a control that can handle both WMS and vector layer clicks.
         var infoCtrl = new OpenLayers.Control({
@@ -1054,16 +1063,16 @@ var destroyAllFeatures;
           title: div.settings.reportGroup===null ? '' : div.settings.hintQueryDataPointsTool,
           lastclick: {},
           allowBox: clickableVectorLayers.length>0 && div.settings.allowBox===true,
-          deactivate: function() { 
+          deactivate: function() {
             //If the map is setup to use popups, then we need to switch off popups when moving to use a different tool icon
             //on the map (such as drawing boundaries) otheriwise they will continue to show.
             if (clickableVectorLayers.length>0 && this.allowBox) {
               if (this.handlers) {
-                this.handlers.box.deactivate();            
+                this.handlers.box.deactivate();
               }
               //Remove any popups still being displayed
               $('.olPopup').remove();
-            } 
+            }
             //Continue with the deactivation.
             OpenLayers.Control.prototype.deactivate.call(this);
           },
@@ -1079,7 +1088,7 @@ var destroyAllFeatures;
                   this, {done: this.onGetInfo},
                   {boxDivClassName: "olHandlerBoxSelectFeature"}
                 )
-              };             
+              };
              this.handlers.box.activate();
             } else {
               // allow click or bounding box actions
@@ -1177,7 +1186,7 @@ var destroyAllFeatures;
                 features = features.concat(this.selectedFeatures);
               });
               // now filter the report, highlight rows, or display output in a popup or div depending on settings.
-              if (div.settings.clickableLayersOutputMode==='report' && div.settings.reportGroup!==null && 
+              if (div.settings.clickableLayersOutputMode==='report' && div.settings.reportGroup!==null &&
                   typeof indiciaData.reports!=='undefined') {
                 // grab the feature ids
                 var ids = [], len=0;
@@ -1264,7 +1273,7 @@ var destroyAllFeatures;
       } else {
         return null;
       }
-    }   
+    }
 
     /**
      * Gets the precision required for a grid square dependent on the map zoom.
@@ -1452,7 +1461,7 @@ var destroyAllFeatures;
      * Function called by the map click handler.
      */
     function clickOnMap(xy, div) {
-      var lonlat = div.map.getLonLatFromPixel(xy);   
+      var lonlat = div.map.getLonLatFromPixel(xy);
       //Save the click position so that the spatial reference can be converted when the user just changes
       //the spatial reference system
       indiciaData.no_conversion_on_sp_system_changed=false;
@@ -1600,12 +1609,12 @@ var destroyAllFeatures;
         }
       }
       if (!sys) {
-        var has4326 = $('#'+opts.srefSystemId+' option[value="' + "4326" + '"]'); 
-        //If we still haven't found a system, then fall back on the original system 
+        var has4326 = $('#'+opts.srefSystemId+' option[value="' + "4326" + '"]');
+        //If we still haven't found a system, then fall back on the original system
         //unless we can find 4326 in which case switch to that instead
         sys=system;
         if (has4326.length !== 0) {
-          sys = '4326';   
+          sys = '4326';
         }
       }
       return sys;
@@ -2060,7 +2069,7 @@ var destroyAllFeatures;
                       r.wkt = feature.geometry.transform(proj, div.map.projection).toString();
                       //If this line is used, it breaks the rotation handles on the plots without
                       //actually having any other effect as far as I can tell.
-                      if (!div.settings.clickForPlot) {                     
+                      if (!div.settings.clickForPlot) {
                         ghost=_showWktFeature(div, r.wkt, div.map.editLayer, null, true, 'ghost', false);
                       }
                     }
@@ -2162,11 +2171,11 @@ var destroyAllFeatures;
             }
           }
         });
-        
+
         div.map.addControl(infoCtrl);
         infoCtrl.activate();
       }
-      
+
       if (div.settings.editLayer && (div.settings.clickForSpatialRef || div.settings.clickForPlot)) {
         // Setup a click event handler for the map
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
@@ -2206,7 +2215,7 @@ var destroyAllFeatures;
         }
       }, drawStyle=new style('boundary', div.settings);
       var ctrlObj;
-      $.each(div.settings.standardControls, function(i, ctrl) {       
+      $.each(div.settings.standardControls, function(i, ctrl) {
         ctrlObj=null;
         // Add a layer switcher if there are multiple layers
         if (ctrl=='layerSwitcher') {
@@ -2376,7 +2385,7 @@ var destroyAllFeatures;
           }
         });
       }
-      
+
       // What extra stuff do we need to do after clicking to set the spatial reference?
       if (div.settings.clickForPlot) {
         mapClickForSpatialRefHooks.push(updatePlotAfterMapClick);
@@ -2386,7 +2395,7 @@ var destroyAllFeatures;
       } else if (div.settings.click_zoom) {
         mapClickForSpatialRefHooks.push(updateZoomAfterMapClick);
       }
-      
+
       _bindControls(this);
       // keep a handy reference
       indiciaData.mapdiv=div;
@@ -2636,7 +2645,7 @@ function format_selected_features(features, div) {
 //Firstly get the initial south-west point in the various grid reference formats (4326=lat long, 27700 = British National Grid)
 function plot_rectangle_calculator(latLongPoint, width, length) {
   var xy3857 = latLongPoint, northTestPointLatLon, northTestPoint27700, northRightAnglePoint27700,
-      eastTestPointLatLon, eastTestPoint27700, eastRightAnglePoint27700, 
+      eastTestPointLatLon, eastTestPoint27700, eastRightAnglePoint27700,
       actualSquareNorthEastPoint4326, mercOriginal, mercNorth, mercEast, mercNorthEast,
       pt3857 = new OpenLayers.Geometry.Point(xy3857.lon, xy3857.lat),
       InitialClickPoint4326 = pt3857.clone().transform(indiciaData.mapdiv.map.projection, new OpenLayers.Projection('epsg:4326')),
