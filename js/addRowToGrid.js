@@ -731,7 +731,7 @@ function createSubSpeciesList(url, selectedItemPrefId, selectedItemPrefName, loo
     name_type: 'L',
     simplified: 'f'
   };
-  var ctrl = jQuery('[id^=' + subSpeciesCtrlIdBeginsWith.replace(/:/g, '\\:') + ']');
+  var ctrl = jQuery('[id^=' + subSpeciesCtrlIdBeginsWith.replace(/:/g, '\\:') + '][id$=\\:occurrence\\:subspecies]');
   if (ctrl.length > 0) {
     jQuery.getJSON(url + '/cache_taxon_searchterm?callback=?', subSpeciesData,
       function (data) {
