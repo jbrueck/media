@@ -1014,11 +1014,11 @@ jQuery(document).ready(function ($) {
     filterDef = $.extend({}, indiciaData.filter.def);
     delete filterDef.taxon_group_names;
     delete filterDef.taxa_taxon_list_names;
-    delete filterDef.higher_taxon_list_names;
+    delete filterDef.higher_taxa_taxon_list_names;
     delete filterDef.taxon_designation_list_names;
     delete filterDef.taxon_group_names_context;
     delete filterDef.taxa_taxon_list_names_context;
-    delete filterDef.higher_taxon_list_names_context;
+    delete filterDef.higher_taxa_taxon_list_names_context;
     delete filterDef.taxon_designation_list_names_context;
     if (indiciaData.reports) {
       // apply the filter to any reports on the page
