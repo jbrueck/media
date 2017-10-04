@@ -18,10 +18,10 @@
  * @link    http://code.google.com/p/indicia/
  */
 
-(function ($) {
+(function reviewInputPlugin($) {
   'use strict';
 
-  jQuery.fn.reviewInput = function (options) {
+  jQuery.fn.reviewInput = function reviewInput(options) {
     /**
      * General purpose code to retrieve the display value from a variety of form inputs.
      * @param el Form element
@@ -38,6 +38,32 @@
         return $(el).find('option:selected').html();
       }
       return $(el).val();
+    }
+
+    function getComplexAttrGridLabel(grid) {
+      var labelParts = [];
+      // make a comma separated label from the column titles
+      $.each($(grid).find('thead th'), function pushLabelPart() {
+        if ($(this).text()) {
+          labelParts.push($(this).text());
+        }
+      });
+      return labelParts.join(', ');
+    }
+
+    function getComplexAttrGridValue(grid) {
+      var valueParts = [];
+      var rowParts;
+      $.each($(grid).find('tbody tr').not('.row-deleted'), function pushValuePart() {
+        rowParts = [];
+        $.each($(this).find(':input:visible'), function pushRowPart() {
+          rowParts.push(getValue(this));
+        });
+        if (rowParts.join('').trim() !== '') {
+          valueParts.push(rowParts.join(', '));
+        }
+      });
+      return valueParts.join(' & ');
     }
 
     /**
@@ -70,7 +96,7 @@
     function matchupRows(inputTableBody, reviewTableBody, colspan) {
       var rowAtSamePosInReview;
       var newRow;
-      $.each(inputTableBody.find('tr').not('scClonableRow'), function (idx) {
+      $.each(inputTableBody.find('tr').not('.scClonableRow'), function matchupRow(idx) {
         if ($(this).hasClass('footable-row-detail')) {
           rowAtSamePosInReview = reviewTableBody.find('tr:nth-child(' + (idx + 1) + ')');
           // if row in output table is missing, or of the wrong type then insert it.
@@ -100,7 +126,7 @@
       matchupRows(inputTable.find('tbody'), reviewTableBody, td.attr('colspan'));
       if (td.hasClass('footable-row-detail-cell')) {
         outputTd = $(reviewTableBody).find('tr:nth-child(' + outputRowIndex + ') td');
-        $.each(td.find('.footable-row-detail-row:visible'), function () {
+        $.each(td.find('.footable-row-detail-row:visible'), function addTableHtml() {
           footableReviewHtml += '<div><span>' + $(this).find('.footable-row-detail-name').html() + '</span> ' +
             getValue($(this).find('.footable-row-detail-value :input')) + '</div>';
         });
@@ -112,34 +138,50 @@
         outputTd.removeClass('warning');
       }
     }
-    
-    function getComplexAttrGridLabel(grid) {
-      var labelParts = [];
-      // make a comma separated label from the column titles
-      $.each($(grid).find('thead th'), function() {
-        if ($(this).text()) {
-          labelParts.push($(this).text());
-        }
-      });
-      return labelParts.join(', ');
-    }
-    
-    function getComplexAttrGridValue(grid) {
-      var valueParts = [];
-      var rowParts;
-      $.each($(grid).find('tbody tr').not('.row-deleted'), function() {
-        rowParts = [];
-        $.each($(this).find(':input:visible'), function() {
-          rowParts.push(getValue(this));
+
+    /**
+     * Maps the information in a row of a data_entry_controls::species_checklist into the review output.
+     */
+    function handleSpeciesChecklistRowInReview(data, row) {
+      var $table = $(row).closest('table');
+      var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
+      var rowTemplate;
+      var value;
+      var $td;
+      var existingRow = $(reviewTableBody).find('tr:nth-child(' + ($(row).index() + 1) + ')');
+      var idAttr;
+      var colClass;
+      var input;
+      if (existingRow.length) {
+        // Hook called after species name edit on existing row, so just update the species cell.
+        $(existingRow).find('td:first-child').html($(row).find('.scTaxonCell').html());
+      } else {
+        rowTemplate = '';
+        $.each($table.find('thead tr:first-child th:visible')
+          .not('.row-buttons,.footable-toggle-col'), function handleColumn() {
+          if (this.id.match(/images-0$/)) {
+            return;
+          }
+          $td = $(row).find('td[headers="' + this.id + '"]');
+          idAttr = '';
+          colClass = 'review-value-' + this.id.replace(/^species-grid-\d+-/, '').replace(/-\d+$/, '');
+          if ($td.hasClass('scTaxonCell')) {
+            value = $(row).find('.scTaxonCell').html();
+          } else if ($td.hasClass('scAddMediaCell')) {
+            value = 'photos';
+          } else {
+            input = $td.find(':input');
+            value = getValue(input);
+            idAttr = input.attr('id') ? ' id="review-' + input.attr('id') + '"' : '';
+          }
+          rowTemplate += '<td headers="review-' + this.id + '"' + idAttr + ' class="' + colClass + '">' +
+              value + '</td>';
         });
-        if (rowParts.join('').trim() !== '') {
-          valueParts.push(rowParts.join(', '));
-        }
-      });
-      return valueParts.join(' & ');
+        $(reviewTableBody).append('<tr>' + rowTemplate + '</tr>');
+      }
     }
 
-    $.each(this, function () {
+    $.each(this, function initReviewInput() {
       var div = this;
       var container = $(div).find('#' + this.id + '-content');
       var content = '';
@@ -148,54 +190,26 @@
 
       // Trap new rows in species checklists so they can be reflected in output
       if (typeof window.hook_species_checklist_new_row !== 'undefined') {
-        window.hook_species_checklist_new_row.push(function (data, row) {
-          var $table = $(row).closest('table');
-          var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
-          var rowTemplate;
-          var value;
-          var $td;
-          var existingRow = $(reviewTableBody).find('tr:nth-child(' + ($(row).index() + 1) + ')');
-          var idAttr;
-          var colClass;
-          var input;
-          if (existingRow.length) {
-            // Hook called after species name edit on existing row, so just update the species cell.
-            $(existingRow).find('td:first-child').html($(row).find('.scTaxonCell').html());
-          } else {
-            rowTemplate = '';
-            $.each($table.find('thead tr:first-child th:visible').not('.row-buttons,.footable-toggle-col'), function () {
-              if (this.id.match(/images-0$/)) {
-                return;
-              }
-              $td = $(row).find('td[headers="' + this.id + '"]');
-              idAttr = '';
-              colClass = 'review-value-' + this.id.replace(/^species-grid-\d+-/, '').replace(/-\d+$/, '');
-              if ($td.hasClass('scTaxonCell')) {
-                value = $(row).find('.scTaxonCell').html();
-              } else if ($td.hasClass('scAddMediaCell')) {
-                value = 'photos';
-              } else {
-                input = $td.find(':input');
-                value = getValue(input);
-                idAttr = input.attr('id') ? ' id="review-' + input.attr('id') + '"' : '';
-              }
-              rowTemplate += '<td headers="review-' + this.id + '"' + idAttr + ' class="' + colClass + '">' +
-                  value + '</td>';
-            });
-            $(reviewTableBody).append('<tr>' + rowTemplate + '</tr>');
-          }
-        });
+        window.hook_species_checklist_new_row.push(handleSpeciesChecklistRowInReview);
       }
 
       // Trap changes to inputs to update the review
-      indiciaFns.on('change', '.ctrl-wrap :input:visible:not(.ac_input), .complex-attr-grid :input:visible:not(.ac_input)', {}, handleInputChange);
+      indiciaFns.on('change',
+        '.ctrl-wrap :input:visible:not(.ac_input), .complex-attr-grid :input:visible:not(.ac_input)',
+        {},
+        handleInputChange
+      );
       // autocompletes don't fire when picking from the list, so use blur instead.
-      indiciaFns.on('blur', '.ctrl-wrap input.ac_input:visible, .complex-attr-grid input.ac_input:visible', {}, handleInputChange);
+      indiciaFns.on('blur',
+        '.ctrl-wrap input.ac_input:visible, .complex-attr-grid input.ac_input:visible',
+        {}, handleInputChange
+      );
       // delete a row in a complex attr grid also fires an update
       indiciaFns.on('click', '.complex-attr-grid .ind-delete-icon', {}, handleInputChange);
 
       // Initial population of basic inputs, skip buttons, place searches etc
-      $.each($('.ctrl-wrap :input:visible, .complex-attr-grid').not('button,#imp-georef-search,.scSensitivity'), function () {
+      $.each($('.ctrl-wrap :input:visible, .complex-attr-grid')
+        .not('button,#imp-georef-search,.scSensitivity'), function handleComplexAttrGrid() {
         var label;
         var value;
         var hide;
@@ -218,9 +232,10 @@
       $(container).append('<table><tbody>' + content + '</tbody></table>');
 
       // Initial setup of species checklists review table
-      $.each($('table.species-grid'), function () {
+      $.each($('table.species-grid'), function handleSpeciesGrid() {
         var head = '';
-        $.each($(this).find('thead tr:first-child th:visible').not('.row-buttons,.footable-toggle-col'), function () {
+        $.each($(this).find('thead tr:first-child th:visible')
+          .not('.row-buttons,.footable-toggle-col'), function handleGridColumn() {
           if (this.id.match(/images-0$/)) {
             return;
           }
@@ -228,13 +243,17 @@
         });
         $(container).append('<table id="review-' + this.id + '"><thead><tr>' + head + '</tr></thead>' +
             '<tbody></tbody></table>');
+        // On initial load of existing form, load up initial rows.
+        $.each($(this).find('tbody tr').not('.scClonableRow'), function addRow() {
+          handleSpeciesChecklistRowInReview({}, this);
+        });
       });
 
       // Trap changes to species checklist inputs to update the review. Don't bother with the species autocomplete,
       // we'll use the new row hook to trap that
       indiciaFns.on('change', 'table.species-grid :input:visible:not(.ac_input)', {}, handleGridInputChange);
 
-      indiciaFns.bindTabsActivate($('#controls'), function (event, ui) {
+      indiciaFns.bindTabsActivate($('#controls'), function activateTab(event, ui) {
         var element = $(indiciaData.mapdiv);
         if ($(div).closest('.ui-tabs-panel')[0] === ui.newPanel[0]) {
           indiciaData.origMapParent = element.parent();
