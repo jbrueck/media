@@ -2,3 +2,12 @@
 #controls > div {
   padding-bottom: $form-group-margin-bottom;
 }
+.form-group {
+  p.inline-error {
+    margin-left: 0;
+  }
+  /* Removes last-child reset to zero in default theme overrides. */
+  &:last-child {
+    margin-bottom: $form-group-margin-bottom;
+  }
+}

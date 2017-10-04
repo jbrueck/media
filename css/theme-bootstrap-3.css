@@ -1,5 +1,13 @@
 /* Theme extension to the default_site.css file which provides Bootstrap 3 optimised style output */
 /* Reintroduce spacing that is removed from the last control in a list */
-#controls > div { padding-bottom: 15px; }
+#controls > div {
+  padding-bottom: 15px; }
+
+.form-group {
+  /* Removes last-child reset to zero in default theme overrides. */ }
+  .form-group p.inline-error {
+    margin-left: 0; }
+  .form-group:last-child {
+    margin-bottom: 15px; }
 
 /*# sourceMappingURL=theme-bootstrap-3.css.map */
