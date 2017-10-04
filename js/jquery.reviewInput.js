@@ -96,7 +96,7 @@
     function matchupRows(inputTableBody, reviewTableBody, colspan) {
       var rowAtSamePosInReview;
       var newRow;
-      $.each(inputTableBody.find('tr').not('scClonableRow'), function matchupRow(idx) {
+      $.each(inputTableBody.find('tr').not('.scClonableRow'), function matchupRow(idx) {
         if ($(this).hasClass('footable-row-detail')) {
           rowAtSamePosInReview = reviewTableBody.find('tr:nth-child(' + (idx + 1) + ')');
           // if row in output table is missing, or of the wrong type then insert it.
@@ -139,6 +139,48 @@
       }
     }
 
+    /**
+     * Maps the information in a row of a data_entry_controls::species_checklist into the review output.
+     */
+    function handleSpeciesChecklistRowInReview(data, row) {
+      var $table = $(row).closest('table');
+      var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
+      var rowTemplate;
+      var value;
+      var $td;
+      var existingRow = $(reviewTableBody).find('tr:nth-child(' + ($(row).index() + 1) + ')');
+      var idAttr;
+      var colClass;
+      var input;
+      if (existingRow.length) {
+        // Hook called after species name edit on existing row, so just update the species cell.
+        $(existingRow).find('td:first-child').html($(row).find('.scTaxonCell').html());
+      } else {
+        rowTemplate = '';
+        $.each($table.find('thead tr:first-child th:visible')
+          .not('.row-buttons,.footable-toggle-col'), function handleColumn() {
+          if (this.id.match(/images-0$/)) {
+            return;
+          }
+          $td = $(row).find('td[headers="' + this.id + '"]');
+          idAttr = '';
+          colClass = 'review-value-' + this.id.replace(/^species-grid-\d+-/, '').replace(/-\d+$/, '');
+          if ($td.hasClass('scTaxonCell')) {
+            value = $(row).find('.scTaxonCell').html();
+          } else if ($td.hasClass('scAddMediaCell')) {
+            value = 'photos';
+          } else {
+            input = $td.find(':input');
+            value = getValue(input);
+            idAttr = input.attr('id') ? ' id="review-' + input.attr('id') + '"' : '';
+          }
+          rowTemplate += '<td headers="review-' + this.id + '"' + idAttr + ' class="' + colClass + '">' +
+              value + '</td>';
+        });
+        $(reviewTableBody).append('<tr>' + rowTemplate + '</tr>');
+      }
+    }
+
     $.each(this, function initReviewInput() {
       var div = this;
       var container = $(div).find('#' + this.id + '-content');
@@ -148,44 +190,7 @@
 
       // Trap new rows in species checklists so they can be reflected in output
       if (typeof window.hook_species_checklist_new_row !== 'undefined') {
-        window.hook_species_checklist_new_row.push(function handleNewRowInReview(data, row) {
-          var $table = $(row).closest('table');
-          var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
-          var rowTemplate;
-          var value;
-          var $td;
-          var existingRow = $(reviewTableBody).find('tr:nth-child(' + ($(row).index() + 1) + ')');
-          var idAttr;
-          var colClass;
-          var input;
-          if (existingRow.length) {
-            // Hook called after species name edit on existing row, so just update the species cell.
-            $(existingRow).find('td:first-child').html($(row).find('.scTaxonCell').html());
-          } else {
-            rowTemplate = '';
-            $.each($table.find('thead tr:first-child th:visible')
-              .not('.row-buttons,.footable-toggle-col'), function handleColumn() {
-              if (this.id.match(/images-0$/)) {
-                return;
-              }
-              $td = $(row).find('td[headers="' + this.id + '"]');
-              idAttr = '';
-              colClass = 'review-value-' + this.id.replace(/^species-grid-\d+-/, '').replace(/-\d+$/, '');
-              if ($td.hasClass('scTaxonCell')) {
-                value = $(row).find('.scTaxonCell').html();
-              } else if ($td.hasClass('scAddMediaCell')) {
-                value = 'photos';
-              } else {
-                input = $td.find(':input');
-                value = getValue(input);
-                idAttr = input.attr('id') ? ' id="review-' + input.attr('id') + '"' : '';
-              }
-              rowTemplate += '<td headers="review-' + this.id + '"' + idAttr + ' class="' + colClass + '">' +
-                  value + '</td>';
-            });
-            $(reviewTableBody).append('<tr>' + rowTemplate + '</tr>');
-          }
-        });
+        window.hook_species_checklist_new_row.push(handleSpeciesChecklistRowInReview);
       }
 
       // Trap changes to inputs to update the review
@@ -238,6 +243,10 @@
         });
         $(container).append('<table id="review-' + this.id + '"><thead><tr>' + head + '</tr></thead>' +
             '<tbody></tbody></table>');
+        // On initial load of existing form, load up initial rows.
+        $.each($(this).find('tbody tr').not('.scClonableRow'), function addRow() {
+          handleSpeciesChecklistRowInReview({}, this);
+        });
       });
 
       // Trap changes to species checklist inputs to update the review. Don't bother with the species autocomplete,
