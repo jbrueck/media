@@ -580,8 +580,9 @@ var destroyAllFeatures;
                   }
                   // Run code that handles when a user has selected a position on the map (either a click or changing sref)
                   processLonLatPositionOnMap(openlayersLatlong, div);
+                } else {
+                  _showWktFeature(div, data.mapwkt, div.map.editLayer, null, false, 'clickPoint');
                 }
-                _showWktFeature(div, data.mapwkt, div.map.editLayer, null, false, 'clickPoint');
               }
               $('#' + opts.geomId).val(data.wkt).change();
             }
