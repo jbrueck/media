@@ -249,7 +249,7 @@ if (typeof window.indiciaData === 'undefined') {
    * @param string text
    * @returns string
    */
-  indiciaFns.escapeHtml = function(text) {
+  indiciaFns.escapeHtml = function (text) {
     var map = {
       '&': '&amp;',
       '<': '&lt;',
@@ -257,7 +257,7 @@ if (typeof window.indiciaData === 'undefined') {
       '"': '&quot;',
       "'": '&#039;'
     };
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    return text.replace(/[&<>"']/g, function (m) { return map[m]; });
   };
 
   // Some functions relating to location controls
@@ -336,11 +336,10 @@ if (typeof window.indiciaData === 'undefined') {
         if (typeof data.error === 'undefined') {
           if (data.length === 1) {
             // single unique matching location found
-            $('#' + locCntrlIdEscaped).val(data[0].id);
+            $('#' + locCntrlIdEscaped).val(data[0].location_id);
             $('#' + locCntrlIdEscaped + '\\:name').val(data[0].name);
           } else if (data.length > 1) {
             // if populated already with something on the list, just use that one.
-
             popupHtml = '<p>' + indiciaData.langMoreThanOneLocationMatch + '</p>';
             popupHtml += '<ul>';
             $.each(data, function () {
@@ -350,6 +349,7 @@ if (typeof window.indiciaData === 'undefined') {
               }
               popupHtml += '<li><label><input type="radio" value="' + this.location_id + '" name="resolveLocation"/> ' +
                   this.name + '</label></li>';
+              return true;
             });
             if (alreadySet) {
               // user already has a selected boundary which matches one of the options, so keep it.
