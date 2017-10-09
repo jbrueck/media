@@ -1615,7 +1615,7 @@ var destroyAllFeatures;
     }
 
     function showGridRefHints(div) {
-      if (div.settings.gridRefHint && typeof indiciaData.srefHandlers!=='undefined' &&
+      if (overMap && div.settings.gridRefHint && typeof indiciaData.srefHandlers!=='undefined' &&
           typeof indiciaData.srefHandlers[_getSystem().toLowerCase()]!=='undefined') {
         var ll = div.map.getLonLatFromPixel(currentMousePixel), precisionInfo,
               handler=indiciaData.srefHandlers[_getSystem().toLowerCase()], largestSrefLen, pt,
