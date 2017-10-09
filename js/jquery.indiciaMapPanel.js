@@ -361,12 +361,14 @@ var destroyAllFeatures;
      * Hides graticules other than the one currently selected as a system.
      */
     function _hideOtherGraticules(div) {
-      $.each(div.map.controls, function() {
-        if (this.CLASS_NAME === 'OpenLayers.Control.Graticule') {
-          this.gratLayer.setVisibility(this.projection === 'EPSG:' +
-              div.settings.graticules[$('#' + opts.srefSystemId).val()].projection);
-        }
-      });
+      if (typeof div.settings.graticules[$('#' + opts.srefSystemId).val()] !== "undefined") {
+        $.each(div.map.controls, function updateGratControl() {
+          if (this.CLASS_NAME === 'OpenLayers.Control.Graticule') {
+            this.gratLayer.setVisibility(this.projection === 'EPSG:' +
+                div.settings.graticules[$('#' + opts.srefSystemId).val()].projection);
+          }
+        });
+      }
     }
 
     /**
@@ -1623,7 +1625,7 @@ var destroyAllFeatures;
     }
 
     function showGridRefHints(div) {
-      if (div.settings.gridRefHint && typeof indiciaData.srefHandlers!=='undefined' &&
+      if (overMap && div.settings.gridRefHint && typeof indiciaData.srefHandlers!=='undefined' &&
           typeof indiciaData.srefHandlers[_getSystem().toLowerCase()]!=='undefined') {
         var ll = div.map.getLonLatFromPixel(currentMousePixel), precisionInfo,
               handler=indiciaData.srefHandlers[_getSystem().toLowerCase()], largestSrefLen, pt,
@@ -1802,38 +1804,37 @@ var destroyAllFeatures;
 
       // track plus and minus key presses, which influence selected grid square size
       $(document).keydown(function(evt) {
-        var change=false;
+        var change = false;
+        if (!overMap) {
+          return;
+        }
         switch (evt.which) {
-
           case 61: case 107: case 187:
-            if (overMap) {
-              // prevent + affecting other controls
-              evt.preventDefault();
-            }
+            // prevent + affecting other controls
+            evt.preventDefault();
             // prevent some browsers autorepeating
             if (!plusKeyDown) {
               plusKeyDown = true;
-              change=true;
+              change = true;
             }
             break;
           case 173: case 109: case 189:
-            if (overMap) {
-              // prevent + affecting other controls
-              evt.preventDefault();
-            }
+            // prevent + affecting other controls
+            evt.preventDefault();
             if (!minusKeyDown) {
               minusKeyDown = true;
-              change=true;
+              change = true;
             }
             break;
         }
         if (change) {
           // force a square redraw when mouse moves
           removeAllFeatures(div.map.editLayer, 'ghost');
-          ghost=null;
+          ghost = null;
           showGridRefHints(div);
         }
       });
+
       $(document).keyup(function(evt) {
         var change=false;
         switch (evt.which) {
