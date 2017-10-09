@@ -671,21 +671,33 @@ var resetSpeciesTextOnEscape;
     }
   });
 
+  /**
+   * Determines if the current sref system is a grid system as opposed to a point based (lat long or x,y) system.
+   */
   function usingGridSystem() {
     var currentSystem = $('#' + indiciaData.mapdiv.settings.srefSystemId).val();
     // Numeric systems are EPSG codes, so points rather than grids.
     return !currentSystem.match(/^\d+$/);
   }
 
+  /**
+   * When a finer grid ref control value is changed, determine if the associated precision control should be enabled
+   * or disabled.
+   *
+   * @param object srefControl
+   * @param string finerSrefIsGridSystem
+   */
   function setupSrefPrecisionControl(srefControl, finerSrefIsGridSystem) {
     var precisionCtrl = $(srefControl).closest('tr').find('.scSpatialRefPrecision');
-    if (finerSrefIsGridSystem) {
-      precisionCtrl.attr('disabled', 'disabled');
-      precisionCtrl.attr('placeholder', 'n/a');
-      precisionCtrl.val('');
-    } else {
-      precisionCtrl.removeAttr('disabled');
-      precisionCtrl.removeAttr('placeholder');
+    if (precisionCtrl.length > 0) {
+      if (finerSrefIsGridSystem) {
+        precisionCtrl.attr('disabled', 'disabled');
+        precisionCtrl.attr('placeholder', 'n/a');
+        precisionCtrl.val('');
+      } else {
+        precisionCtrl.removeAttr('disabled');
+        precisionCtrl.removeAttr('placeholder');
+      }
     }
   }
 
