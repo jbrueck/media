@@ -64,7 +64,6 @@ var resetSpeciesTextOnEscape;
     if ($('#existingSampleGeomsBySref')) {
       mapInitialisationHooks.push(showExistingSubsamplesOnMap);
     }
-
   });
 
   hook_species_checklist_new_row = [];
@@ -672,15 +671,39 @@ var resetSpeciesTextOnEscape;
     }
   });
 
+  function usingGridSystem() {
+    var currentSystem = $('#' + indiciaData.mapdiv.settings.srefSystemId).val();
+    // Numeric systems are EPSG codes, so points rather than grids.
+    return !currentSystem.match(/^\d+$/);
+  }
+
+  function setupSrefPrecisionControl(srefControl, finerSrefIsGridSystem) {
+    var precisionCtrl = $(srefControl).closest('tr').find('.scSpatialRefPrecision');
+    if (finerSrefIsGridSystem) {
+      precisionCtrl.attr('disabled', 'disabled');
+      precisionCtrl.attr('placeholder', 'n/a');
+      precisionCtrl.val('');
+    } else {
+      precisionCtrl.removeAttr('disabled');
+      precisionCtrl.removeAttr('placeholder');
+    }
+  }
+
   indiciaFns.on('change', '.scSpatialRef', {}, function (e) {
     var parser;
     var feature;
+    var system = $('#' + indiciaData.mapdiv.settings.srefSystemId).val();
     indiciaData.mapdiv.removeAllFeatures(indiciaData.mapdiv.map.editLayer, 'subsample-' + e.currentTarget.id);
+    // If in a grid system and provided ref matches 4326 format, assume 4326.
+    if (usingGridSystem() && $(e.currentTarget).val().match(/^[+-]?[0-9]*(\.[0-9]*)?[NS]?,?\s+[+-]?[0-9]*(\.[0-9]*)?[EW]?$/)) {
+      system = '4326';
+    }
+    setupSrefPrecisionControl(this, !system.match(/^\d+$/));
     $.ajax({
       dataType: 'jsonp',
       url: indiciaData.warehouseUrl + 'index.php/services/spatial/sref_to_wkt',
       data: 'sref=' + $(e.currentTarget).val() +
-        '&system=' + $('#' + indiciaData.mapdiv.settings.srefSystemId).val() +
+        '&system=' + system +
         '&mapsystem=' + indiciaFns.projectionToSystem(indiciaData.mapdiv.map.projection, false),
       success: function (data) {
         if (typeof data.error !== 'undefined') {
