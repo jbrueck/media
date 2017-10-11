@@ -518,6 +518,7 @@ var destroyAllFeatures;
 
     function _handleEnteredSref(value, div) {
       indiciaData.invalidSrefDetected = false;
+      $('#' + div.settings.helpDiv).hide();
       // old sref no longer valid so clear the geom
       $('#' + opts.geomId).val('');
       if (value !== '') {
