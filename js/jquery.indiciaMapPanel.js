@@ -1648,8 +1648,9 @@ var destroyAllFeatures;
             }
           }
           // almost every mouse move causes the smallest + key square to change
-          if (handler.getPrecisionInfo(largestSrefLen+2)!==false &&
-                handler.getPrecisionInfo(largestSrefLen+2).metres !== handler.getPrecisionInfo(largestSrefLen).metres) {
+          if (div.settings.clickedSrefPrecisionMax > precisionInfo.precision &&
+              handler.getPrecisionInfo(largestSrefLen+2)!==false &&
+              handler.getPrecisionInfo(largestSrefLen+2).metres !== handler.getPrecisionInfo(largestSrefLen).metres) {
             $('.hint-plus .label').html(handler.getPrecisionInfo(largestSrefLen+2).display + ':');
             $('.hint-plus .data').html(handler.pointToGridNotation(pt, largestSrefLen+2));
             $('.hint-plus').css('opacity', 1);
@@ -1659,7 +1660,8 @@ var destroyAllFeatures;
           // don't recalculate if mouse is still over the existing ghost
           if (recalcGhost || $('.hint-normal').css('opacity')===0) {
             // since we've moved a square, redo the grid ref hints
-            if (handler.getPrecisionInfo(largestSrefLen-2)!==false &&
+            if (div.settings.clickedSrefPrecisionMin < precisionInfo.precision &&
+                handler.getPrecisionInfo(largestSrefLen-2)!==false &&
                 handler.getPrecisionInfo(largestSrefLen-2).metres !== handler.getPrecisionInfo(largestSrefLen).metres) {
               $('.hint-minus .label').html(handler.getPrecisionInfo(largestSrefLen-2).display + ':');
               $('.hint-minus .data').html(handler.pointToGridNotation(pt, largestSrefLen-2));
