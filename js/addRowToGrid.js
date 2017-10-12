@@ -503,7 +503,7 @@ var resetSpeciesTextOnEscape;
       }
     }
     var row = $($(e.target).parents('tr:first'));
-    if (row.next().find('.file-box').length>0) {
+    if (row.next().find('.file-box').length > 0) {
       // remove the uploader row
       row.next().remove();
     }
@@ -511,11 +511,11 @@ var resetSpeciesTextOnEscape;
       row.remove();
     } else {
       // This was a pre-existing occurrence so we can't just delete the row from the grid. Grey it out
-      row.css('opacity',0.25);
+      row.css('opacity', 0.25);
       // Use the presence checkbox to remove the taxon, even if the checkbox is hidden.
-      row.find('.scPresence').attr('checked',false);
+      row.find('.scPresence').attr('checked', false);
       // Hide the checkbox so this can't be undone
-      row.find('.scPresence').css('display','none');
+      row.find('.scPresence').css('display', 'none');
       // disable or remove all other active controls from the row.
       // Do NOT disable the presence checkbox or the container td, nor the sample Index field if present, otherwise they are not submitted.
       row.find('*:not(.scPresence,.scPresenceCell,.scSample,.scSampleCell)').attr('disabled','disabled');
@@ -523,7 +523,7 @@ var resetSpeciesTextOnEscape;
     }
     // Allow forms to hook into the event of a row being deleted
     if (typeof hook_species_checklist_delete_row !== 'undefined') {
-      hook_species_checklist_delete_row();
+      hook_species_checklist_delete_row(e);
     }
   });
   //Open the specified page when the user clicks on the page link icon on a species grid row, use a dirty URL as this will work whether clean urls is on or not
