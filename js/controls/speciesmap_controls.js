@@ -460,6 +460,7 @@ var control_speciesmap_addcontrols;
       var parentStyle = { fillOpacity: 0, strokeColor: 'Red', strokeWidth: 2 };
       var cloned;
       var first;
+      var rebuildFeatureLabel;
       if ('#' + div.id === opts.mapDiv) {
         defaultStyle.label = indiciaData.control_speciesmap_opts.featureLabel;
         defaultStyle.labelOutlineColor = 'white';
@@ -516,7 +517,7 @@ var control_speciesmap_addcontrols;
         } else if (indiciaData.ParentSampleLayer.features.length > 0) {
           indiciaData.ParentSampleLayer.map.zoomToExtent(indiciaData.ParentSampleLayer.getDataExtent());
         }
-        hook_species_checklist_delete_row = function () {
+        rebuildFeatureLabel = function() {
           var feature = (indiciaData.control_speciesmap_mode === 'Add' ?
               indiciaData.control_speciesmap_new_feature : indiciaData.control_speciesmap_existing_feature);
           // need to remove then re-add feature to rebuild label
@@ -526,8 +527,9 @@ var control_speciesmap_addcontrols;
           feature.style = null;
           indiciaData.SubSampleLayer.addFeatures([feature]);
         };
-        hook_species_checklist_new_row.push(hook_species_checklist_delete_row);
-        hook_species_checklist_new_row.push(function () {
+        window.hook_species_checklist_delete_row.push(rebuildFeatureLabel);
+        window.hook_species_checklist_new_row.push(rebuildFeatureLabel);
+        window.hook_species_checklist_new_row.push(function () {
           var feature = (indiciaData.control_speciesmap_mode === 'Add' ?
               indiciaData.control_speciesmap_new_feature : indiciaData.control_speciesmap_existing_feature);
           setupSummaryRows(feature.attributes.subSampleIndex);

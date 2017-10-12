@@ -32,7 +32,9 @@ functions, we need to assign it to a global variable. */
 var addRowToGrid;
 var keyHandler;
 var ConvertControlsToPopup;
-var hook_species_checklist_new_row;
+var hook_species_checklist_new_row = [];
+var hook_species_checklist_pre_delete_row = [];
+var hook_species_checklist_delete_row = [];
 var handleSelectedTaxon;
 var taxonNameBeforeUserEdit;
 var returnPressedInAutocomplete;
@@ -65,8 +67,6 @@ var resetSpeciesTextOnEscape;
       mapInitialisationHooks.push(showExistingSubsamplesOnMap);
     }
   });
-
-  hook_species_checklist_new_row = [];
 
   /*
    * A keyboard event handler for the grid.
@@ -495,14 +495,18 @@ var resetSpeciesTextOnEscape;
   };
 
   indiciaFns.on('click', '.remove-row', {}, function (e) {
+    var table = $(e.currentTarget).closest('table.species-grid');
+    var row = $(e.currentTarget).closest('tr');
+    var proceed = true;
     e.preventDefault();
     // Allow forms to hook into the event of a row being deleted, most likely use would be to have a confirmation dialog
-    if (typeof hook_species_checklist_pre_delete_row !== 'undefined') {
-      if (!hook_species_checklist_pre_delete_row(e)) {
-        return;
-      }
+    $.each(window.hook_species_checklist_pre_delete_row, function (idx, fn) {
+      proceed = proceed && fn(e, table, row);
+    });
+    if (!proceed) {
+      return;
     }
-    var row = $($(e.target).parents('tr:first'));
+
     if (row.next().find('.file-box').length > 0) {
       // remove the uploader row
       row.next().remove();
@@ -522,11 +526,12 @@ var resetSpeciesTextOnEscape;
       row.find('a').remove();
     }
     // Allow forms to hook into the event of a row being deleted
-    if (typeof hook_species_checklist_delete_row !== 'undefined') {
-      hook_species_checklist_delete_row(e);
-    }
+    $.each(window.hook_species_checklist_delete_row, function (idx, fn) {
+      fn(e, table);
+    });
   });
-  //Open the specified page when the user clicks on the page link icon on a species grid row, use a dirty URL as this will work whether clean urls is on or not
+
+  // Open the specified page when the user clicks on the page link icon on a species grid row, use a dirty URL as this will work whether clean urls is on or not
   indiciaFns.on('click', '.species-grid-link-page-icon', {}, function(e) {
     var row = $($(e.target).parents('tr:first'));
     var taxa_taxon_list_id_to_use;

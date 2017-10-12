@@ -139,11 +139,30 @@
       }
     }
 
+    function updateGridRowTotals(table) {
+      var reviewTable = $('#review-' + $(table).attr('id'));
+      $(reviewTable).find('tfoot td').html('Total: ' + $(reviewTable).find('tbody tr').length);
+    }
+
+    /**
+     * Generate a guid, used to link rows from the species checklist to the review lists.
+     */
+    function uid() {
+      function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+          .toString(16)
+          .substring(1);
+      }
+      return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
+    }
+
     /**
      * Maps the information in a row of a data_entry_controls::species_checklist into the review output.
      */
     function handleSpeciesChecklistRowInReview(data, row) {
       var $table = $(row).closest('table');
+      var rowUid;
       var reviewTableBody = $('#review-' + $table.attr('id') + ' tbody');
       var rowTemplate;
       var value;
@@ -177,9 +196,25 @@
           rowTemplate += '<td headers="review-' + this.id + '"' + idAttr + ' class="' + colClass + '">' +
               value + '</td>';
         });
-        $(reviewTableBody).append('<tr>' + rowTemplate + '</tr>');
+        // Add the row and link the row back to source
+        rowUid = uid();
+        $(reviewTableBody).append('<tr data-guid="' + rowUid + '">' + rowTemplate + '</tr>');
+        // link the rows back to source
+        $(row).attr('data-guid', rowUid);
       }
-      $('#review-' + $table.attr('id') + ' tfoot td').html('Total: ' + $(reviewTableBody).find('tr').length);
+      updateGridRowTotals($table);
+    }
+
+    function handleRemoveSpeciesChecklistRow(e, table) {
+      var reviewTableBody = $('#review-' + $(table).attr('id') + ' tbody');
+      $.each($(reviewTableBody).find('tr'), function checkRowExists() {
+        // @todo Handle mark deleted rows
+
+        if ($('.species-grid tr[data-guid="' + $(this).attr('data-guid') + '"]').length === 0) {
+          $(this).remove();
+        }
+      });
+      updateGridRowTotals(table);
     }
 
     $.each(this, function initReviewInput() {
@@ -192,6 +227,9 @@
       // Trap new rows in species checklists so they can be reflected in output
       if (typeof window.hook_species_checklist_new_row !== 'undefined') {
         window.hook_species_checklist_new_row.push(handleSpeciesChecklistRowInReview);
+      }
+      if (typeof window.hook_species_checklist_delete_row !== 'undefined') {
+        window.hook_species_checklist_delete_row.push(handleRemoveSpeciesChecklistRow);
       }
 
       // Trap changes to inputs to update the review
