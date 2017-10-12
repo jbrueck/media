@@ -179,6 +179,7 @@
         });
         $(reviewTableBody).append('<tr>' + rowTemplate + '</tr>');
       }
+      $('#review-' + $table.attr('id') + ' tfoot td').html('Total: ' + $(reviewTableBody).find('tr').length);
     }
 
     $.each(this, function initReviewInput() {
@@ -234,15 +235,21 @@
       // Initial setup of species checklists review table
       $.each($('table.species-grid'), function handleSpeciesGrid() {
         var head = '';
+        var colCount = 0;
         $.each($(this).find('thead tr:first-child th:visible')
           .not('.row-buttons,.footable-toggle-col'), function handleGridColumn() {
           if (this.id.match(/images-0$/)) {
             return;
           }
           head += '<th id="review-' + this.id + '">' + $(this).text() + '</th>';
+          colCount++;
         });
-        $(container).append('<table id="review-' + this.id + '"><thead><tr>' + head + '</tr></thead>' +
-            '<tbody></tbody></table>');
+        $(container).append(
+          '<table id="review-' + this.id + '">' +
+          '<thead><tr>' + head + '</tr></thead>' +
+          '<tbody></tbody>' +
+          '<tfoot><tr><td colspan="' + colCount + '">Total: 0</td></tr></tfoot>' +
+          '</table>');
         // On initial load of existing form, load up initial rows.
         $.each($(this).find('tbody tr').not('.scClonableRow'), function addRow() {
           handleSpeciesChecklistRowInReview({}, this);
