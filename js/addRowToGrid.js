@@ -690,18 +690,21 @@ var resetSpeciesTextOnEscape;
    * or disabled.
    *
    * @param object srefControl
-   * @param string finerSrefIsGridSystem
+   * @param string system
    */
-  function setupSrefPrecisionControl(srefControl, finerSrefIsGridSystem) {
+  function setupSrefPrecisionControl(srefControl, system) {
     var precisionCtrl = $(srefControl).closest('tr').find('.scSpatialRefPrecision');
+    var finerSref = $(srefControl).val();
+    var finerSrefIsPointSystem = system.match(/^\d+$/);
+    var finerSrefIsPrecise = finerSrefIsPointSystem || finerSref.match(/[\d]/g).length >= 7;
     if (precisionCtrl.length > 0) {
-      if (finerSrefIsGridSystem) {
+      if (finerSrefIsPrecise) {
+        precisionCtrl.removeAttr('disabled');
+        precisionCtrl.removeAttr('placeholder');
+      } else {
         precisionCtrl.attr('disabled', 'disabled');
         precisionCtrl.attr('placeholder', 'n/a');
         precisionCtrl.val('');
-      } else {
-        precisionCtrl.removeAttr('disabled');
-        precisionCtrl.removeAttr('placeholder');
       }
     }
   }
@@ -715,7 +718,7 @@ var resetSpeciesTextOnEscape;
     if (usingGridSystem() && $(e.currentTarget).val().match(/^[+-]?[0-9]*(\.[0-9]*)?[NS]?,?\s+[+-]?[0-9]*(\.[0-9]*)?[EW]?$/)) {
       system = '4326';
     }
-    setupSrefPrecisionControl(this, !system.match(/^\d+$/));
+    setupSrefPrecisionControl(this, system);
     $.ajax({
       dataType: 'jsonp',
       url: indiciaData.warehouseUrl + 'index.php/services/spatial/sref_to_wkt',
