@@ -32,7 +32,9 @@ functions, we need to assign it to a global variable. */
 var addRowToGrid;
 var keyHandler;
 var ConvertControlsToPopup;
-var hook_species_checklist_new_row;
+var hook_species_checklist_new_row = [];
+var hook_species_checklist_pre_delete_row = [];
+var hook_species_checklist_delete_row = [];
 var handleSelectedTaxon;
 var taxonNameBeforeUserEdit;
 var returnPressedInAutocomplete;
@@ -65,8 +67,6 @@ var resetSpeciesTextOnEscape;
       mapInitialisationHooks.push(showExistingSubsamplesOnMap);
     }
   });
-
-  hook_species_checklist_new_row = [];
 
   /*
    * A keyboard event handler for the grid.
@@ -495,15 +495,19 @@ var resetSpeciesTextOnEscape;
   };
 
   indiciaFns.on('click', '.remove-row', {}, function (e) {
+    var table = $(e.currentTarget).closest('table.species-grid');
+    var row = $(e.currentTarget).closest('tr');
+    var proceed = true;
     e.preventDefault();
     // Allow forms to hook into the event of a row being deleted, most likely use would be to have a confirmation dialog
-    if (typeof hook_species_checklist_pre_delete_row !== 'undefined') {
-      if (!hook_species_checklist_pre_delete_row(e)) {
-        return;
-      }
+    $.each(window.hook_species_checklist_pre_delete_row, function (idx, fn) {
+      proceed = proceed && fn(e, table, row);
+    });
+    if (!proceed) {
+      return;
     }
-    var row = $($(e.target).parents('tr:first'));
-    if (row.next().find('.file-box').length>0) {
+
+    if (row.next().find('.file-box').length > 0) {
       // remove the uploader row
       row.next().remove();
     }
@@ -511,22 +515,23 @@ var resetSpeciesTextOnEscape;
       row.remove();
     } else {
       // This was a pre-existing occurrence so we can't just delete the row from the grid. Grey it out
-      row.css('opacity',0.25);
+      row.css('opacity', 0.25);
       // Use the presence checkbox to remove the taxon, even if the checkbox is hidden.
-      row.find('.scPresence').attr('checked',false);
+      row.find('.scPresence').attr('checked', false);
       // Hide the checkbox so this can't be undone
-      row.find('.scPresence').css('display','none');
+      row.find('.scPresence').css('display', 'none');
       // disable or remove all other active controls from the row.
       // Do NOT disable the presence checkbox or the container td, nor the sample Index field if present, otherwise they are not submitted.
       row.find('*:not(.scPresence,.scPresenceCell,.scSample,.scSampleCell)').attr('disabled','disabled');
       row.find('a').remove();
     }
     // Allow forms to hook into the event of a row being deleted
-    if (typeof hook_species_checklist_delete_row !== 'undefined') {
-      hook_species_checklist_delete_row();
-    }
+    $.each(window.hook_species_checklist_delete_row, function (idx, fn) {
+      fn(e, table);
+    });
   });
-  //Open the specified page when the user clicks on the page link icon on a species grid row, use a dirty URL as this will work whether clean urls is on or not
+
+  // Open the specified page when the user clicks on the page link icon on a species grid row, use a dirty URL as this will work whether clean urls is on or not
   indiciaFns.on('click', '.species-grid-link-page-icon', {}, function(e) {
     var row = $($(e.target).parents('tr:first'));
     var taxa_taxon_list_id_to_use;
@@ -685,18 +690,21 @@ var resetSpeciesTextOnEscape;
    * or disabled.
    *
    * @param object srefControl
-   * @param string finerSrefIsGridSystem
+   * @param string system
    */
-  function setupSrefPrecisionControl(srefControl, finerSrefIsGridSystem) {
+  function setupSrefPrecisionControl(srefControl, system) {
     var precisionCtrl = $(srefControl).closest('tr').find('.scSpatialRefPrecision');
+    var finerSref = $(srefControl).val();
+    var finerSrefIsPointSystem = system.match(/^\d+$/);
+    var finerSrefIsPrecise = finerSrefIsPointSystem || finerSref.match(/[\d]/g).length >= 7;
     if (precisionCtrl.length > 0) {
-      if (finerSrefIsGridSystem) {
+      if (finerSrefIsPrecise) {
+        precisionCtrl.removeAttr('disabled');
+        precisionCtrl.removeAttr('placeholder');
+      } else {
         precisionCtrl.attr('disabled', 'disabled');
         precisionCtrl.attr('placeholder', 'n/a');
         precisionCtrl.val('');
-      } else {
-        precisionCtrl.removeAttr('disabled');
-        precisionCtrl.removeAttr('placeholder');
       }
     }
   }
@@ -710,7 +718,7 @@ var resetSpeciesTextOnEscape;
     if (usingGridSystem() && $(e.currentTarget).val().match(/^[+-]?[0-9]*(\.[0-9]*)?[NS]?,?\s+[+-]?[0-9]*(\.[0-9]*)?[EW]?$/)) {
       system = '4326';
     }
-    setupSrefPrecisionControl(this, !system.match(/^\d+$/));
+    setupSrefPrecisionControl(this, system);
     $.ajax({
       dataType: 'jsonp',
       url: indiciaData.warehouseUrl + 'index.php/services/spatial/sref_to_wkt',

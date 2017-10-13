@@ -47,7 +47,12 @@ if (typeof window.indiciaData === 'undefined') {
   };
 
   indiciaFns.initFindMe = function (hint) {
-    $('input.findme').after('<span id="findme-icon" title="' + hint + '">&nbsp;</span>');
+    if ($('input.findme').nextAll('.ctrl-addons').length > 0) {
+      $('input.findme').nextAll('.ctrl-addons').append('<span id="findme-icon" title="' + hint + '">&nbsp;</span>');
+    }
+    else {
+      $('input.findme').after('<span id="findme-icon" title="' + hint + '">&nbsp;</span>');
+    }
     $('#findme-icon').click(indiciaFns.findMe);
   };
 

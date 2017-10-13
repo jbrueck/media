@@ -78,7 +78,6 @@ div.ui-effects-wrapper {
 
 .deh-required {
   color: red;
-  font-size: 150%;
   font-weight: bold;
 }
 
@@ -101,31 +100,6 @@ p.inline-error {
 
 .error_message {
   font-weight: bold;
-}
-
-label, form label {
-  width: 160px;
-  display:-moz-inline-stack;
-  display:inline-block;
-  zoom:1;
-  *display:inline;
-  vertical-align: top;
-  margin: 8px 0;
-  font-weight: bold;
-}
-
-form input:not([type="submit"]), form select, form textarea, #form-params textarea, .timeEntry_control,
-    .inline-control, button.inline-control, input.inline-control {
-  vertical-align: top;
-  margin: 4px 0;
-  display: inline;
-}
-
-form input:not([type="submit"]), form select, form textarea {
-  padding: 4px;
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
-  border-radius: 4px;
 }
 
 a {
@@ -240,16 +214,11 @@ a {
 }
 
 .indicia-button {
-  padding: 0.3em 1.5em;
-  margin: 0.25em;
-  min-height: 23px;
-  text-decoration: none;
-  width: auto;
   display:inline-block;
   zoom:1;
   *display:inline;
-  line-height: 1.5;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .action-button {
@@ -306,7 +275,7 @@ a {
 
 li.ui-state-error {
   margin: 0.5em;
-} 
+}
 
 .loading-hide {
   left:-999em; position: absolute;
@@ -315,12 +284,6 @@ li.ui-state-error {
 #imp-georef-div {
   margin-bottom: 1em;
   padding: 0.5em;
-}
-
-.control-box {
-  display:inline-block;
-  zoom:1;
-  *display:inline;
 }
 
 .control-box span {
@@ -363,11 +326,6 @@ li.ui-state-error {
   margin: 0 0 8px 0px;
   line-height: 1.2em;
 }
-
-.helpText {
-  margin-left: 164px;
-}
-
 
 .progress {
   width: 100%;
@@ -613,7 +571,7 @@ form #map-toolbar {
   color: #0000ff;
 }
 
-#map-footer div.active span.data {  
+#map-footer div.active span.data {
   background-color: #ffffcc;
 }
 
@@ -627,7 +585,7 @@ form #map-toolbar {
   padding: 0;
 }
 
-.report-picker-container {  
+.report-picker-container {
   height: 250px;
   width:  100%;
 }
@@ -770,11 +728,13 @@ div.olControlEditingToolbar .olControlFullscreenItemActive {
 .unlocked-icon {
   background-image: url(../images/Indicia_PadlockIcons_Open.png);
   width: 19px;
+  height: 19px;
 }
 
 .locked-icon {
   background-image: url(../images/Indicia_PadlockIcons_Closed.png);
   width: 14px;
+  height: 19px;
 }
 
 .locked-icon, .unlocked-icon, #findme-icon {
@@ -782,10 +742,6 @@ div.olControlEditingToolbar .olControlFullscreenItemActive {
   display: inline-block;
   margin: 0 0.25em;
   cursor: pointer;
-}
-
-input.findme {
-  padding-right: 18px;
   box-sizing: border-box;
 }
 
@@ -793,9 +749,6 @@ input.findme {
   background-image: url(../images/findme.png);
   width: 16px;
   height: 16px;
-  margin: 8px 0 0 -18px;
-  vertical-align: top;
-  padding-right: 2px;
 }
 
 #findme-icon.spinning {
@@ -850,8 +803,8 @@ span.ind-cancel-icon {
   vertical-align: top;
 }
 .popup-filter-options-container {
-  overflow-y: scroll; 
-  max-height: 400px; 
+  overflow-y: scroll;
+  max-height: 400px;
   height: 400px
 }
 
@@ -918,10 +871,10 @@ span.ind-cancel-icon {
 }
 
 /* override jquery-ui.custom.css to support browsers which understand border-radius (e.g. IE9) */
-.ui-corner-all { 
-  -moz-border-radius: 4px; 
-  -webkit-border-radius: 4px; 
-  border-radius: 4px; 
+.ui-corner-all {
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
 }
 .ui-corner-tr{
   -webkit-border-top-right-radius: 4px;
@@ -953,12 +906,12 @@ div.note-fail, p.note-fail {
 }
 
 .import-mappings-table table {
-  float: left; 
+  float: left;
   width: 68%;
 }
 
 .import-mappings-table th {
-  text-align:center; 
+  text-align:center;
   width: 58%;
   padding: 2px;
 }
@@ -969,7 +922,7 @@ div.note-fail, p.note-fail {
 }
 
 .import-mappings-instructions {
-  float: right; 
+  float: right;
   width: 30%;
 }
 
@@ -982,10 +935,10 @@ div.note-fail, p.note-fail {
     display: block;
     width: auto;
   }
-  .control-box label{    
+  .control-box label{
     display: inline;
   }
-  textarea  {    
+  textarea  {
     width: 80%;
   }
   .helpText {

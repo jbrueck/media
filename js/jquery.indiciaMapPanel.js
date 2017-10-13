@@ -128,16 +128,16 @@ var destroyAllFeatures;
      * boundary onto the map. Automatic for #imp-location, but can be attached to other controls as well.
      */
     function locationSelectedInInput(div, val, loading) {
+      var intValue = parseInt(val);
       if (div.map.editLayer) {
         removeAllFeatures(div.map.editLayer, 'boundary');
       }
-      var intValue = parseInt(val);
       if (!isNaN(intValue)) {
         // Change the location control requests the location's geometry to place on the map.
-        $.getJSON(div.settings.indiciaSvc + "index.php/services/data/location/"+val +
-          "?mode=json&view=detail" + div.settings.readAuth + "&callback=?", function(data) {
+        $.getJSON(div.settings.indiciaSvc + 'index.php/services/data/location/' + val +
+          '?mode=json&view=detail' + div.settings.readAuth + '&callback=?', function (data) {
             // store value in saved field?
-            if (data.length>0) {
+            if (data.length > 0) {
               // TODO not sure best way of doing this using the services, we don't really want
               // to use the proj4 client transform until its issues are sorted out, but have little choice here as
               // the wkt for a boundary could be too big to send to the services on the URL
@@ -150,20 +150,29 @@ var destroyAllFeatures;
               }
               _showWktFeature(div, geomwkt, div.map.editLayer, null, true, 'boundary');
 
-              if (typeof loading === "undefined" &&
+              if (typeof loading === 'undefined' &&
                   typeof indiciaData.searchUpdatesSref !== 'undefined' && indiciaData.searchUpdatesSref) {
                 // The location search box must fill in the sample sref box, but not during initial page load
-                $('#'+div.settings.srefId).val(data[0].centroid_sref);
-                $('#'+div.settings.srefSystemId).val(data[0].centroid_sref_system);
-                $('#'+div.settings.geomId).val(data[0].centroid_geom);
+                $('#' + div.settings.srefId).val(data[0].centroid_sref);
+                $('#' + div.settings.srefSystemId).val(data[0].centroid_sref_system);
+                if (indiciaData.searchUpdatesUsingBoundary && data[0].boundary_geom) {
+                  $('#' + div.settings.geomId).val(data[0].boundary_geom);
+                } else {
+                  $('#' + div.settings.geomId).val(data[0].centroid_geom);
+                }
                 // If the sref is in two parts, then we might need to split it across 2 input fields for lat and long
-                if (data[0].centroid_sref.indexOf(' ')!==-1) {
-                  var parts=$.trim(data[0].centroid_sref).split(' ');
+                if (data[0].centroid_sref.indexOf(' ') !== -1) {
+                  var parts = $.trim(data[0].centroid_sref).split(' ');
                   // part 1 may have a comma at the end, so remove
                   var part1 = parts.shift().split(',')[0];
-                  $('#'+div.settings.srefLatId).val(part1);
-                  $('#'+div.settings.srefLongId).val(parts.join(''));
+                  $('#' + div.settings.srefLatId).val(part1);
+                  $('#' + div.settings.srefLongId).val(parts.join(''));
                 }
+              }
+              if (typeof loading === "undefined" &&
+                  typeof indiciaData.searchUpdatesGeom !== 'undefined' && indiciaData.searchUpdatesGeom) {
+                // The location search box must fill in the sample sref box, but not during initial page load
+                $('#'+div.settings.geomId).val(data[0].boundary_geom);
               }
               $.each(mapLocationSelectedHooks, function() {
                 this(div, data);
@@ -509,6 +518,7 @@ var destroyAllFeatures;
 
     function _handleEnteredSref(value, div) {
       indiciaData.invalidSrefDetected = false;
+      $('#' + div.settings.helpDiv).hide();
       // old sref no longer valid so clear the geom
       $('#' + opts.geomId).val('');
       if (value !== '') {
@@ -573,8 +583,9 @@ var destroyAllFeatures;
                   }
                   // Run code that handles when a user has selected a position on the map (either a click or changing sref)
                   processLonLatPositionOnMap(openlayersLatlong, div);
+                } else {
+                  _showWktFeature(div, data.mapwkt, div.map.editLayer, null, false, 'clickPoint');
                 }
-                _showWktFeature(div, data.mapwkt, div.map.editLayer, null, false, 'clickPoint');
               }
               $('#' + opts.geomId).val(data.wkt).change();
             }
@@ -1638,8 +1649,9 @@ var destroyAllFeatures;
             }
           }
           // almost every mouse move causes the smallest + key square to change
-          if (handler.getPrecisionInfo(largestSrefLen+2)!==false &&
-                handler.getPrecisionInfo(largestSrefLen+2).metres !== handler.getPrecisionInfo(largestSrefLen).metres) {
+          if (div.settings.clickedSrefPrecisionMax > precisionInfo.precision &&
+              handler.getPrecisionInfo(largestSrefLen+2)!==false &&
+              handler.getPrecisionInfo(largestSrefLen+2).metres !== handler.getPrecisionInfo(largestSrefLen).metres) {
             $('.hint-plus .label').html(handler.getPrecisionInfo(largestSrefLen+2).display + ':');
             $('.hint-plus .data').html(handler.pointToGridNotation(pt, largestSrefLen+2));
             $('.hint-plus').css('opacity', 1);
@@ -1649,7 +1661,8 @@ var destroyAllFeatures;
           // don't recalculate if mouse is still over the existing ghost
           if (recalcGhost || $('.hint-normal').css('opacity')===0) {
             // since we've moved a square, redo the grid ref hints
-            if (handler.getPrecisionInfo(largestSrefLen-2)!==false &&
+            if (div.settings.clickedSrefPrecisionMin < precisionInfo.precision &&
+                handler.getPrecisionInfo(largestSrefLen-2)!==false &&
                 handler.getPrecisionInfo(largestSrefLen-2).metres !== handler.getPrecisionInfo(largestSrefLen).metres) {
               $('.hint-minus .label').html(handler.getPrecisionInfo(largestSrefLen-2).display + ':');
               $('.hint-minus .data').html(handler.pointToGridNotation(pt, largestSrefLen-2));
