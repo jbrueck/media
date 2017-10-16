@@ -333,7 +333,11 @@ if (typeof window.indiciaData === 'undefined') {
         var popupHtml;
         var checkedRadio;
         var alreadySet = false;
+        indiciaData.allPossibleLocationIds = [];
         if (typeof data.error === 'undefined') {
+          $.each(data, function storeId() {
+            indiciaData.allPossibleLocationIds.push(this.location_id);
+          });
           if (data.length === 1) {
             // single unique matching location found
             $('#' + locCntrlIdEscaped).val(data[0].location_id);

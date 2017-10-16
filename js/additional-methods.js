@@ -76,14 +76,19 @@ jQuery.validator.addMethod('maxgridref', function (value, element, params) {
 }, 'Please supply a {0} figure grid reference precision or less');
 
 // Make sure user cannot enter junk into the taxon cell and continue with submit
-jQuery.validator.addMethod('speciesMustBeFilled', function(value, element) {
+jQuery.validator.addMethod('speciesMustBeFilled', function (value, element) {
   var presenceCellInput = jQuery(element).parents('tr:first').find('.scPresenceCell').children(':input');
-    if (jQuery(presenceCellInput).val() || !jQuery(element).val()) {
-      return true;
-    }
-  },
-  ''
-);
+	if (jQuery(presenceCellInput).val() || !jQuery(element).val()) {
+		return true;
+	}
+}, '');
+
+jQuery.validator.addMethod('validateLinkedLocationAgainstGridSquare', function (value, element) {
+  var ctrlName = jQuery(element).attr('name').replace(/:name$/, '').replace(/:/g, '\\:');
+  var locationId = jQuery('input[name="' + ctrlName + '"]').val();
+  return locationId === '' || typeof indiciaData.allPossibleLocationIds === 'undefined' ||
+      jQuery.inArray(locationId, indiciaData.allPossibleLocationIds) > -1;
+}, 'The location is not in the chosen grid square.');
 
 /**
 * Return true, if the value is a valid vehicle identification number (VIN).
