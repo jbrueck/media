@@ -693,10 +693,13 @@ var resetSpeciesTextOnEscape;
    * @param string system
    */
   function setupSrefPrecisionControl(srefControl, system) {
-    var precisionCtrl = $(srefControl).closest('tr').find('.scSpatialRefPrecision');
-    var finerSref = $(srefControl).val();
+    var finerSref = $(srefControl).val().trim();
     var finerSrefIsPointSystem = system.match(/^\d+$/);
-    var finerSrefIsPrecise = finerSrefIsPointSystem || finerSref.match(/[\d]/g).length >= 7;
+    var finerSrefIsPrecise = finerSrefIsPointSystem || finerSref.match(/[\d]/g).length >= 9;
+    var precisionCtrl = $(srefControl).closest('tr').find('.scSpatialRefPrecision');
+    if (precisionCtrl.length === 0) {
+      precisionCtrl = $(srefControl).closest('tr').next('tr.footable-row-detail').find('.scSpatialRefPrecision');
+    }
     if (precisionCtrl.length > 0) {
       if (finerSrefIsPrecise) {
         precisionCtrl.removeAttr('disabled');
