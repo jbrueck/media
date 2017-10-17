@@ -309,7 +309,7 @@
           indiciaData.mapdiv.map.updateSize();
           // Remove boundaries when assessing the size of the area to show on review map, just want records
           $.each(indiciaData.mapdiv.map.editLayer.features, function() {
-            if (this.attributes.type === 'boundary') {
+            if ($.inArray(this.attributes.type, ['ghost', 'boundary', 'linkedboundary']) > -1) {
               features.push(this);
             }
           });
