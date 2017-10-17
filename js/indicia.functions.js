@@ -315,6 +315,18 @@ if (typeof window.indiciaData === 'undefined') {
     }
   };
 
+  function addLinkedLocationBoundary(wkt) {
+    var geom;
+    var feature;
+    geom = OpenLayers.Geometry.fromWKT(wkt);
+    if (indiciaData.mapdiv.map.projection.getCode() !== indiciaData.mapdiv.indiciaProjection.getCode()) {
+      geom.transform(indiciaData.mapdiv.indiciaProjection, indiciaData.mapdiv.map.projection);
+    }
+    feature = new OpenLayers.Feature.Vector(geom);
+    feature.attributes.type = 'linkedboundary';
+    indiciaData.mapdiv.map.editLayer.addFeatures([feature]);
+  }
+
   indiciaFns.locationControl.autoFillLocationFromLocationTypeId = function (locCntrlId, locationTypeId) {
     var locCntrlIdEscaped = locCntrlId.replace(':', '\\:');
     var reportingURL = indiciaData.read.url + 'index.php/services/report/requestReport' +
@@ -328,18 +340,6 @@ if (typeof window.indiciaData === 'undefined') {
       location_type_id: locationTypeId,
       exclude_composites: 1
     };
-
-    function addLinkedLocationBoundary(wkt) {
-      var geom;
-      var feature;
-      geom = OpenLayers.Geometry.fromWKT(wkt);
-      if (indiciaData.mapdiv.map.projection.getCode() !== indiciaData.mapdiv.indiciaProjection.getCode()) {
-        geom.transform(indiciaData.mapdiv.indiciaProjection, indiciaData.mapdiv.map.projection);
-      }
-      feature = new OpenLayers.Feature.Vector(geom);
-      feature.attributes.type = 'boundary';
-      indiciaData.mapdiv.map.editLayer.addFeatures([feature]);
-    }
 
     $.getJSON(reportingURL, reportOptions,
       function (data) {
@@ -395,6 +395,20 @@ if (typeof window.indiciaData === 'undefined') {
         }
       }
     );
+  };
+
+  indiciaFns.locationControl.linkedLocationAttrValChange = function () {
+    // Trigger validation test.
+    $(this).valid();
+    indiciaData.mapdiv.removeAllFeatures(indiciaData.mapdiv.map.editLayer, 'linkedboundary');
+    if ($(this).val()) {
+      // Display the location.
+      $.getJSON(indiciaData.read.url + 'index.php/services/data/location/' + $(this).val() +
+          '?mode=json&view=detail&auth_token=' + indiciaData.read.auth_token +
+          '&nonce=' + indiciaData.read.nonce + '&callback=?', function (data) {
+        addLinkedLocationBoundary(data[0].geom);
+      });
+    }
   };
 }(jQuery));
 
