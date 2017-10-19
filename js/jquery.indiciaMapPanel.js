@@ -2553,6 +2553,25 @@ jQuery.fn.indiciaMapPanel.defaults = {
         projection: 23030,
         bounds: [500000, 5400000, 600000, 5550000],
         intervals: [100000, 10000, 1000, 100]
+      },
+	    'mtbqqq': {
+        projection: 4314,
+        bounds: [5.66666, 46.7, 14.2, 54.9],
+        intervals:  [[0.33333333333,0.166666666666,0.0833333333,0.0416666666,0.0208333333], [0.2,0.1,0.05,0.025,0.0125]],
+		    intervalColours: ["#FF0000","#336699","#FF6000","#FFC050","#FFF1A3"],
+        //depends on graticule defs
+		    //intervalLineWidth: [1.2,1.2,1.2,1.2,1.2], 
+		    //intervalLineOpacity: [0.5,0.5,0.5,0.7,1.0],
+		    //zoomSizes: [5,8,10,12,13]
+      },
+	    'mtbqyx': {
+        projection: 4314,
+        bounds: [5.66666, 46.7, 14.2, 54.9],
+        intervals:  [[0.0166666666], [0.0166666666]],
+		    intervalColours: ["#FF0000","#336699"],
+		    //intervalLineWidth: [1,1],
+		    //intervalLineOpacity: [0.5,0.5],
+		    //zoomSizes: [12,13]
       }
     },
     /* Intention is to also implement hoveredSrefPrecisionMin and Max for a square size shown when you hover, and also a
